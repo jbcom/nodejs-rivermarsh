@@ -1,6 +1,7 @@
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useCallback } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useRivermarsh, OtterNPC as OtterNPCType } from "@/stores/useRivermarsh";
+import { useControlsStore } from "@/stores/useControlsStore";
 import * as THREE from "three";
 import { Billboard, Text } from "@react-three/drei";
 
@@ -10,7 +11,9 @@ interface OtterNPCProps {
 
 export function OtterNPC({ npc }: OtterNPCProps) {
   const meshRef = useRef<THREE.Group>(null);
-  const { player, startDialogue, damageNPC, removeNPC } = useRivermarsh();
+  const { player, startDialogue } = useRivermarsh();
+  const interactAction = useControlsStore((state) => state.actions.interact);
+  const isInRange = useRef(false);
   
   const color = useMemo(() => {
     switch (npc.type) {
@@ -56,25 +59,25 @@ export function OtterNPC({ npc }: OtterNPCProps) {
     return () => clearInterval(intervalId);
   }, [npc.id, npc.type, npc.position]);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (!meshRef.current) return;
 
+    const playerPos = new THREE.Vector3(...player.position);
+    // Use current mesh position for distance calculations, not spawn position
+    const currentNpcPos = meshRef.current.position.clone();
+
     if (npc.type === "hostile") {
-      const playerPos = new THREE.Vector3(...player.position);
-      const npcPos = new THREE.Vector3(...npc.position);
-      const distance = playerPos.distanceTo(npcPos);
+      const distance = playerPos.distanceTo(currentNpcPos);
 
       if (distance < 15) {
-        const direction = playerPos.clone().sub(npcPos).normalize();
+        const direction = playerPos.clone().sub(currentNpcPos).normalize();
         meshRef.current.position.add(direction.multiplyScalar(delta * 2));
         
         meshRef.current.lookAt(playerPos);
 
-        if (distance < 1.5) {
-          console.log(`${npc.name} attacks!`);
-        }
+        // Attack logic is handled elsewhere - this is just movement
       } else {
-        const direction = targetPosition.current.clone().sub(meshRef.current.position);
+        const direction = targetPosition.current.clone().sub(currentNpcPos);
         if (direction.length() > 0.5) {
           direction.normalize();
           meshRef.current.position.add(direction.multiplyScalar(delta * 0.5));
@@ -82,7 +85,7 @@ export function OtterNPC({ npc }: OtterNPCProps) {
         }
       }
     } else if (npc.type === "friendly" || npc.type === "neutral") {
-      const direction = targetPosition.current.clone().sub(meshRef.current.position);
+      const direction = targetPosition.current.clone().sub(currentNpcPos);
       if (direction.length() > 0.5) {
         direction.normalize();
         meshRef.current.position.add(direction.multiplyScalar(delta * 0.5));
@@ -90,11 +93,13 @@ export function OtterNPC({ npc }: OtterNPCProps) {
       }
     }
 
-    const playerPos = new THREE.Vector3(...player.position);
-    const npcPos = meshRef.current.position;
-    const distance = playerPos.distanceTo(npcPos);
+    const distance = playerPos.distanceTo(currentNpcPos);
+    const canInteract = npc.type === "friendly" || npc.type === "quest_giver" || npc.type === "merchant";
 
-    if (distance < 3 && (npc.type === "friendly" || npc.type === "quest_giver" || npc.type === "merchant")) {
+    // Update interaction range status
+    isInRange.current = distance < 3 && canInteract;
+
+    if (isInRange.current) {
       meshRef.current.children.forEach((child) => {
         if (child.userData.isInteractPrompt) {
           child.visible = true;
@@ -109,14 +114,39 @@ export function OtterNPC({ npc }: OtterNPCProps) {
     }
   });
 
-  const handleInteract = () => {
-    if (npc.dialogue) {
+  const handleInteract = useCallback(() => {
+    if (npc.dialogue && isInRange.current) {
       startDialogue(npc.id, npc.name, npc.dialogue);
+    }
+  }, [npc.id, npc.name, npc.dialogue, startDialogue]);
+
+  // Handle keyboard 'E' key for interaction
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "e" || e.key === "E") && isInRange.current) {
+        handleInteract();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleInteract]);
+
+  // Handle mobile interact button
+  useEffect(() => {
+    if (interactAction && isInRange.current) {
+      handleInteract();
+    }
+  }, [interactAction, handleInteract]);
+
+  const handleMeshClick = () => {
+    if (isInRange.current) {
+      handleInteract();
     }
   };
 
   return (
-    <group ref={meshRef} position={npc.position}>
+    <group ref={meshRef} position={npc.position} onClick={handleMeshClick}>
       <mesh castShadow position={[0, 0.4, 0]}>
         <boxGeometry args={[0.6, 0.8, 1]} />
         <meshStandardMaterial color={color} />
@@ -183,81 +213,88 @@ export function OtterNPC({ npc }: OtterNPCProps) {
   );
 }
 
+const initialNPCs: OtterNPCType[] = [
+  {
+    id: "elder_moss",
+    name: "Elder Moss",
+    faction: "elder_council",
+    position: [10, 1, 10],
+    type: "quest_giver",
+    dialogue: [
+      "Greetings, young otter! Welcome to Rivermarsh.",
+      "We face dark times... the Marsh Raiders have been stealing our fish!",
+      "Would you help us recover our stolen supplies?",
+    ],
+    quests: ["recover_fish"],
+  },
+  {
+    id: "trader_pebble",
+    name: "Trader Pebble",
+    faction: "river_clan",
+    position: [-10, 1, 15],
+    type: "merchant",
+    dialogue: [
+      "Looking to trade? I have the finest shells and stones!",
+      "Fresh fish for sale, caught this morning!",
+    ],
+  },
+  {
+    id: "raider_1",
+    name: "Marsh Raider",
+    faction: "marsh_raiders",
+    position: [40, 1, 30],
+    type: "hostile",
+    health: 50,
+    maxHealth: 50,
+  },
+  {
+    id: "raider_2",
+    name: "Marsh Raider",
+    faction: "marsh_raiders",
+    position: [-35, 1, -25],
+    type: "hostile",
+    health: 50,
+    maxHealth: 50,
+  },
+  {
+    id: "friendly_1",
+    name: "Splash",
+    faction: "river_clan",
+    position: [5, 1, -10],
+    type: "friendly",
+    dialogue: [
+      "Beautiful day for swimming!",
+      "Watch out for the raiders near the eastern marsh.",
+    ],
+  },
+  {
+    id: "friendly_2",
+    name: "Ripple",
+    faction: "river_clan",
+    position: [-15, 1, -15],
+    type: "friendly",
+    dialogue: [
+      "Have you seen the water lilies? They're blooming!",
+      "I love this place. So peaceful... usually.",
+    ],
+  },
+];
+
 export function NPCManager() {
   const { npcs, spawnNPC } = useRivermarsh();
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    const initialNPCs: OtterNPCType[] = [
-      {
-        id: "elder_moss",
-        name: "Elder Moss",
-        faction: "elder_council",
-        position: [10, 1, 10],
-        type: "quest_giver",
-        dialogue: [
-          "Greetings, young otter! Welcome to Rivermarsh.",
-          "We face dark times... the Marsh Raiders have been stealing our fish!",
-          "Would you help us recover our stolen supplies?",
-        ],
-        quests: ["recover_fish"],
-      },
-      {
-        id: "trader_pebble",
-        name: "Trader Pebble",
-        faction: "river_clan",
-        position: [-10, 1, 15],
-        type: "merchant",
-        dialogue: [
-          "Looking to trade? I have the finest shells and stones!",
-          "Fresh fish for sale, caught this morning!",
-        ],
-      },
-      {
-        id: "raider_1",
-        name: "Marsh Raider",
-        faction: "marsh_raiders",
-        position: [40, 1, 30],
-        type: "hostile",
-        health: 50,
-        maxHealth: 50,
-      },
-      {
-        id: "raider_2",
-        name: "Marsh Raider",
-        faction: "marsh_raiders",
-        position: [-35, 1, -25],
-        type: "hostile",
-        health: 50,
-        maxHealth: 50,
-      },
-      {
-        id: "friendly_1",
-        name: "Splash",
-        faction: "river_clan",
-        position: [5, 1, -10],
-        type: "friendly",
-        dialogue: [
-          "Beautiful day for swimming!",
-          "Watch out for the raiders near the eastern marsh.",
-        ],
-      },
-      {
-        id: "friendly_2",
-        name: "Ripple",
-        faction: "river_clan",
-        position: [-15, 1, -15],
-        type: "friendly",
-        dialogue: [
-          "Have you seen the water lilies? They're blooming!",
-          "I love this place. So peaceful... usually.",
-        ],
-      },
-    ];
+    // Wait for Zustand hydration and ensure we only spawn once
+    const timer = setTimeout(() => {
+      if (!hasInitialized.current && npcs.length === 0) {
+        hasInitialized.current = true;
+        initialNPCs.forEach((npc) => spawnNPC(npc));
+      }
+    }, 100);
 
-    if (npcs.length === 0) {
-      initialNPCs.forEach((npc) => spawnNPC(npc));
-    }
-  }, []);
+    return () => clearTimeout(timer);
+  }, [npcs.length, spawnNPC]);
 
   return (
     <>

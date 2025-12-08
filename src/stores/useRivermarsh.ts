@@ -304,31 +304,33 @@ export const useRivermarsh = create<GameState>()(
         },
       })),
 
-    completeQuest: (questId) =>
-      set((state) => {
-        const quest = state.player.activeQuests.find((q) => q.id === questId);
-        if (!quest) return state;
+    completeQuest: (questId) => {
+      const state = get();
+      const quest = state.player.activeQuests.find((q) => q.id === questId);
+      if (!quest) return;
 
-        get().addExperience(quest.rewards.experience);
-        
-        if (quest.rewards.items) {
-          quest.rewards.items.forEach((item) => get().addInventoryItem(item));
-        }
+      // First, move the quest to completed
+      set((s) => ({
+        player: {
+          ...s.player,
+          activeQuests: s.player.activeQuests.filter((q) => q.id !== questId),
+          completedQuests: [...s.player.completedQuests, { ...quest, status: "completed" as const }],
+        },
+      }));
 
-        if (quest.rewards.affinityChange) {
-          get().updatePlayerStats({
-            otterAffinity: state.player.stats.otterAffinity + quest.rewards.affinityChange,
-          });
-        }
+      // Then apply rewards separately to avoid stale state
+      get().addExperience(quest.rewards.experience);
 
-        return {
-          player: {
-            ...state.player,
-            activeQuests: state.player.activeQuests.filter((q) => q.id !== questId),
-            completedQuests: [...state.player.completedQuests, { ...quest, status: "completed" }],
-          },
-        };
-      }),
+      if (quest.rewards.items) {
+        quest.rewards.items.forEach((item) => get().addInventoryItem(item));
+      }
+
+      if (quest.rewards.affinityChange) {
+        get().updatePlayerStats({
+          otterAffinity: get().player.stats.otterAffinity + quest.rewards.affinityChange,
+        });
+      }
+    },
 
     toggleInventory: () =>
       set((state) => ({
@@ -439,6 +441,8 @@ export const useRivermarsh = create<GameState>()(
         
         if (newExp >= expForNextLevel) {
           const newLevel = state.player.stats.level + 1;
+          const newMaxHealth = state.player.stats.maxHealth + 10;
+          const newMaxStamina = state.player.stats.maxStamina + 5;
           return {
             player: {
               ...state.player,
@@ -446,10 +450,10 @@ export const useRivermarsh = create<GameState>()(
                 ...state.player.stats,
                 experience: newExp - expForNextLevel,
                 level: newLevel,
-                maxHealth: state.player.stats.maxHealth + 10,
-                health: state.player.stats.maxHealth + 10,
-                maxStamina: state.player.stats.maxStamina + 5,
-                stamina: state.player.stats.maxStamina + 5,
+                maxHealth: newMaxHealth,
+                health: newMaxHealth,
+                maxStamina: newMaxStamina,
+                stamina: newMaxStamina,
               },
             },
           };

@@ -18,7 +18,7 @@ export function VirtualJoysticks() {
       restOpacity: 0.7,
     });
 
-    joystickManager.on("move", (evt, data) => {
+    joystickManager.on("move", (_evt, data) => {
       const clampedDistance = Math.min(data.distance, 40) / 40;
       const forward = -data.vector.y * clampedDistance;
       const right = -data.vector.x * clampedDistance;
@@ -41,8 +41,8 @@ export function VirtualJoysticks() {
         position: "fixed",
         bottom: 0,
         left: 0,
-        width: "100%",
-        height: "100%",
+        width: "50%",
+        height: "40%",
         zIndex: 999,
         pointerEvents: "auto",
       }}

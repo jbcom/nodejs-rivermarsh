@@ -1,25 +1,25 @@
 import { useControlsStore } from "@/stores/useControlsStore";
 
+const buttonStyle: React.CSSProperties = {
+  position: "fixed",
+  width: "60px",
+  height: "60px",
+  borderRadius: "50%",
+  border: "2px solid rgba(255, 255, 255, 0.8)",
+  backgroundColor: "rgba(100, 100, 100, 0.6)",
+  color: "white",
+  fontSize: "14px",
+  fontWeight: "bold",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 1000,
+  userSelect: "none",
+  touchAction: "none",
+};
+
 export function MobileActionButtons() {
   const { setAction } = useControlsStore();
-
-  const buttonStyle = {
-    position: "fixed" as const,
-    width: "60px",
-    height: "60px",
-    borderRadius: "50%",
-    border: "2px solid rgba(255, 255, 255, 0.8)",
-    backgroundColor: "rgba(100, 100, 100, 0.6)",
-    color: "white",
-    fontSize: "14px",
-    fontWeight: "bold" as const,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1000,
-    userSelect: "none" as const,
-    touchAction: "none" as const,
-  };
 
   return (
     <>

@@ -68,6 +68,11 @@ export function GyroscopeCamera() {
           if (response === 'granted') {
             window.addEventListener('deviceorientation', handleOrientation);
           }
+        })
+        .catch((error: Error) => {
+          // Permission denied or error - gyroscope camera will not be enabled
+          // Fall back to standard camera controls
+          console.warn('DeviceOrientation permission denied or unavailable:', error.message);
         });
     } else {
       window.addEventListener('deviceorientation', handleOrientation);
@@ -85,7 +90,7 @@ export function GyroscopeCamera() {
     };
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     const playerPos = new THREE.Vector3(...player.position);
     targetPosition.current.lerp(playerPos, delta * 5);
 

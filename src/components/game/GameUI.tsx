@@ -3,7 +3,6 @@ import { useEffect } from "react";
 
 export function GameUI() {
   const {
-    player,
     showInventory,
     showQuestLog,
     activeDialogue,
@@ -287,10 +286,7 @@ function DialogueBox() {
   const currentMessage = activeDialogue.messages[activeDialogue.currentIndex];
   const isLastMessage = activeDialogue.currentIndex === activeDialogue.messages.length - 1;
 
-  const handleClick = (e: any) => {
-    e.stopPropagation();
-    e.preventDefault();
-    console.log("Dialogue clicked, isLastMessage:", isLastMessage);
+  const handleAdvance = () => {
     if (isLastMessage) {
       endDialogue();
     } else {
@@ -298,10 +294,23 @@ function DialogueBox() {
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    handleAdvance();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    // Prevent synthetic click event from firing after touch
+    e.preventDefault();
+    e.stopPropagation();
+    handleAdvance();
+  };
+
   return (
     <div
       onClick={handleClick}
-      onTouchEnd={handleClick}
+      onTouchEnd={handleTouchEnd}
       style={{
         position: "absolute",
         bottom: "100px",
