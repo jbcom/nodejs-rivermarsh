@@ -69,16 +69,48 @@ export function saveGame(playerState: {
     }
 }
 
+function isValidSaveData(data: any): data is SaveData {
+    if (!data || typeof data !== 'object') return false;
+
+    // Check version and timestamp
+    if (typeof data.version !== 'string' || typeof data.timestamp !== 'number') return false;
+
+    // Check player
+    if (!data.player || typeof data.player !== 'object') return false;
+    if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
+    if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
+    if (typeof data.player.health !== 'number' || typeof data.player.stamina !== 'number') return false;
+
+    // Check world
+    if (!data.world || typeof data.world !== 'object') return false;
+    if (typeof data.world.time !== 'number' || typeof data.world.weather !== 'string') return false;
+
+    // Check resources
+    if (!Array.isArray(data.resources)) return false;
+    for (const res of data.resources) {
+        if (!res || typeof res !== 'object') return false;
+        if (typeof res.id !== 'number' || typeof res.collected !== 'boolean' || typeof res.collectedAt !== 'number') return false;
+    }
+
+    return true;
+}
+
 export function loadGame(): SaveData | null {
     try {
         const savedData = localStorage.getItem(SAVE_KEY);
         if (!savedData) return null;
 
-        const data = JSON.parse(savedData) as SaveData;
+        const data = JSON.parse(savedData);
 
         // Version check
         if (data.version !== SAVE_VERSION) {
             console.warn('Save data version mismatch, ignoring save');
+            return null;
+        }
+
+        // Security: Validate schema to prevent loading malformed data
+        if (!isValidSaveData(data)) {
+            console.warn('Save data schema validation failed, ignoring save');
             return null;
         }
 
