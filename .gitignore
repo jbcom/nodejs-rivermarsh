@@ -1,1 +1,7 @@
-core
+node_modules/
+dist/
+.env
+coverage/
+ios/App/App.xcodeproj/xcuserdata/
+android/app/build/
+android/.gradle/
