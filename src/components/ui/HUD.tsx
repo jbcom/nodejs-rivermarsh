@@ -134,6 +134,9 @@ export function HUD() {
 
                 {/* Time Display - Top Right */}
                 <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
                     textAlign: 'right',
                     textShadow: '0 2px 10px rgba(0,0,0,0.8)',
                 }}>
@@ -145,6 +148,35 @@ export function HUD() {
                     }}>
                         {formatTime()}
                     </div>
+                    <button
+                        onClick={() => setIsPaused(true)}
+                        aria-label="Pause game"
+                        style={{
+                            background: 'rgba(0, 0, 0, 0.4)',
+                            border: '1px solid rgba(255, 255, 255, 0.4)',
+                            borderRadius: '50%',
+                            width: '44px',
+                            height: '44px',
+                            fontSize: '1.2em',
+                            cursor: 'pointer',
+                            color: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            pointerEvents: 'auto',
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                            e.currentTarget.style.borderColor = '#fff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                        }}
+                    >
+                        ⏸
+                    </button>
                 </div>
             </div>
 
@@ -158,7 +190,14 @@ export function HUD() {
                 gap: '8px',
             }}>
                 {/* Health Bar */}
-                <div data-testid="health-bar">
+                <div
+                    data-testid="health-bar"
+                    role="progressbar"
+                    aria-label="Health"
+                    aria-valuenow={Math.round(health)}
+                    aria-valuemin={0}
+                    aria-valuemax={maxHealth}
+                >
                     <div style={{
                         fontSize: '10px',
                         color: '#fff',
@@ -191,7 +230,14 @@ export function HUD() {
                 </div>
 
                 {/* Stamina Bar */}
-                <div data-testid="stamina-bar">
+                <div
+                    data-testid="stamina-bar"
+                    role="progressbar"
+                    aria-label="Stamina"
+                    aria-valuenow={Math.round(stamina)}
+                    aria-valuemin={0}
+                    aria-valuemax={maxStamina}
+                >
                     <div style={{
                         fontSize: '10px',
                         color: '#fff',
