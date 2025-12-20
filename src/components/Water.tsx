@@ -1,7 +1,11 @@
-import { waterFragmentShader, waterVertexShader } from '@/shaders/water';
-import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import * as THREE from 'three';
+/**
+ * Water Component - Using @jbcom/strata
+ * 
+ * Replaces custom shader implementation with Strata's AdvancedWater
+ * which provides caustics, foam, and depth-based coloring.
+ */
+
+import { AdvancedWater } from '@jbcom/strata'
 
 interface WaterProps {
     position?: [number, number, number];
@@ -9,34 +13,15 @@ interface WaterProps {
 }
 
 export function Water({ position = [0, -0.2, 0], size = 100 }: WaterProps) {
-    const meshRef = useRef<THREE.Mesh>(null!);
-
-    const material = useMemo(() => {
-        return new THREE.ShaderMaterial({
-            vertexShader: waterVertexShader,
-            fragmentShader: waterFragmentShader,
-            uniforms: {
-                time: { value: 0 },
-            },
-            transparent: true,
-            side: THREE.DoubleSide,
-            depthWrite: false,
-        });
-    }, []);
-
-    useFrame((_, delta) => {
-        material.uniforms.time.value += delta;
-    });
-
     return (
-        <mesh
-            ref={meshRef}
-            position={position}
-            rotation={[-Math.PI / 2, 0, 0]}
-            renderOrder={-1}
-        >
-            <planeGeometry args={[size, size, 32, 32]} />
-            <primitive object={material} attach="material" />
-        </mesh>
+        <group position={position}>
+            <AdvancedWater
+                size={size}
+                waterColor="#006994"
+                deepWaterColor="#003366"
+                foamColor="#ffffff"
+                causticIntensity={0.4}
+            />
+        </group>
     );
 }
