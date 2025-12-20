@@ -73,9 +73,27 @@ function WeatherEffects() {
         // Read weather from ECS
         for (const entity of ecsWorld.with('weather')) {
             const w = entity.weather
-            const currentWeather = w.current === 'storm' ? 'rain' : w.current
-            if (currentWeather !== weather && (currentWeather === 'clear' || currentWeather === 'rain' || currentWeather === 'snow')) {
-                setWeather(currentWeather)
+            // Map ECS weather types to visual effects
+            // WeatherType = 'clear' | 'rain' | 'fog' | 'snow' | 'storm' | 'sandstorm'
+            let mappedWeather: 'clear' | 'rain' | 'snow' = 'clear'
+            switch (w.current) {
+                case 'rain':
+                case 'storm':
+                    mappedWeather = 'rain'
+                    break
+                case 'snow':
+                    mappedWeather = 'snow'
+                    break
+                case 'fog':
+                case 'sandstorm':
+                case 'clear':
+                default:
+                    // fog and sandstorm are handled by VolumetricFogMesh, not particle effects
+                    mappedWeather = 'clear'
+                    break
+            }
+            if (mappedWeather !== weather) {
+                setWeather(mappedWeather)
             }
             if (w.intensity !== intensity) {
                 setIntensity(w.intensity)

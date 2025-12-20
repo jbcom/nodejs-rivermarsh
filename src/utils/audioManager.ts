@@ -52,6 +52,7 @@ interface AudioManagerState {
     listener: THREE.AudioListener | null
     sounds: Map<string, THREE.Audio>
     ambientSounds: Map<string, THREE.Audio>
+    bufferCache: Map<string, AudioBuffer>
     currentAmbient: string | null
     targetAmbient: string | null
     crossfadeProgress: number
@@ -62,6 +63,7 @@ const state: AudioManagerState = {
     listener: null,
     sounds: new Map(),
     ambientSounds: new Map(),
+    bufferCache: new Map(),
     currentAmbient: null,
     targetAmbient: null,
     crossfadeProgress: 1,
@@ -76,6 +78,19 @@ export function initAudioManager(camera: THREE.Camera): void {
     state.listener = new THREE.AudioListener()
     camera.add(state.listener)
     state.initialized = true
+    
+    // Preload ambient sounds
+    const audioLoader = new THREE.AudioLoader()
+    Object.entries(AUDIO_PATHS.ambient).forEach(([biome, path]) => {
+        const sound = new THREE.Audio(state.listener!)
+        audioLoader.load(path, (buffer) => {
+            state.bufferCache.set(path, buffer)
+            sound.setBuffer(buffer)
+            sound.setLoop(true)
+            sound.setVolume(0)
+            state.ambientSounds.set(biome, sound)
+        })
+    })
 }
 
 /**
@@ -131,10 +146,21 @@ function playSound(name: keyof typeof AUDIO_PATHS.sfx, volume = 0.5): void {
     const path = AUDIO_PATHS.sfx[name]
     if (!path) return
     
-    const audioLoader = new THREE.AudioLoader()
     const sound = new THREE.Audio(state.listener)
     
+    // Use cached buffer if available
+    const cachedBuffer = state.bufferCache.get(path)
+    if (cachedBuffer) {
+        sound.setBuffer(cachedBuffer)
+        sound.setVolume(volume)
+        sound.play()
+        return
+    }
+    
+    // Load and cache if not yet loaded
+    const audioLoader = new THREE.AudioLoader()
     audioLoader.load(path, (buffer) => {
+        state.bufferCache.set(path, buffer)
         sound.setBuffer(buffer)
         sound.setVolume(volume)
         sound.play()
@@ -163,8 +189,28 @@ function playPositionalSound(path: string, position: THREE.Vector3, volume = 0.5
  * Start playing ambient sound for a biome
  */
 function playAmbient(biome: BiomeType): void {
-    state.targetAmbient = biome
+    // Map biome types to available ambient sounds
+    const biomeToAmbient: Record<BiomeType, keyof typeof AUDIO_PATHS.ambient | null> = {
+        marsh: 'marsh',
+        forest: 'forest',
+        desert: 'desert',
+        tundra: 'tundra',
+        savanna: 'desert', // fallback to desert
+        mountain: 'tundra', // fallback to tundra
+        scrubland: 'forest', // fallback to forest
+    }
+    
+    const ambientKey = biomeToAmbient[biome]
+    if (!ambientKey) return
+    
+    state.targetAmbient = ambientKey
     state.crossfadeProgress = 0
+    
+    // Start playing target if not already
+    const target = state.ambientSounds.get(ambientKey)
+    if (target && !target.isPlaying) {
+        target.play()
+    }
 }
 
 /**

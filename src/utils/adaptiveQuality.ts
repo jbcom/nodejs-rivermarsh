@@ -205,6 +205,9 @@ export function updateAdaptiveQuality(deltaMs: number): void {
     }
 }
 
+// Track if quality changed since last check
+let qualityChangedFlag = false
+
 /**
  * Apply pending quality change
  */
@@ -215,6 +218,7 @@ function applyQualityChange(): void {
     state.settings = { ...QUALITY_PRESETS[state.currentLevel] }
     state.lastAdjustTime = Date.now()
     state.frameHistory = []
+    qualityChangedFlag = true
     
     console.log(`[AdaptiveQuality] Switched to ${state.currentLevel} quality`)
     notifyListeners()
@@ -240,9 +244,9 @@ const adaptiveQualityManager = {
         updateAdaptiveQuality(frameTimeMs)
     },
     updateQuality(): boolean {
-        const prevLevel = state.currentLevel
-        // Quality is auto-updated in updateAdaptiveQuality
-        return state.currentLevel !== prevLevel
+        const changed = qualityChangedFlag
+        qualityChangedFlag = false
+        return changed
     },
     getSettings(): QualitySettings {
         return getQualitySettings()
@@ -255,6 +259,7 @@ const adaptiveQualityManager = {
     },
     reset(): void {
         initAdaptiveQuality('medium')
+        qualityChangedFlag = false
     },
 }
 

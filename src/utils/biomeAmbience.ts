@@ -22,6 +22,17 @@ const state: BiomeAmbienceState = {
     masterGain: null,
 }
 
+// Biome sound configurations (frequencies and types for ambient synthesis)
+const BIOME_CONFIGS: Record<BiomeType, { frequencies: number[]; types: OscillatorType[] }> = {
+    marsh: { frequencies: [120, 180, 240], types: ['sine', 'triangle', 'sine'] },
+    forest: { frequencies: [200, 300, 400], types: ['sine', 'sine', 'triangle'] },
+    desert: { frequencies: [80, 160], types: ['sine', 'sine'] },
+    tundra: { frequencies: [100, 150, 200], types: ['sine', 'triangle', 'sine'] },
+    savanna: { frequencies: [150, 220, 330], types: ['sine', 'sine', 'triangle'] },
+    mountain: { frequencies: [60, 120, 180], types: ['sine', 'triangle', 'sine'] },
+    scrubland: { frequencies: [140, 210, 280], types: ['sine', 'sine', 'sine'] },
+}
+
 /**
  * Initialize the biome ambience system
  */
@@ -33,6 +44,29 @@ export async function initBiomeAmbience(): Promise<void> {
         state.masterGain = state.context.createGain()
         state.masterGain.gain.value = 0.1
         state.masterGain.connect(state.context.destination)
+        
+        // Create oscillators and gains for each biome
+        const biomes: BiomeType[] = ['marsh', 'forest', 'desert', 'tundra', 'savanna', 'mountain', 'scrubland']
+        
+        for (const biome of biomes) {
+            const config = BIOME_CONFIGS[biome]
+            const biomeGain = state.context.createGain()
+            biomeGain.gain.value = 0
+            biomeGain.connect(state.masterGain)
+            state.gains.set(biome, biomeGain)
+            
+            const oscillators: OscillatorNode[] = []
+            config.frequencies.forEach((freq, i) => {
+                const osc = state.context!.createOscillator()
+                osc.type = config.types[i] || 'sine'
+                osc.frequency.value = freq
+                osc.connect(biomeGain)
+                osc.start()
+                oscillators.push(osc)
+            })
+            state.oscillators.set(biome, oscillators)
+        }
+        
         state.initialized = true
     } catch (error) {
         console.warn('Biome ambience initialization failed:', error)
