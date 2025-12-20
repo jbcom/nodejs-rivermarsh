@@ -1,18 +1,14 @@
 # Render Blueprint for Rivermarsh
 # https://render.com/docs/blueprint-spec
 
-# Enable preview environments for PRs
-previews:
-  generation: automatic
-
 services:
   # Main web application - Static site deployment
+  # Static sites are free by default on Render
   - type: web
     name: rivermarsh
     runtime: static
     buildCommand: pnpm install && pnpm run build
     staticPublishPath: ./dist
-    plan: free
     
     # Custom domains (configure in Render Dashboard)
     # domains:
