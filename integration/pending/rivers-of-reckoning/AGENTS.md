@@ -1,147 +1,141 @@
-# AGENTS.md
+# AGENTS.md - Rivers of Reckoning
 
-Comprehensive instructions for AI agents working with this repository.
+> **Instructions for AI agents working on this 3D procedural RPG**
 
-## Agent Types
+## 🌊 Game Identity
 
-| Agent | Best For | Context File |
-|-------|----------|--------------|
-| **Claude** | Complex reasoning, architecture, cross-repo work | `CLAUDE.md` |
-| **Copilot** | Issue kickoffs, targeted fixes, code generation | `.github/copilot-instructions.md` |
-| **Cursor** | IDE-integrated development | `.cursor/rules/*.mdc` |
+**Rivers of Reckoning** is a browser-based 3D roguelike RPG where players explore infinite procedurally generated worlds. Built with TypeScript, React Three Fiber, and [@jbcom/strata](https://www.npmjs.com/package/@jbcom/strata).
 
-## Before Starting Any Task
+### Mission Statement
 
-### 1. Check Context
+*Create an immersive, endlessly replayable adventure that runs perfectly in any web browser, with no downloads, no installs, and no waiting.*
+
+## 🎯 Design Principles
+
+| Principle | What It Means |
+|-----------|---------------|
+| **Web-First** | Browser is the primary platform |
+| **Instant Play** | Game loads fast and starts immediately |
+| **Procedural** | Everything generated from seeds |
+| **Responsive** | Works on desktop, tablet, and mobile |
+| **Performant** | 60fps target with efficient rendering |
+
+## 🛠 Technology
+
+| Layer | Tech | Why |
+|-------|------|-----|
+| 3D Engine | @jbcom/strata | Procedural terrain, vegetation, weather, audio, AI |
+| Rendering | React Three Fiber | React-style Three.js development |
+| UI | Material-UI | Consistent, accessible UI components |
+| State | Zustand | Fast, simple state management |
+| Build | Vite | Modern, fast bundler |
+| Tests | Playwright | Cross-browser E2E testing |
+| Mobile | Capacitor | Native iOS/Android deployment |
+
+## 📁 Structure
+
+```
+src/
+├── App.tsx                 # Main 3D game scene
+├── main.tsx                # React entry point
+├── components/             # UI components
+│   ├── TitleScreen.tsx
+│   ├── GameHUD.tsx
+│   ├── PauseMenu.tsx
+│   └── GameOverScreen.tsx
+├── store/
+│   └── gameStore.ts        # Zustand state
+└── types/
+    └── game.ts             # TypeScript types
+```
+
+## 🔧 Commands
+
 ```bash
-# Current focus and recent decisions
-cat memory-bank/activeContext.md
-
-# Session progress
-cat memory-bank/progress.md
+pnpm dev            # Start dev server
+pnpm build          # Production build
+pnpm test:e2e       # Run Playwright tests
+pnpm lint           # ESLint
+pnpm typecheck      # TypeScript check
 ```
 
-### 2. Understand the Request
-- Read the issue/PR description completely
-- Check for linked issues or PRs
-- Look for acceptance criteria
+## ✅ Agent Checklist
 
-### 3. Check Existing Patterns
-```bash
-# Recent commits show coding patterns
-git log --oneline -10
+Before making changes:
+- [ ] Understand the Strata API
+- [ ] Read existing code patterns
+- [ ] Run `pnpm typecheck` to confirm clean state
 
-# Similar files show conventions
-find . -name "*.py" | head -5 | xargs head -50
+When making changes:
+- [ ] Use real Strata APIs (no hallucinated components)
+- [ ] Test that `pnpm dev` runs
+- [ ] Ensure type checks pass
+- [ ] Follow React/Three.js best practices
+
+After changes:
+- [ ] `pnpm lint` passes
+- [ ] `pnpm test:e2e` passes
+- [ ] Update docs if needed
+
+## ❌ What NOT to Do
+
+- **Don't** hallucinate Strata APIs - check PUBLIC_API.md
+- **Don't** use setInterval for game loops - use useFrame
+- **Don't** use Math.random() for procedural content - use seeded RNG
+- **Don't** make blocking synchronous calls
+- **Don't** add Python code - this is TypeScript only
+
+## 🎨 Key Strata APIs
+
+```typescript
+// Core algorithms
+import { fbm, noise3D } from '@jbcom/strata'
+
+// Vegetation
+import { createGrassInstances, createTreeInstances, createRockInstances } from '@jbcom/strata'
+
+// Components
+import { ProceduralSky, Rain, Snow } from '@jbcom/strata'
+
+// Post-processing
+import { CinematicEffects, RealisticEffects } from '@jbcom/strata'
+
+// AI (YukaJS integration)
+import { YukaEntityManager, YukaVehicle, YukaStateMachine } from '@jbcom/strata'
+
+// State presets
+import { RPG_STATE_PRESET, getStatePreset } from '@jbcom/strata'
 ```
 
-## Development Commands
-
-<!-- These will be overridden by language-specific instructions -->
-
-### Testing
-```bash
-# Run tests (check package.json or pyproject.toml for exact command)
-npm test        # Node.js
-uv run pytest   # Python
-go test ./...   # Go
-```
-
-### Linting
-```bash
-npm run lint    # Node.js
-uvx ruff check  # Python
-golangci-lint run  # Go
-```
-
-### Building
-```bash
-npm run build   # Node.js
-uv build        # Python
-go build        # Go
-```
-
-## Commit Message Format
-
-Use [Conventional Commits](https://www.conventionalcommits.org/):
+## 📝 Commit Format
 
 ```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
+feat(terrain): add river valley generation
+fix(weather): correct rain particle direction
+docs: update strata integration guide
+test: add biome transition tests
+chore: update dependencies
 ```
 
-### Types
-- `feat`: New feature (minor version bump)
-- `fix`: Bug fix (patch version bump)
-- `docs`: Documentation only
-- `style`: Formatting, no code change
-- `refactor`: Code restructure, no behavior change
-- `test`: Adding/updating tests
-- `chore`: Maintenance tasks
+## 🔗 Key Files
 
-### Examples
-```bash
-feat(auth): add OAuth2 support
-fix(api): handle null response correctly
-docs: update installation instructions
-test(utils): add edge case coverage
-chore(deps): update dependencies
-```
+| File | Purpose |
+|------|---------|
+| `src/App.tsx` | Main 3D scene composition |
+| `src/store/gameStore.ts` | Game state management |
+| `src/types/game.ts` | TypeScript definitions |
+| `src/components/GameHUD.tsx` | In-game UI overlay |
 
-## Error Recovery
+## Agent-Specific Notes
 
-### Tests Failing
-1. Read the error message carefully
-2. Check if it's a flaky test (run again)
-3. Check recent commits that might have caused it
-4. Fix the root cause, not just the symptom
+### Claude
+- Focus on architecture and complex refactoring
+- Verify Strata API usage against actual docs
 
-### Lint Errors
-1. Run auto-fix first (`--fix` flag)
-2. Manually fix remaining issues
-3. Don't disable rules without justification
+### Copilot
+- Good for targeted fixes and feature additions
+- Check component patterns in existing code
 
-### Build Errors
-1. Check for type errors first
-2. Ensure dependencies are installed
-3. Check for missing files or imports
-
-## Memory Bank Protocol
-
-### Reading Context
-```bash
-# Always check before starting
-cat memory-bank/activeContext.md
-```
-
-### Updating Context
-```bash
-# After completing significant work
-cat >> memory-bank/activeContext.md << 'EOF'
-
-## Session: $(date +%Y-%m-%d)
-
-### Completed
-- [x] Description of completed work
-
-### For Next Agent
-- [ ] Remaining tasks
-EOF
-```
-
-## What NOT To Do
-
-- ❌ Don't make unrelated changes
-- ❌ Don't skip tests
-- ❌ Don't ignore linting errors
-- ❌ Don't commit without meaningful message
-- ❌ Don't push directly to main (use PRs)
-- ❌ Don't add dependencies without justification
-
-## Repository-Specific Instructions
-
-<!-- Add repository-specific agent instructions below -->
-
+### Cursor
+- IDE-integrated development
+- Use .cursor/rules/*.mdc for context

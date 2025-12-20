@@ -1,175 +1,190 @@
-# First Python RPG - Pyxel Edition
+# Rivers of Reckoning
 
-A retro-style RPG game built with Python and Pyxel, featuring procedural generation, modern game mechanics, and a clean library structure.
+> **An immersive, procedurally generated 3D roguelike RPG built for instant web play**
 
-## 🎮 Features
+[![Node.js CI](https://github.com/jbcom/nodejs-rivers-of-reckoning/actions/workflows/nodejs-app.yml/badge.svg)](https://github.com/jbcom/nodejs-rivers-of-reckoning/actions/workflows/nodejs-app.yml)
 
-- **Retro Aesthetics**: 256x256 pixel art style with 16-color palette
-- **Procedural Generation**: Dynamic maps, enemies, and quests
-- **Modern Game Mechanics**: Weather system, particle effects, and quest system
-- **Enhanced Features**: Procedural dungeons, dynamic quests, and weather effects
-- **Clean Architecture**: Proper Python package structure with Poetry
+## 🌊 The Vision
 
-## 🛠️ Installation
+**Rivers of Reckoning** is a browser-based adventure where players explore an infinite, ever-changing world of marshes, forests, deserts, and tundra. Every playthrough is unique—generated from a seed that creates coherent biomes, dynamic weather, and challenging encounters.
 
-### Prerequisites
+### Player Experience Goals
+
+- **Instant Play**: Click and you're in. No downloads, no installs, no waiting.
+- **One More Turn**: Addictive exploration loop - "what's over that next hill?"
+- **Tactile Feedback**: Responsive controls, satisfying combat, clear visual feedback
+- **Mobile-Friendly**: Touch controls that feel native, not bolted-on
+- **Shareable Worlds**: Share your seed with friends to explore the same world
+- **Persistent Progress**: Local storage saves your best runs and achievements
+
+## 🛠 Technology Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **3D Engine** | [@jbcom/strata](https://www.npmjs.com/package/@jbcom/strata) | Procedural terrain, vegetation, weather, audio, AI |
+| **3D Rendering** | React Three Fiber + Three.js | WebGL rendering in React |
+| **UI Framework** | Material-UI (MUI) | Responsive game UI and menus |
+| **State Management** | Zustand | Fast, lightweight game state |
+| **Build Tool** | Vite | Fast development and production builds |
+| **Testing** | Playwright | End-to-end browser testing |
+| **Cross-Platform** | Capacitor | Native mobile deployment (iOS/Android) |
+
+## 🚀 Quick Start
+
 ```bash
-# Install Python 3.8+
-# Install Poetry (recommended)
-curl -sSL https://install.python-poetry.org | python3 -
+# Install dependencies
+pnpm install
 
-# For Ubuntu/Debian (required for Pyxel)
-sudo apt-get install libsdl2-dev
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Run end-to-end tests
+pnpm test:e2e
 ```
-
-### Install Dependencies
-```bash
-# Using Poetry (recommended)
-poetry install
-
-# Using pip
-pip install pyxel
-```
-
-## 🎮 Running the Game
-
-### Using the CLI
-```bash
-# Run the game
-first-python-rpg
-
-# Or using Python
-python -m src.first_python_rpg.cli
-
-# Or using the simple main.py
-python main.py
-```
-
-## 🎲 Game Features
-
-### Core Gameplay
-- **Player Movement**: Arrow keys to move around the map
-- **Feature Selection**: Choose which game features to enable
-- **Random Events**: Treasure, traps, and encounters
-- **Enemy Encounters**: Battle various creatures
-- **Difficulty Levels**: Easy and Hard modes
-
-### Enhanced Features
-- **Weather System**: Dynamic weather effects (rain, snow, fog, clear)
-- **Quest System**: Procedural quest generation with rewards
-- **Particle Effects**: Visual enhancements and effects
-- **Procedural Dungeons**: Randomly generated dungeon levels
-- **Day/Night Cycle**: Time-based gameplay mechanics
-
-## 🎮 Controls
-
-- **Arrow Keys**: Move player
-- **SPACE**: Select/Confirm
-- **ENTER**: Start game
-- **ESC**: Pause/Resume
-- **Q**: Quit to menu
 
 ## 📁 Project Structure
 
 ```
-├── src/
-│   └── first_python_rpg/
-│       ├── __init__.py          # Package initialization
-│       ├── cli.py               # CLI entry point
-│       ├── game.py              # Main game class
-│       ├── player.py            # Player logic
-│       ├── enemy.py             # Enemy logic
-│       ├── map.py               # Map system
-│       ├── map_data.py          # Game data and constants
-│       ├── boss.py              # Boss encounters
-│       ├── shop.py              # Shop system
-│       ├── procedural_enemies.py # Procedural enemy generation
-│       ├── pyxel_enhancements.py # Enhanced features
-│       └── utils.py             # Utility functions
-├── main.py                      # Simple entry point
-├── test_library_structure.py    # Library tests
-├── test_pyxel_basic.py         # Basic functionality tests
-├── pyproject.toml              # Poetry configuration
-└── README.md                   # This file
+src/
+├── App.tsx                 # Main game component with 3D scene
+├── main.tsx                # React entry point
+├── components/
+│   ├── TitleScreen.tsx     # Game title and start menu
+│   ├── GameHUD.tsx         # In-game HUD (health, stamina, weather)
+│   ├── PauseMenu.tsx       # Pause overlay
+│   ├── GameOverScreen.tsx  # End game stats and restart
+│   ├── Player.tsx          # Player character with WASD movement
+│   ├── Enemy.tsx           # Enemy AI and spawning system
+│   └── Combat.tsx          # Attack mechanics and damage
+├── constants/
+│   └── game.ts             # Centralized game configuration
+├── events/
+│   └── combatEvents.ts     # Decoupled event communication
+├── store/
+│   └── gameStore.ts        # Zustand state management
+└── types/
+    └── game.ts             # TypeScript type definitions
 ```
 
-## 🧪 Testing
+See [GAME_IDENTITY.md](./GAME_IDENTITY.md) for the complete game vision and design document.
 
-### Run Tests
+## 🎮 Controls
+
+| Input | Action |
+|-------|--------|
+| **WASD / Arrow Keys** | Move player |
+| **Space / Left Click** | Attack |
+| **Mouse Drag** | Rotate camera |
+| **Scroll Wheel** | Zoom in/out |
+| **ESC** | Pause game |
+
+## 🎮 Game Features
+
+### Procedural World Generation
+- **Terrain**: Multi-octave FBM noise creates realistic hills, valleys, and rivers
+- **Biomes**: Temperature and moisture maps determine grassland, forest, desert, tundra
+- **Vegetation**: Trees, grass, and rocks placed contextually based on biome
+
+### Dynamic Systems
+- **Weather**: Clear, rain, fog, snow, storm - affects visibility and gameplay
+- **Day/Night Cycle**: Dawn, day, dusk, night with lighting changes
+- **Time Progression**: Game time flows, affecting NPC behavior and events
+
+### Combat & Enemies
+- **Enemy AI**: Procedurally generated enemies with wandering, chasing, and attacking states
+- **Combat System**: Attack with Space or Click, enemies deal damage on contact
+- **Progression**: Defeat enemies for XP and gold, level up for increased stats
+
+### Visual Effects
+- **Procedural Sky**: Dynamic atmospheric rendering
+- **Water**: Animated shader with waves and caustics
+- **Post-Processing**: Bloom, vignette, cinematic effects
+
+## 🎯 Development Commands
+
 ```bash
-# Test library structure
-python test_library_structure.py
+# Development
+pnpm dev              # Start dev server with hot reload
+pnpm typecheck        # Type-check without emitting
 
-# Test basic functionality
-python test_pyxel_basic.py
+# Build
+pnpm build            # Production build
+pnpm preview          # Preview production build
+
+# Testing
+pnpm test             # Run unit tests (Vitest)
+pnpm test:e2e         # Run Playwright e2e tests
+pnpm test:e2e:ui      # Run e2e tests with UI
+pnpm test:e2e:debug   # Debug e2e tests
+
+# Code Quality
+pnpm lint             # Run ESLint
+pnpm lint:fix         # Auto-fix lint issues
 ```
 
-### Test Coverage
-- ✅ Library structure and imports
-- ✅ Player and enemy creation
-- ✅ Map generation and walkability
-- ✅ Procedural enemy generation
-- ✅ Game object initialization
+## 🌍 Cross-Platform Deployment
 
-## 🔧 Development
-
-### Package Installation
+### Web (Primary)
 ```bash
-# Install in development mode
-poetry install
-
-# Build package
-poetry build
-
-# Install from source
-pip install -e .
+pnpm build
+# Deploy dist/ to any static hosting
 ```
 
-### Architecture
-- **Clean Library Structure**: Proper Python package with src/ layout
-- **Pyxel Framework**: Modern retro game engine
-- **Modular Design**: Separated concerns with clear interfaces
-- **Event System**: Efficient event handling and state management
+### Mobile (Capacitor)
+```bash
+pnpm build
+npx cap sync
+npx cap run android  # or ios
+```
 
-## 🎯 Game Modes
+## 📊 Game Architecture
 
-### Feature Selection
-Choose which features to enable:
-- **Random Events**: Treasure chests, traps, and special encounters
-- **Difficulty Levels**: Easy (10 HP) or Hard (5 HP)
-- **Enemy Encounters**: Battle system with various creatures
-- **Procedural Dungeons**: Randomly generated dungeon levels
-- **Dynamic Quests**: Procedural quest system with rewards
-- **Weather System**: Environmental effects and atmosphere
-- **Particle Effects**: Visual enhancements and effects
+### State Management (Zustand)
+The game uses a centralized Zustand store for all game state:
+- Player position, health, stamina, stats
+- Time of day and weather systems
+- World state and progression tracking
 
-## 📈 Technical Details
+### Strata Integration
+We use [@jbcom/strata](https://www.npmjs.com/package/@jbcom/strata) for:
+- `fbm()` - Fractal Brownian Motion for terrain generation
+- `createGrassInstances()`, `createTreeInstances()`, `createRockInstances()` - Vegetation
+- `ProceduralSky` - Dynamic sky rendering
+- `Rain`, `Snow` - Weather particle effects
+- `CinematicEffects` - Post-processing
 
-### Pyxel Framework Benefits
-- **Resolution**: Optimized 256x256 pixel art style
-- **Color Palette**: 16-color retro aesthetic
-- **Performance**: Efficient 2D rendering
-- **Input**: Simplified input handling
-- **Audio**: Built-in sound system support
-- **Cross-platform**: Works on Windows, macOS, and Linux
+## 🎨 Visual Design
 
-### Library Features
-- **Poetry Integration**: Modern Python packaging
-- **CLI Entry Point**: Easy installation and execution
-- **Modular Architecture**: Clean separation of concerns
-- **Extensible Design**: Easy to add new features
-- **Type Safety**: Clean interfaces and data structures
+- **Palette**: Natural colors that shift with biome and time of day
+- **Style**: Modern 3D with stylized elements
+- **Feedback**: Visual indicators for all game events
+
+## 📝 Migration from Python
+
+This project was migrated from a Python/Pygame implementation. The original Python code is archived in `python-archive/` for reference. Key changes:
+
+| Python (Pygame) | TypeScript (Strata) |
+|-----------------|---------------------|
+| Pygame surfaces | React Three Fiber Canvas |
+| esper ECS | Zustand state management |
+| opensimplex | Strata's `fbm()` function |
+| Sprite animations | Three.js meshes + shaders |
+| pygbag (WASM) | Vite + native web |
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License - see LICENSE for details
 
-## 🙏 Acknowledgments
+## 🤝 Contributing
 
-- **Pyxel Community**: For the excellent retro framework
-- **Contributors**: All contributors to the project
-- **Python Community**: For the amazing ecosystem
+1. Fork the repository
+2. Create a feature branch
+3. Run tests: `pnpm test:e2e`
+4. Submit a pull request
 
 ---
 
-**Ready to play?** Run: `python main.py`
+Built with ❤️ using [Strata](https://www.npmjs.com/package/@jbcom/strata), [React Three Fiber](https://docs.pmnd.rs/react-three-fiber), and [Material-UI](https://mui.com/)

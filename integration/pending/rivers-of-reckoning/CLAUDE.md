@@ -1,78 +1,118 @@
-# CLAUDE.md
+# CLAUDE.md - Rivers of Reckoning
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> **An immersive, procedurally generated 3D roguelike RPG built for instant web play**
 
-> **See also:** `AGENTS.md` for comprehensive agent instructions.
+## 🌊 The Vision
 
-## Quick Start
+**Rivers of Reckoning** is a browser-based adventure where players explore an infinite, ever-changing world of marshes, forests, deserts, and tundra. Every playthrough is unique—generated from a seed that creates coherent biomes, dynamic weather, and challenging encounters.
+
+### Player Experience Goals
+
+1. **Instant Play**: Click and you're in. No downloads, no installs, no waiting.
+2. **One More Turn**: Addictive exploration loop - "what's over that next hill?"
+3. **Tactile Feedback**: Responsive controls, satisfying combat, clear visual feedback
+4. **Mobile-Friendly**: Touch controls via Capacitor for native mobile apps
+5. **Shareable Worlds**: Share your seed with friends to explore the same world
+6. **Persistent Progress**: Local storage saves your best runs and achievements
+
+## 🛠 Technology Stack
+
+```
+@jbcom/strata       → 3D terrain, vegetation, weather, audio, AI
+@react-three/fiber  → React renderer for Three.js
+@mui/material       → UI components and theming
+zustand             → Lightweight state management
+vite                → Fast build and dev server
+playwright          → End-to-end testing
+capacitor           → Native mobile deployment
+```
+
+## 📁 Project Structure
+
+```
+src/
+├── App.tsx                 # Main 3D scene with Strata components
+├── main.tsx                # React entry point
+├── components/
+│   ├── TitleScreen.tsx     # Start menu
+│   ├── GameHUD.tsx         # In-game UI overlay
+│   ├── PauseMenu.tsx       # Pause screen
+│   └── GameOverScreen.tsx  # End game stats
+├── store/
+│   └── gameStore.ts        # Zustand game state
+└── types/
+    └── game.ts             # TypeScript definitions
+```
+
+## 🎯 Development Commands
 
 ```bash
-# Check current context before starting
-cat memory-bank/activeContext.md 2>/dev/null || echo "No active context"
-
-# Check for project-specific instructions
-cat .github/copilot-instructions.md 2>/dev/null
+pnpm dev            # Start dev server
+pnpm build          # Production build
+pnpm test:e2e       # Run Playwright tests
+pnpm lint           # ESLint check
+pnpm typecheck      # TypeScript check
 ```
 
-## Development Workflow
+## ⚡ Key Technical Decisions
 
-### Before Making Changes
-1. Read the issue/PR description completely
-2. Check `memory-bank/` for project context
-3. Look at recent commits for coding patterns
-4. Run tests to ensure clean starting state
+### Strata for 3D Game Development
+We use [@jbcom/strata](https://www.npmjs.com/package/@jbcom/strata) for all procedural generation:
 
-### Making Changes
-1. Create a feature branch if not already on one
-2. Make minimal, focused changes
-3. Write/update tests for new functionality
-4. Ensure all tests pass
-5. Update documentation if needed
+```typescript
+import { fbm, createGrassInstances, createTreeInstances, ProceduralSky, Rain } from '@jbcom/strata'
 
-### Committing
+// Terrain generation with multi-octave noise
+const height = fbm(x * 0.02, z * 0.02, 6, 2.2, seed)
+
+// Instanced vegetation
+const grass = createGrassInstances(5000, areaSize, biomes, { heightFunction, seed })
+```
+
+### Zustand State Management
+All game state flows through a single Zustand store:
+
+```typescript
+const { gameState, playerHealth, timeOfDay, weather } = useGameStore()
+```
+
+### React Three Fiber Game Loop
+Game updates use `useFrame` for frame-synchronized updates:
+
+```typescript
+function GameLoop() {
+  useFrame((_, deltaTime) => {
+    updateTime(deltaTime)
+    updateWeather(deltaTime)
+  })
+  return null
+}
+```
+
+## 🎨 Visual Identity
+
+- **3D Rendering**: Three.js via React Three Fiber
+- **Procedural Sky**: Dynamic day/night with weather effects
+- **Post-Processing**: Bloom, vignette, cinematic color grading
+- **UI**: Material-UI with dark theme and retro typography
+
+## Before Making Changes
+
+1. Check: "Does this enhance the web play experience?"
+2. Run: `pnpm typecheck && pnpm lint`
+3. Test: `pnpm test:e2e`
+4. Verify the game runs: `pnpm dev`
+
+## Coding Standards
+
+- TypeScript strict mode
+- React functional components with hooks
+- ESLint + Prettier formatting
+- Conventional commits (feat/fix/docs/test/chore)
+
+## Authentication
+
 ```bash
-# Use conventional commits
-git commit -m "feat(scope): add new feature"
-git commit -m "fix(scope): resolve bug"
-git commit -m "docs: update README"
-git commit -m "test: add missing tests"
-git commit -m "chore: update dependencies"
+# For GitHub operations
+GH_TOKEN="$GITHUB_TOKEN" gh <command>
 ```
-
-## Code Quality Checklist
-
-Before considering work complete:
-- [ ] All tests pass
-- [ ] Linting passes
-- [ ] No new warnings introduced
-- [ ] Documentation updated if needed
-- [ ] Commit messages follow conventional format
-
-## Project Structure
-
-```
-.
-├── src/                 # Source code
-├── tests/               # Test files
-├── docs/                # Documentation
-├── memory-bank/         # AI context files
-│   ├── activeContext.md # Current focus
-│   └── progress.md      # Session progress
-├── .github/
-│   ├── copilot-instructions.md  # Copilot context
-│   └── workflows/       # CI/CD
-├── CLAUDE.md            # This file
-└── AGENTS.md            # Agent instructions
-```
-
-## Getting Help
-
-1. Check `AGENTS.md` for detailed instructions
-2. Check `.github/copilot-instructions.md` for dev commands
-3. Check `docs/` for architecture decisions
-4. Look at test files for usage examples
-
-## Repository-Specific Notes
-
-<!-- Add repository-specific context below -->
-

@@ -1,29 +1,49 @@
----
-description: Fundamental rules for all jbcom repos
-globs: "**/*"
-alwaysApply: true
----
+# Fundamentals - Rivers of Reckoning
 
-# Fundamentals
+## 🌊 Project Identity
+
+**Rivers of Reckoning** is a web-first procedural 3D roguelike RPG. Players explore infinite generated worlds directly in their browser.
+
+### Core Constraints
+
+1. **Web-First**: Browser is primary. Works on desktop and mobile.
+2. **TypeScript Only**: No Python code. Use React + Three.js.
+3. **Strata Powered**: Use @jbcom/strata for terrain, vegetation, weather, AI.
+4. **Responsive**: Works on any screen size.
+5. **Procedural**: No hardcoded content. Everything from seeds.
+
+### Tech Stack
+
+- @jbcom/strata for 3D procedural generation
+- React Three Fiber for 3D rendering
+- Material-UI for game UI
+- Zustand for state management
+- Vite for builds
+- Playwright for testing
 
 ## Before Acting
 
 1. **Read before modifying** - Always read the file/code before editing
-2. **Run builds after changes** - Verify your changes compile/lint
+2. **Run builds after changes** - Verify with `pnpm typecheck && pnpm lint`
 3. **Check git status** - Know what you're committing
+4. **Test the game** - Run `pnpm dev` to verify
 
 ## Making Changes
 
 1. **One concern per commit** - Keep commits focused
 2. **Run linters/tests locally** before pushing
 3. **Don't consolidate code** without verifying the build
+4. **Use Strata APIs correctly** - Check PUBLIC_API.md, don't hallucinate
 
-## When Copying/Moving Files
+## Quick Commands
 
-1. Read the file first
-2. Check if content is relevant to destination
-3. Update paths and references
-4. Remove tool-specific cruft that doesn't apply
+```bash
+pnpm dev          # Start dev server
+pnpm build        # Production build
+pnpm test:e2e     # Run Playwright tests
+pnpm lint         # ESLint
+pnpm typecheck    # TypeScript check
+```
 
 ## Authentication
 
@@ -32,13 +52,40 @@ alwaysApply: true
 GH_TOKEN="$GITHUB_TOKEN" gh <command>
 ```
 
-## Session Management
+## Strata API Essentials
 
-```bash
-# Start of session
-cat memory-bank/activeContext.md 2>/dev/null || echo "No memory bank"
-gh issue list --label agent-session 2>/dev/null || true
+```typescript
+// Terrain generation
+import { fbm } from '@jbcom/strata'
+const height = fbm(x, y, z, octaves)  // Correct signature
 
-# End of session - update context
-echo "## Session: $(date +%Y-%m-%d)" >> memory-bank/activeContext.md
+// Vegetation  
+import { GrassInstances, TreeInstances, RockInstances } from '@jbcom/strata'
+
+// Weather
+import { ProceduralSky, Rain, Snow } from '@jbcom/strata'
+
+// Post-processing
+import { CinematicEffects } from '@jbcom/strata'
 ```
+
+## Code Architecture
+
+```typescript
+// Use constants for magic numbers
+import { PLAYER, ENEMY, TIME } from '../constants/game'
+
+// Use events for decoupled communication
+import { combatEvents } from '../events/combatEvents'
+
+// Use Zustand for state
+import { useGameStore } from '../store/gameStore'
+```
+
+## Game Identity
+
+See [GAME_IDENTITY.md](./GAME_IDENTITY.md) for:
+- Core vision and design pillars
+- Visual identity and colors
+- Gameplay loop and progression
+- Enemy types and biomes
