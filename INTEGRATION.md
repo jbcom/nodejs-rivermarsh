@@ -72,38 +72,9 @@ The main branch has critical build failures that must be fixed first.
 
 ### Issues Inherited from Main Branch (Must Fix First)
 
-#### Missing Files (Referenced but don't exist)
-| File | Referenced By |
-|------|---------------|
-| `src/components/VolumetricEffects.tsx` | `App.tsx` |
-| `src/shaders/fur.ts` | `Player.tsx` |
-| `src/utils/audioManager.ts` | `Player.tsx`, `AudioSystem.tsx` |
-| `src/utils/biomeAmbience.ts` | `AudioSystem.tsx` |
-| `src/utils/environmentalAudio.ts` | `AudioSystem.tsx` |
-| `src/utils/adaptiveQuality.ts` | `GameSystems.tsx` |
-| `src/utils/memoryMonitor.ts` | `GameSystems.tsx` |
+> ⚠️ **See [Main Branch Build Failures](#-critical-main-branch-build-failures) section below for complete details.**
 
-#### Strata API Mismatches
-| File | Issue | Fix |
-|------|-------|-----|
-| `SDFTerrain.tsx:18` | `@jbcom/strata/core` | Use `@jbcom/strata` |
-| `World.tsx:12` | `VolumetricFog` | Use `VolumetricFogMesh` |
-| `World.tsx:88,92` | `windStrength` prop | Use `wind` as `Vector3` |
-| `World.tsx:177` | `waterColor`, `deepWaterColor` | Use `color`, `deepColor` |
-| `World.tsx:285` | `sunElevation`, `sunAzimuth` | Use `timeOfDay` object |
-| `Water.tsx:20` | `waterColor` | Use `color` |
-| `GPUInstancing.tsx:58` | `windStrength` | Remove or use Strata API |
-
-#### BiomeData Type Issues
-| File | Issue |
-|------|-------|
-| `SDFTerrain.tsx:26-32` | BiomeData `center` uses `{x, y}` but Strata expects `Vector2` |
-| `GPUInstancing.tsx:24-30` | Same issue |
-
-#### ECS Component Issues
-| File | Issue |
-|------|-------|
-| `World.tsx:74-75` | `weather.type` doesn't exist on `WeatherComponent` |
+The main branch has critical build failures including missing files, Strata API mismatches, and type issues that must be resolved before this PR can be merged.
 
 ---
 
@@ -292,22 +263,25 @@ May indicate workflow configuration issues that need resolution.
    - Fixed BiomeData types
    - Fixed ECS WeatherComponent usage
 
-### After Main Build Fixed
+### After Main Build Fixed (In Order)
 
-2. **Update PR #4**:
-   - Remove dist/ from tracking (already in .gitignore)
-   - Add proper TypeScript types to useRivermarsh.ts
-   - Rebase against fixed main
-   - Request fresh AI review
+2. **Update PR #9** (Docs/Render):
+   - Rebase against main to resolve conflicts
+   - Should auto-approve (already approved by user + AI)
+   - **Priority: HIGH** - Unblocks deployment configuration
 
 3. **Update PR #23** (GPU Instancing):
    - Address Claude's 4 critical issues
    - Rebase against main
    - Re-request review
+   - **Priority: MEDIUM** - Performance improvement
 
-4. **Update PR #9** (Docs/Render):
-   - Rebase against main to resolve conflicts
-   - Should auto-approve (already approved by user + AI)
+4. **Update PR #4** (Rivermarsh Beta):
+   - Remove dist/ from tracking (already in .gitignore)
+   - Add proper TypeScript types to useRivermarsh.ts
+   - Rebase against fixed main
+   - Request fresh AI review
+   - **Priority: HIGH** - Mobile controls for Epic #26
 
 ### Dependency PRs (Batch Later)
 
