@@ -49,12 +49,84 @@ This document outlines the integration strategy for unifying Rivers of Reckoning
 
 **BEFORE ANY OTHER PR CAN BE MERGED:**
 
-1. **Create build fix PR** - Fix main branch compilation errors
-   - Stub missing modules or implement them
-   - Fix Strata API usage
-   - Fix Three.js type issues
-   - **Action**: Complete within integration branch, merge first
-   - **Priority**: CRITICAL BLOCKER
+The main branch has critical build failures that must be fixed first.
+
+---
+
+## 📋 PR #4 Assessment (feat/rivermarsh-beta)
+
+### What PR #4 Adds (Good)
+- ✅ `src/components/mobile/VirtualJoysticks.tsx` - nipplejs touch controls
+- ✅ `src/components/mobile/MobileActionButtons.tsx` - Touch action buttons
+- ✅ `src/components/mobile/GyroscopeCamera.tsx` - Device orientation camera
+- ✅ `src/components/game/GameUI.tsx` - Full game UI overlay
+- ✅ `src/components/game/OtterNPC.tsx` - NPC system with AI behaviors
+- ✅ `src/stores/useRivermarsh.ts` - Complete game state store
+- ✅ `src/stores/useControlsStore.ts` - Input state management
+- ✅ Updated `src/App.tsx` with mobile detection and new components
+
+### Issues in PR #4 (Must Fix)
+1. **❌ dist/ files committed** - Build artifacts in repo (78+ files)
+2. **❌ Missing type annotations** - `useRivermarsh.ts` has 60+ implicit `any` types
+3. **❌ Does NOT fix main branch issues** - Still missing core files
+
+### Issues Inherited from Main Branch (Must Fix First)
+
+#### Missing Files (Referenced but don't exist)
+| File | Referenced By |
+|------|---------------|
+| `src/components/VolumetricEffects.tsx` | `App.tsx` |
+| `src/shaders/fur.ts` | `Player.tsx` |
+| `src/utils/audioManager.ts` | `Player.tsx`, `AudioSystem.tsx` |
+| `src/utils/biomeAmbience.ts` | `AudioSystem.tsx` |
+| `src/utils/environmentalAudio.ts` | `AudioSystem.tsx` |
+| `src/utils/adaptiveQuality.ts` | `GameSystems.tsx` |
+| `src/utils/memoryMonitor.ts` | `GameSystems.tsx` |
+
+#### Strata API Mismatches
+| File | Issue | Fix |
+|------|-------|-----|
+| `SDFTerrain.tsx:18` | `@jbcom/strata/core` | Use `@jbcom/strata` |
+| `World.tsx:12` | `VolumetricFog` | Use `VolumetricFogMesh` |
+| `World.tsx:88,92` | `windStrength` prop | Use `wind` as `Vector3` |
+| `World.tsx:177` | `waterColor`, `deepWaterColor` | Use `color`, `deepColor` |
+| `World.tsx:285` | `sunElevation`, `sunAzimuth` | Use `timeOfDay` object |
+| `Water.tsx:20` | `waterColor` | Use `color` |
+| `GPUInstancing.tsx:58` | `windStrength` | Remove or use Strata API |
+
+#### BiomeData Type Issues
+| File | Issue |
+|------|-------|
+| `SDFTerrain.tsx:26-32` | BiomeData `center` uses `{x, y}` but Strata expects `Vector2` |
+| `GPUInstancing.tsx:24-30` | Same issue |
+
+#### ECS Component Issues
+| File | Issue |
+|------|-------|
+| `World.tsx:74-75` | `weather.type` doesn't exist on `WeatherComponent` |
+
+---
+
+### Required Fix Order
+
+1. **Create missing util files** with proper Strata API integration:
+   - Use `useAudioManager` from Strata for audio
+   - Use `AmbientAudio`, `WeatherAudio` components
+   - Implement quality/memory managers
+
+2. **Create missing component files**:
+   - `VolumetricEffects.tsx` - wrapper using Strata's VolumetricEffects
+   - `src/shaders/fur.ts` - actual fur shader implementation
+
+3. **Fix Strata API usage** in existing files
+
+4. **Fix BiomeData types** to use proper Vector2
+
+5. **Then PR #4 can be rebased** and have its issues fixed:
+   - Remove dist/ from tracking
+   - Add proper types to useRivermarsh.ts
+
+---
 
 ### Phase 1: Documentation & Infrastructure (Foundation)
 
@@ -78,9 +150,12 @@ This document outlines the integration strategy for unifying Rivers of Reckoning
 ### Phase 3: Feature Ports
 
 4. **#4 - Rivermarsh Beta (Pre-kiro game systems)**
-   - **Status**: Build failing, AI reviews failed/cancelled
+   - **Status**: Build failing, needs cleanup
    - **Content**: Mobile input, game state, NPC system
-   - **Action**: Fix build (depends on Phase 0), wait for full AI review
+   - **Fixes Required**:
+     - Remove dist/ from git tracking
+     - Add type annotations to useRivermarsh.ts
+     - Fix after main branch build is working
    - **Priority**: HIGH - Implements mobile controls (Epic #26 Phase 4)
    - **Aligns with Issues**: #1, #32, #33
 
@@ -202,6 +277,44 @@ May indicate workflow configuration issues that need resolution.
 |----|--------|
 | #7 | CLOSED - Sync from org-github |
 | #36 | CLOSED - AI review workflow fix |
+
+---
+
+## 🎯 Recommended Action Plan
+
+### Immediate (Block Everything Else)
+
+1. **Create PR to fix main branch build** with:
+   - Missing util files using Strata APIs
+   - Missing VolumetricEffects wrapper
+   - Missing fur shader
+   - Fixed Strata API usage throughout
+   - Fixed BiomeData types
+   - Fixed ECS WeatherComponent usage
+
+### After Main Build Fixed
+
+2. **Update PR #4**:
+   - Remove dist/ from tracking (already in .gitignore)
+   - Add proper TypeScript types to useRivermarsh.ts
+   - Rebase against fixed main
+   - Request fresh AI review
+
+3. **Update PR #23** (GPU Instancing):
+   - Address Claude's 4 critical issues
+   - Rebase against main
+   - Re-request review
+
+4. **Update PR #9** (Docs/Render):
+   - Rebase against main to resolve conflicts
+   - Should auto-approve (already approved by user + AI)
+
+### Dependency PRs (Batch Later)
+
+5. Wait for feature PRs to stabilize, then batch merge:
+   - #34 (three.js)
+   - #35 (js-yaml)
+   - #19-22 (Capacitor, Vite updates)
 
 ---
 
