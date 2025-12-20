@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "generated": "2025-10-26T15:17:05.393Z",
+  "icons": {
+    "mode-rapid-rush.png": {
+      "name": "Rapid Rush Mode",
+      "category": "mode",
+      "generated": "2025-10-26T15:17:17.907Z",
+      "size": 1162942
+    },
+    "mode-speed-splash.png": {
+      "name": "Speed Splash Mode",
+      "category": "mode",
+      "generated": "2025-10-26T15:17:31.270Z",
+      "size": 1107952
+    },
+    "mode-chill-cruise.png": {
+      "name": "Chill Cruise Mode",
+      "category": "mode",
+      "generated": "2025-10-26T15:17:43.835Z",
+      "size": 1361377
+    },
+    "mode-daily-dive.png": {
+      "name": "Daily Dive Mode",
+      "category": "mode",
+      "generated": "2025-10-26T15:17:56.224Z",
+      "size": 1391421
+    },
+    "hud-star.png": {
+      "name": "Score Star",
+      "category": "hud",
+      "generated": "2025-10-26T15:18:08.469Z",
+      "size": 536857
+    },
+    "hud-distance.png": {
+      "name": "Distance Meter",
+      "category": "hud",
+      "generated": "2025-10-26T15:18:23.201Z",
+      "size": 289450
+    },
+    "hud-coin.png": {
+      "name": "Coin Currency",
+      "category": "hud",
+      "generated": "2025-10-26T15:18:39.744Z",
+      "size": 873594
+    },
+    "hud-gem.png": {
+      "name": "Gem Premium Currency",
+      "category": "hud",
+      "generated": "2025-10-26T15:18:53.460Z",
+      "size": 1169333
+    },
+    "hud-heart.png": {
+      "name": "Heart Life",
+      "category": "hud",
+      "generated": "2025-10-26T15:19:07.368Z",
+      "size": 719136
+    },
+    "menu-leaderboard.png": {
+      "name": "Leaderboard Trophy",
+      "category": "menu",
+      "generated": "2025-10-26T15:19:19.098Z",
+      "size": 556586
+    },
+    "menu-stats.png": {
+      "name": "Stats Chart",
+      "category": "menu",
+      "generated": "2025-10-26T15:19:33.888Z",
+      "size": 722119
+    },
+    "menu-settings.png": {
+      "name": "Settings Gear",
+      "category": "menu",
+      "generated": "2025-10-26T15:19:45.979Z",
+      "size": 696713
+    }
+  }
+}

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: otter-river-rush-web
+    env: static
+    plan: free
+    buildCommand: pnpm build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 24

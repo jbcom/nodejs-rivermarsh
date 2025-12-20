@@ -1,0 +1,37 @@
+# Integration Tests
+
+This directory contains integration tests that verify core game logic
+BEFORE platform-specific builds (Capacitor, Electron).
+
+## What to Test Here
+
+- Game state management and transitions
+- Physics and collision detection
+- Scoring and progression systems
+- Asset loading and management
+- Audio system integration
+- Input handling (game logic, not platform controls)
+
+## Why Integration Tests Matter
+
+These tests run BEFORE the codebase branches into web/mobile/desktop builds.
+They verify the GAME works, independent of platform wrappers.
+
+Platform wrappers (Capacitor/Electron) just package this already-tested code.
+
+## Example Tests Needed
+
+- `game-flow.test.ts` - Complete game lifecycle
+- `collision.test.ts` - Collision detection accuracy
+- `scoring.test.ts` - Score calculation correctness
+- `state-management.test.ts` - Game state transitions
+- `asset-loading.test.ts` - Asset system reliability
+
+## Running Tests
+
+```bash
+npm run test:integration
+```
+
+These tests run automatically in the Integration Tests workflow
+before ANY platform builds are triggered.

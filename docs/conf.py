@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 
 # -- Project information -----------------------------------------------------
 # TODO: Update these for your project
-project = "PACKAGE_NAME"
+project = "Rivermarsh"
 copyright = "2025, Jon Bogaty"
 author = "Jon Bogaty"
 

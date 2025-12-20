@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: rivermarsh
+    runtime: static
+    buildCommand: pnpm install && pnpm run build
+    staticPublishPath: ./dist
+    plan: free
