@@ -13,7 +13,12 @@ on:
 
   # Automatic: PR code review on open/sync
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, ready_for_review]
+
+# Prevent duplicate runs
+concurrency:
+  group: claude-code-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   # ============================================
@@ -21,8 +26,7 @@ jobs:
   # ============================================
   claude-interactive:
     name: Claude Interactive
-    # Security: Only allow trusted users (OWNER, MEMBER, COLLABORATOR) to trigger interactive mode
-    # This prevents malicious code injection via AI manipulation from external commenters
+    # Security: Only allow trusted users to trigger interactive mode
     if: |
       (
         (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
@@ -44,55 +48,72 @@ jobs:
       actions: read
 
     steps:
-      # actions/checkout v6.0.1
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      # anthropics/claude-code-action v1
       - name: Run Claude Code
-        uses: anthropics/claude-code-action@928c84b37e02abd33f08826a2200058c68633a85
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_bots: '*'
+          track_progress: true
+          use_sticky_comment: true
 
   # ============================================
   # AUTOMATIC MODE: PR code review
   # ============================================
   claude-review:
     name: Claude Code Review
-    if: github.event_name == 'pull_request'
+    if: |
+      github.event_name == 'pull_request' && 
+      !github.event.pull_request.draft
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+      issues: write
       id-token: write
 
     steps:
-      # actions/checkout v6.0.1
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
-      # anthropics/claude-code-action v1
       - name: Run Claude Code Review
-        uses: anthropics/claude-code-action@928c84b37e02abd33f08826a2200058c68633a85
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_bots: '*'
+          track_progress: true
+          use_sticky_comment: true
           prompt: |
             You are reviewing PR #${{ github.event.pull_request.number }} in ${{ github.repository }}.
 
+            ## Context
+            - PR Title: ${{ github.event.pull_request.title }}
+            - Author: ${{ github.event.pull_request.user.login }}
+            - Base: ${{ github.event.pull_request.base.ref }}
+
+            ## Review Instructions
+            
             Review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            1. **Security** - Authentication, input validation, secrets exposure
+            2. **Code Quality** - Readability, maintainability, DRY violations
+            3. **Performance** - Expensive operations, memory leaks
+            4. **Testing** - Coverage gaps, edge cases
+            5. **Best Practices** - Error handling, documentation
 
-            Be constructive and helpful. Focus on actionable feedback.
+            ## Output Format
+            
+            Use `gh pr review` with inline comments for specific code issues.
+            Post a summary comment with overall assessment.
+            
+            Be constructive, specific, and actionable. Skip nitpicks.
 
-            Use `gh pr review` with line-specific comments for detailed feedback on specific code changes.
-            For general summary feedback, use `gh pr comment`.
-
-          claude_args: '--allowed-tools "Bash(gh pr:*)"'
+          claude_args: |
+            --allowedTools "Bash(gh pr:*),Bash(gh api:*),Read,Grep,Glob"
