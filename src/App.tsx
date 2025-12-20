@@ -17,12 +17,27 @@ import { Canvas } from '@react-three/fiber';
 // import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
 import * as THREE from 'three';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+// New Rivermarsh game components
+import { NPCManager, GameUI } from '@/components/game';
+import { VirtualJoysticks, MobileActionButtons, GyroscopeCamera } from '@/components/mobile';
 
 // Initialize test hooks for E2E testing
 initTestHooks();
 
-function Scene() {
+// Detect if running on a mobile/touch device
+const isTouchDevice = () => {
+    if (typeof window === 'undefined') return false;
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+};
+
+interface SceneProps {
+    useMobileControls?: boolean;
+    useRivermarshFeatures?: boolean;
+}
+
+function Scene({ useMobileControls = false, useRivermarshFeatures = false }: SceneProps) {
     useInput();
 
     // Mark game as ready after first frame
@@ -41,9 +56,13 @@ function Scene() {
                 <Player />
                 <NPCs />
                 <Resources />
+                
+                {/* Rivermarsh NPC system - spawns story NPCs */}
+                {useRivermarshFeatures && <NPCManager />}
             </Physics>
             
-            <FollowCamera />
+            {/* Use gyroscope camera on mobile, follow camera on desktop */}
+            {useMobileControls ? <GyroscopeCamera /> : <FollowCamera />}
             <TapToCollect />
 
             {/* Volumetric effects for fog and underwater */}
@@ -67,6 +86,15 @@ function Scene() {
 }
 
 export default function App() {
+    // Detect mobile and enable Rivermarsh features
+    const [isMobile, setIsMobile] = useState(false);
+    // Rivermarsh features enabled by default - can be toggled in settings later
+    const rivermarshEnabled = true;
+
+    useEffect(() => {
+        setIsMobile(isTouchDevice());
+    }, []);
+
     return (
         <>
             <Canvas
@@ -79,11 +107,26 @@ export default function App() {
                 dpr={[1, 1.5]}
                 style={{ background: '#0a0808' }}
             >
-                <Scene />
+                <Scene 
+                    useMobileControls={isMobile} 
+                    useRivermarshFeatures={rivermarshEnabled} 
+                />
             </Canvas>
+
+            {/* Mobile controls - virtual joystick and action buttons */}
+            {isMobile && (
+                <>
+                    <VirtualJoysticks />
+                    <MobileActionButtons />
+                </>
+            )}
 
             <InputZone />
             <HUD />
+            
+            {/* Rivermarsh game UI - inventory, quests, dialogue */}
+            {rivermarshEnabled && <GameUI />}
+            
             <GameOver />
             <Loader />
             <Tutorial />
