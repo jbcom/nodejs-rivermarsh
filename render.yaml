@@ -13,7 +13,6 @@ services:
     buildCommand: pnpm install && pnpm run build
     staticPublishPath: ./dist
     plan: free
-    region: oregon
     
     # Custom domains (configure in Render Dashboard)
     # domains:
