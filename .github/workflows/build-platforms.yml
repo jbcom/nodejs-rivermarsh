@@ -1,0 +1,382 @@
+name: Build All Platforms
+
+# Unified workflow that builds web once and reuses it for desktop and mobile
+# This optimizes the build process by avoiding redundant web builds
+
+on:
+  workflow_run:
+    workflows: ["Integration Tests"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0) or "snapshot"'
+        required: false
+        default: 'snapshot'
+        type: string
+      platforms:
+        description: 'Platforms to build (comma-separated: web,desktop,mobile,all)'
+        required: true
+        type: choice
+        options:
+          - all
+          - web
+          - desktop
+          - mobile
+          - web,desktop
+          - web,mobile
+        default: 'all'
+      generate_assets:
+        description: 'Generate fresh assets with AI'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: build-platforms-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Step 1: Build web once - this is the foundation for all platforms
+  # NOTE: Web build is ALWAYS needed because:
+  #   - Desktop (Electron) wraps the web build
+  #   - Mobile (Capacitor) wraps the web build
+  #   - Web deployment uses the web build
+  # Therefore, we build web for ALL workflow_dispatch triggers and workflow_run events
+  build-web:
+    name: Build Web
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && 
+       github.event.workflow_run.head_branch == 'main')
+    outputs:
+      build-sha: ${{ github.sha }}
+    
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate fresh assets (if requested)
+        if: github.event_name == 'workflow_dispatch' && inputs.generate_assets
+        run: |
+          echo "🎨 Generating fresh game content..."
+          npm run generate-content || echo "⚠️  Content generation failed"
+          npm run generate-sprites || echo "⚠️  Sprite generation failed"
+          npm run generate-hud || echo "⚠️  HUD generation failed"
+          npm run generate-ui-icons || echo "⚠️  UI icons failed"
+          npm run asset-pipeline || echo "⚠️  Asset pipeline failed"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        continue-on-error: true
+      
+      - name: Build web
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Report bundle size
+        run: |
+          BUNDLE_SIZE=$(du -sb dist | cut -f1)
+          BUNDLE_MB=$(echo "scale=2; $BUNDLE_SIZE / 1024 / 1024" | bc)
+          echo "Bundle size: ${BUNDLE_MB}MB"
+          echo "### 📦 Web Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "Bundle size: ${BUNDLE_MB}MB" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload web build artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: web-build-${{ github.sha }}
+          path: dist/
+          retention-days: 7
+  
+  # Step 2: Deploy to GitHub Pages (optional, only for web builds)
+  deploy-web:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build-web
+    if: |
+      (github.event_name == 'workflow_dispatch' && (inputs.platforms == 'all' || inputs.platforms == 'web' || contains(inputs.platforms, 'web'))) ||
+      github.event_name == 'workflow_run'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Download web build
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: web-build-${{ github.sha }}
+          path: dist/
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      
+      - name: Upload to Pages
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: dist/
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+
+  # Step 3: Build desktop platforms (reuses web build)
+  build-desktop:
+    name: Build Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: build-web
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.platforms == 'all' || inputs.platforms == 'desktop' || contains(inputs.platforms, 'desktop'))
+    
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+          - os: windows-latest
+            platform: windows
+    
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Download web build
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: web-build-${{ github.sha }}
+          path: dist/
+      
+      - name: Build Electron app (reusing web build)
+        run: npm run electron:build
+      
+      - name: Rename builds
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version || 'snapshot' }}"
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          cd dist-electron
+          
+          # Rename all output files
+          for file in *; do
+            if [ -f "$file" ]; then
+              ext="${file##*.}"
+              base=$(basename "$file" ".$ext")
+              mv "$file" "otter-river-rush-${VERSION}-${TIMESTAMP}-${{ matrix.platform }}.$ext" 2>/dev/null || true
+            fi
+          done
+      
+      - name: Upload Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: desktop-linux-${{ github.sha }}
+          path: |
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+          retention-days: 30
+      
+      - name: Upload macOS artifacts
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: desktop-macos-${{ github.sha }}
+          path: |
+            dist-electron/*.dmg
+            dist-electron/*.zip
+          retention-days: 30
+      
+      - name: Upload Windows artifacts
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: desktop-windows-${{ github.sha }}
+          path: dist-electron/*.exe
+          retention-days: 30
+      
+      - name: Upload to release (if version tag)
+        if: github.event.inputs.version && startsWith(github.event.inputs.version, 'v')
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          files: dist-electron/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Step 4: Build mobile platforms (reuses web build)
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: build-web
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.platforms == 'all' || inputs.platforms == 'mobile' || contains(inputs.platforms, 'mobile'))
+    
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Download web build
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: web-build-${{ github.sha }}
+          path: dist/
+      
+      - name: Sync Capacitor (reusing web build)
+        run: npx cap sync android
+      
+      - name: Setup JDK 21
+        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+      
+      - name: Accept Android licenses
+        run: yes | sdkmanager --licenses
+      
+      - name: Install Android SDK components
+        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;34.0.0"
+      
+      - name: Build APK with Gradle
+        uses: gradle/actions/setup-gradle@f236b35da9d031e13b1005234ebe4392ed54c580 # v5.0.0
+        with:
+          gradle-version: wrapper
+          arguments: assembleRelease
+          build-root-directory: android
+      
+      - name: Sign APK (if keystore provided)
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        uses: r0adkll/sign-android-release@dbeba6b98a60b0fd540c02443c7f428cdedf0e7f # v1.0.4
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: android-apk-${{ github.sha }}
+          path: android/app/build/outputs/apk/release/*.apk
+          retention-days: 90
+      
+      - name: Upload to release (if version tag)
+        if: github.event.inputs.version && startsWith(github.event.inputs.version, 'v')
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          files: android/app/build/outputs/apk/release/*.apk
+          generate_release_notes: true
+
+  # Step 5: E2E tests on deployed web
+  e2e-web:
+    name: E2E Tests (Deployed Web)
+    runs-on: ubuntu-latest
+    needs: deploy-web
+    if: |
+      (github.event_name == 'workflow_dispatch' && (inputs.platforms == 'all' || inputs.platforms == 'web' || contains(inputs.platforms, 'web'))) ||
+      github.event_name == 'workflow_run'
+    timeout-minutes: 15
+    
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '24'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      
+      - name: Get deployment URL
+        id: get-url
+        run: |
+          # Get the GitHub Pages URL
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)
+          PAGES_URL="https://${{ github.repository_owner }}.github.io/${REPO_NAME}/"
+          echo "PAGES_URL=${PAGES_URL}" >> $GITHUB_OUTPUT
+          echo "Testing deployed URL: ${PAGES_URL}"
+      
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 30
+          curl -f "${{ steps.get-url.outputs.PAGES_URL }}" || sleep 30
+      
+      - name: Run E2E tests against DEPLOYED site
+        run: npm run test:e2e
+        env:
+          BASE_URL: ${{ steps.get-url.outputs.PAGES_URL }}
+      
+      - name: Upload E2E report
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: always()
+        with:
+          name: e2e-web-report-${{ github.sha }}
+          path: playwright-report/
+          retention-days: 7
+
+  # Summary job
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build-web]
+    if: always() && needs.build-web.result != 'cancelled'
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🎮 Otter River Rush - Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Strategy" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Web built once and reused for all platforms" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Optimized CI pipeline - no redundant builds" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts Available" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 Web: Deployed to GitHub Pages" >> $GITHUB_STEP_SUMMARY
+          echo "- 🖥️  Desktop: Linux, macOS, Windows builds" >> $GITHUB_STEP_SUMMARY
+          echo "- 📱 Mobile: Android APK" >> $GITHUB_STEP_SUMMARY

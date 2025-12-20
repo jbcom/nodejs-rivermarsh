@@ -1,0 +1,36 @@
+version: "0.5"
+
+log_location: "./process-compose.log"
+
+processes:
+  dev-server:
+    command: "pnpm dev"
+    working_dir: "./src/client"
+    availability:
+      restart: "on_failure"
+      max_restarts: 3
+    log_location: "./dev-server.log"
+    disabled: false
+    
+  diagnostic-qa:
+    command: "pnpm workflow:diagnostic-qa"
+    working_dir: "./src/dev-tools"
+    availability:
+      restart: "on_failure"
+      max_restarts: 5
+    log_location: "./diagnostic-qa.log"
+    disabled: false  # ENABLED - runs automatically
+    depends_on:
+      dev-server:
+        condition: process_started
+    
+  e2e-tests:
+    command: "pnpm test:e2e"
+    working_dir: "./src/client"
+    availability:
+      restart: "no"
+    log_location: "./e2e-tests.log"
+    disabled: true  # Manual trigger only
+    depends_on:
+      dev-server:
+        condition: process_started

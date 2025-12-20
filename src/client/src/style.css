@@ -1,0 +1,775 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   OTTER RIVER RUSH - MOBILE-FIRST GAME DESIGN SYSTEM
+   ============================================ */
+
+/* ---- MOBILE-FIRST: SAFE AREAS ---- */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+}
+
+/* ---- FULLSCREEN GAME LAYOUT ---- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  background: #0f172a;
+  /* Deep slate blue - matches theme-color */
+  overscroll-behavior-y: contain;
+  touch-action: pan-x pan-y;
+  /* Allow pan but prevent pinch-zoom */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  touch-action: none;
+}
+
+button,
+input,
+select,
+textarea,
+a {
+  user-select: auto;
+  -webkit-user-select: auto;
+  touch-action: auto;
+}
+
+.overflow-y-auto {
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+}
+
+/* ============================================
+   OTTER BRAND COLORS
+   ============================================ */
+
+:root {
+  /* Primary Colors */
+  --otter-blue: #1e90ff;
+  --otter-orange: #ffa500;
+  --otter-tan: #d4a574;
+  --otter-brown: #8b4513;
+  --otter-brown-dark: #65320e;
+
+  /* RGB Components for use with rgba() */
+  --otter-brown-rgb: 139, 69, 19;
+  --otter-brown-dark-rgb: 101, 50, 14;
+
+  /* Water Colors */
+  --water-light: #87ceeb;
+  --water-dark: #0066cc;
+  --water-deep: #0a2540;
+  --splash-white: #ffffff;
+
+  /* Nature Colors */
+  --forest-green: #228b22;
+  --forest-dark: #1a5c1a;
+
+  /* UI States */
+  --ui-success: #4caf50;
+  --ui-warning: #ff9800;
+  --ui-danger: #f44336;
+  --ui-neutral: #e0e0e0;
+
+  /* Shadows & Effects */
+  --shadow-strong: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --glow-blue: 0 0 20px rgba(30, 144, 255, 0.5);
+}
+
+/* ============================================
+   OTTER GAME TYPOGRAPHY
+   ============================================ */
+
+.otter-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-shadow:
+    3px 3px 0 var(--otter-blue),
+    6px 6px 0 rgba(0, 0, 0, 0.3);
+  color: var(--otter-orange);
+  text-transform: uppercase;
+}
+
+.otter-subtitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--water-light);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.otter-text {
+  font-size: 1rem;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   OTTER GAME PANELS
+   ============================================ */
+
+.otter-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--otter-brown-rgb), 0.95) 0%,
+    rgba(var(--otter-brown-dark-rgb), 0.95) 100%
+  );
+  border: 4px solid var(--otter-tan);
+  border-radius: 20px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.5),
+    inset 0 2px 4px rgba(212, 165, 116, 0.3);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.otter-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--otter-tan) 0%,
+    var(--otter-orange) 50%,
+    var(--otter-tan) 100%
+  );
+}
+
+.otter-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.05) 2px,
+    rgba(0, 0, 0, 0.05) 4px
+  );
+  pointer-events: none;
+}
+
+/* ============================================
+   OTTER GAME BUTTONS
+   ============================================ */
+
+.otter-btn {
+  position: relative;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.otter-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+.otter-btn:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: var(--shadow-strong);
+}
+
+.otter-btn:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-light);
+}
+
+/* Button Variants */
+.otter-btn-primary {
+  background: linear-gradient(
+    135deg,
+    var(--otter-blue) 0%,
+    var(--water-dark) 100%
+  );
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.otter-btn-secondary {
+  background: linear-gradient(135deg, var(--otter-orange) 0%, #ff8c00 100%);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.otter-btn-success {
+  background: linear-gradient(135deg, var(--ui-success) 0%, #388e3c 100%);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.otter-btn-warning {
+  background: linear-gradient(135deg, var(--ui-warning) 0%, #f57c00 100%);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   OTTER MODE CARDS
+   ============================================ */
+
+.otter-mode-card {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 144, 255, 0.15) 0%,
+    rgba(0, 102, 204, 0.15) 100%
+  );
+  border: 3px solid var(--otter-blue);
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.otter-mode-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.otter-mode-card:hover {
+  transform: scale(1.03) translateY(-4px);
+  border-color: var(--otter-orange);
+  box-shadow:
+    0 8px 24px rgba(30, 144, 255, 0.3),
+    0 0 40px rgba(30, 144, 255, 0.2);
+}
+
+.otter-mode-card:hover::before {
+  opacity: 1;
+}
+
+.otter-mode-card:active {
+  transform: scale(0.98);
+}
+
+.otter-mode-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--otter-orange) 0%, #ff8c00 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: var(--shadow-medium);
+  flex-shrink: 0;
+}
+
+.otter-mode-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--otter-orange);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 0.5rem;
+}
+
+.otter-mode-desc {
+  font-size: 1rem;
+  color: var(--water-light);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   WATER SPLASH ANIMATIONS
+   ============================================ */
+
+@keyframes waterRipple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+@keyframes splashIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes splashOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+  }
+}
+
+@keyframes otterBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes wavingHand {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(15deg);
+  }
+
+  75% {
+    transform: rotate(-15deg);
+  }
+}
+
+.water-ripple {
+  animation: waterRipple 0.6s ease-out;
+}
+
+.splash-in {
+  animation: splashIn 0.4s ease-out;
+}
+
+.splash-out {
+  animation: splashOut 0.3s ease-in;
+}
+
+.otter-bounce {
+  animation: otterBounce 1s ease-in-out infinite;
+}
+
+.waving-hand {
+  animation: wavingHand 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   HUD ELEMENTS
+   ============================================ */
+
+.otter-hud-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--otter-brown-rgb), 0.9) 0%,
+    rgba(var(--otter-brown-dark-rgb), 0.9) 100%
+  );
+  border: 2px solid var(--otter-tan);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  box-shadow: var(--shadow-medium);
+  backdrop-filter: blur(4px);
+}
+
+.otter-stat {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--otter-orange);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.otter-stat-label {
+  font-size: 0.875rem;
+  color: var(--water-light);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  margin-right: 0.5rem;
+}
+
+/* ============================================
+   OTTER MASCOT STYLES
+   ============================================ */
+
+.otter-mascot {
+  position: relative;
+  display: inline-block;
+}
+
+.otter-mascot-happy {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  animation: otterBounce 2s ease-in-out infinite;
+}
+
+.otter-mascot-excited {
+  filter: drop-shadow(0 4px 8px rgba(255, 165, 0, 0.5));
+  animation: otterBounce 0.5s ease-in-out infinite;
+}
+
+.otter-mascot-tired {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  opacity: 0.9;
+}
+
+/* ============================================
+   SPEECH BUBBLES
+   ============================================ */
+
+.otter-speech-bubble {
+  position: relative;
+  background: white;
+  border: 3px solid var(--otter-brown);
+  border-radius: 20px;
+  padding: 1rem 1.5rem;
+  color: var(--otter-brown);
+  font-weight: 600;
+  box-shadow: var(--shadow-medium);
+}
+
+.otter-speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -15px;
+  left: 30px;
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 15px solid white;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* ============================================
+   GAME BACKGROUNDS
+   ============================================ */
+
+.game-bg-river {
+  background: linear-gradient(
+    180deg,
+    var(--water-light) 0%,
+    var(--otter-blue) 50%,
+    var(--water-dark) 100%
+  );
+}
+
+.game-bg-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 37, 64, 0.95) 0%,
+    rgba(10, 37, 64, 0.98) 100%
+  );
+  backdrop-filter: blur(8px);
+}
+
+/* ============================================
+   CUSTOM ANIMATIONS
+   ============================================ */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.screen {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ============================================
+   MOBILE OPTIMIZATIONS
+   ============================================ */
+
+@media (max-width: 640px) {
+  .otter-title {
+    font-size: 2.5rem;
+  }
+
+  .otter-subtitle {
+    font-size: 1.25rem;
+  }
+
+  .otter-btn {
+    min-height: 54px;
+    padding: 0.875rem 1.5rem;
+  }
+
+  .otter-mode-card {
+    padding: 1rem;
+  }
+
+  .otter-mode-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .otter-bounce,
+  .waving-hand {
+    animation: none;
+  }
+}
+
+*:focus-visible {
+  outline: 3px solid var(--otter-orange);
+  outline-offset: 3px;
+}
+
+/* ============================================
+   LEGACY SUPPORT (for existing DaisyUI components)
+   ============================================ */
+
+/* Leaderboard entry styles */
+.leaderboard-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: rgba(var(--otter-brown-rgb), 0.3);
+  transition: background-color 0.2s;
+  border: 2px solid transparent;
+}
+
+.leaderboard-entry:hover {
+  background-color: rgba(var(--otter-brown-rgb), 0.5);
+  border-color: var(--otter-tan);
+}
+
+.leaderboard-rank {
+  font-size: 1.5rem;
+  font-weight: 700;
+  min-width: 3rem;
+  text-align: center;
+  color: var(--otter-orange);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.leaderboard-info {
+  flex: 1;
+}
+
+.leaderboard-name {
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: white;
+}
+
+.leaderboard-details {
+  font-size: 0.875rem;
+  opacity: 0.8;
+  color: var(--water-light);
+}
+
+.leaderboard-score {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--otter-orange);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Top 3 special styling */
+.top-1 {
+  background: linear-gradient(
+    to right,
+    rgba(255, 215, 0, 0.3),
+    rgba(255, 215, 0, 0.1)
+  );
+  border: 3px solid gold;
+}
+
+.top-2 {
+  background: linear-gradient(
+    to right,
+    rgba(192, 192, 192, 0.3),
+    rgba(192, 192, 192, 0.1)
+  );
+  border: 3px solid silver;
+}
+
+.top-3 {
+  background: linear-gradient(
+    to right,
+    rgba(205, 127, 50, 0.3),
+    rgba(205, 127, 50, 0.1)
+  );
+  border: 3px solid #cd7f32;
+}
+
+/* Stats display styles */
+.stat-category {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--otter-brown-rgb), 0.8) 0%,
+    rgba(var(--otter-brown-dark-rgb), 0.8) 100%
+  );
+  border: 2px solid var(--otter-tan);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-medium);
+}
+
+.stat-category h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--otter-tan);
+  color: var(--otter-orange);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--water-light);
+}
+
+.stat-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--otter-orange);
+}
+
+/* Custom scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: var(--otter-tan);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: var(--otter-orange);
+}
+
+/* Loading animation for sprites */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

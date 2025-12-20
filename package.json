@@ -1,0 +1,113 @@
+{
+  "name": "otter-river-rush-monorepo",
+  "version": "1.2.10",
+  "private": true,
+  "type": "module",
+  "description": "Otter River Rush - A React Three Fiber endless runner game",
+  "author": "jbcom",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jbcom/otter-river-rush.git"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter client dev",
+    "build": "pnpm --filter client build",
+    "preview": "pnpm --filter client preview",
+    "test": "pnpm --filter client test",
+    "test:e2e": "pnpm --filter client test:e2e",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "type-check": "pnpm --filter client type-check",
+    "generate:models": "pnpm --filter dev-tools tsx src/generators/meshy-models.ts",
+    "generate:animations": "pnpm --filter dev-tools tsx src/generators/otter-animations.ts",
+    "generate:textures": "pnpm --filter dev-tools generate:textures",
+    "generate:sprites": "pnpm --filter dev-tools generate:sprites",
+    "pipeline": "pnpm --filter dev-tools pipeline",
+    "quality-check": "pnpm --filter dev-tools quality-check",
+    "verify": "biome check . && pnpm --filter client type-check && pnpm --filter client test -- --run",
+    "prepare": "husky"
+  },
+  "build": {
+    "appId": "com.ottergames.riverrush",
+    "productName": "Otter River Rush",
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "public"
+    },
+    "files": ["dist/**/*", "wrappers/electron/**/*", "!wrappers/electron/*.ts"],
+    "extraMetadata": {
+      "main": "wrappers/electron/main.js"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.games",
+      "icon": "public/pwa-512x512.png"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "public/pwa-512x512.png"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Game",
+      "icon": "public/pwa-512x512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "@ai-sdk/anthropic": "^2.0.56",
+    "@ai-sdk/openai": "^2.0.88",
+    "@biomejs/biome": "^2.3.10",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@playwright/test": "^1.57.0",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/howler": "^2.2.12",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.181.0",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
+    "ai": "^5.0.115",
+    "autoprefixer": "^10.4.23",
+    "concurrently": "^9.2.1",
+    "daisyui": "^5.5.14",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
+    "husky": "^9.1.7",
+    "jsdom": "^27.3.0",
+    "lint-staged": "^16.2.7",
+    "openai": "^6.14.0",
+    "playwright": "^1.57.0",
+    "postcss": "^8.5.6",
+    "rollup-plugin-visualizer": "^6.0.5",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "undici": "^7.16.0",
+    "vite": "^7.3.0",
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^4.0.16",
+    "wait-on": "^9.0.3",
+    "workbox-window": "^7.4.0"
+  },
+  "lint-staged": {
+    "*": [
+      "biome check --write --no-errors-on-unmatched --diagnostic-level=error"
+    ]
+  }
+}
