@@ -9,7 +9,7 @@ import { useRivermarsh } from '@/stores/useRivermarsh';
 
 // Helper hook for Miniplex archetypes
 function useArchetype(archetype: any) {
-    const [version, setVersion] = useState(0);
+    const [, setVersion] = useState(0);
     useEffect(() => {
         let mounted = true;
         const update = () => { if(mounted) setVersion(v => v + 1); };
@@ -21,14 +21,18 @@ function useArchetype(archetype: any) {
 }
 
 function PlayerModel({ entity }: { entity: any }) {
-    const { scene, animations } = useGLTF(entity.model.url);
-    const { actions } = useAnimations(animations, scene);
+    const gltf = useGLTF(entity.model.url);
+    const scene = Array.isArray(gltf) ? gltf[0].scene : gltf.scene;
+    const animations = Array.isArray(gltf) ? gltf[0].animations : gltf.animations;
+    const sceneRef = useRef(scene);
+    const { actions } = useAnimations(animations, sceneRef);
 
     useEffect(() => {
         if (actions && actions['Run']) {
            actions['Run'].play();
         } else if (actions && Object.keys(actions).length > 0) {
-           Object.values(actions)[0].play();
+           const firstAction = Object.values(actions)[0];
+           if (firstAction) firstAction.play();
         }
     }, [actions]);
 
@@ -36,7 +40,8 @@ function PlayerModel({ entity }: { entity: any }) {
 }
 
 function SimpleModel({ entity }: { entity: any }) {
-    const { scene } = useGLTF(entity.model.url);
+    const gltf = useGLTF(entity.model.url);
+    const scene = Array.isArray(gltf) ? gltf[0].scene : gltf.scene;
     const clone = scene.clone();
     return <primitive object={clone} position={[entity.position.x, entity.position.y, entity.position.z]} scale={entity.model.scale} />;
 }
@@ -60,7 +65,7 @@ function RacingSystems() {
     const spawnTimer = useRef(0);
     const { addScore, takeDamage, lives, distance, endGame } = useRacingStore();
 
-    useFrame((state, delta) => {
+    useFrame((_, delta) => {
         // Update Distance
         useRacingStore.setState(s => ({ distance: s.distance + delta * RACING_CONFIG.BASE_SCROLL_SPEED }));
 
@@ -171,7 +176,7 @@ function RacingSystems() {
 }
 
 export function RacingScene() {
-    const { startGame, isPlaying, lives, score } = useRacingStore();
+    const { startGame } = useRacingStore();
 
     useEffect(() => {
         for (const e of racingWorld.entities) racingWorld.remove(e);

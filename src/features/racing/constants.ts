@@ -35,6 +35,7 @@ export const RACING_CONFIG = {
   DESPAWN_Z: 10, // Despawn behind camera
   PLAYER_Z: 0,
   PLAYER_Y: 0,
+  SPAWN_INTERVAL: 1.5, // Seconds between spawning obstacles/collectibles
 };
 
 export const VISUAL = {
