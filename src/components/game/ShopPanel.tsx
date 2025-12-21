@@ -30,7 +30,7 @@ export function ShopPanel() {
   const handleBuy = (item: typeof items[0]) => {
     if (spendGold(item.cost)) {
       item.action();
-      // TODO: Add visual feedback/sound
+      // TODO: On successful purchase, show a brief success animation (e.g., item row highlight/particle sparkle) and play a short "coin" purchase sound; consider adding distinct feedback for failed purchases when spendGold returns false.
     }
   };
 
