@@ -1,188 +1,234 @@
-# Rivermarsh - GitHub Copilot Instructions
+# TypeScript/Node.js Copilot Instructions
 
-## 🎮 Project Context
+## Environment Setup
 
-**Rivermarsh** is a mobile-first 3D exploration game built with:
-- React Three Fiber + `@jbcom/strata`
-- Miniplex ECS
-- Zustand state management
-- Capacitor for mobile
-
-### Current Phase: Integration
-
-We are unifying three codebases. Reference code in `integration/pending/` is **read-only**.
-
-## 🛠️ Development Commands
-
+### Package Manager: pnpm (preferred)
 ```bash
-# Package manager: pnpm (required)
-pnpm install          # Install dependencies
-pnpm run dev          # Dev server at localhost:5173
-pnpm run build        # Production build
-pnpm run test         # Vitest unit tests
-pnpm run test:e2e     # Playwright E2E tests
-pnpm run typecheck    # TypeScript validation
-pnpm run lint         # ESLint
+# Install pnpm if not present
+npm install -g pnpm
+
+# Install dependencies
+pnpm install
 ```
 
-## 📁 Key Directories
-
-| Path | Purpose |
-|------|---------|
-| `src/components/` | React Three Fiber components |
-| `src/ecs/` | Entity Component System (Miniplex) |
-| `src/ecs/systems/` | Game systems (AI, Weather, Time) |
-| `src/stores/` | Zustand state stores |
-| `integration/pending/` | Frozen reference code (DO NOT MODIFY) |
-
-## 🎯 Strata Components (ALWAYS USE)
-
-When implementing visual features, use `@jbcom/strata`:
-
-```typescript
-import {
-  AdvancedWater,     // Water with caustics, foam
-  ProceduralSky,     // Dynamic sky/sun
-  Rain, Snow,        // Weather particles
-  VolumetricFog,     // Atmospheric effects
-  ParticleEmitter,   // Custom particles
-  GrassInstances,    // GPU vegetation
-  TreeInstances,
-  RockInstances,
-} from '@jbcom/strata';
+### Node Version
+Check `.nvmrc` or `package.json` engines field for required version.
+```bash
+nvm use  # If .nvmrc exists
 ```
 
-**Rule: Never recreate what Strata provides.**
+## Development Commands
 
-## 📝 Code Patterns
+### Testing (ALWAYS run tests)
+```bash
+# Run all tests
+pnpm test
 
-### React Three Fiber Component
+# Run tests in watch mode
+pnpm test:watch
 
+# Run with coverage
+pnpm test:coverage
+
+# Run specific test file
+pnpm test -- src/__tests__/specific.test.ts
+
+# Run tests matching pattern
+pnpm test -- -t "pattern"
+```
+
+### Linting & Formatting
+```bash
+# Lint (ESLint or Biome)
+pnpm lint
+
+# Fix lint issues
+pnpm lint:fix
+
+# Format (Prettier or Biome)
+pnpm format
+
+# Check formatting
+pnpm format:check
+
+# Type checking
+pnpm typecheck
+```
+
+### Building
+```bash
+# Build for production
+pnpm build
+
+# Build in watch mode
+pnpm build:watch
+
+# Clean build artifacts
+pnpm clean
+```
+
+## Code Patterns
+
+### Imports
 ```typescript
-import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
-import * as THREE from 'three';
+// Node built-ins first
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
-interface PlayerProps {
-  position: [number, number, number];
-  onMove?: (pos: THREE.Vector3) => void;
+// External packages
+import { z } from 'zod';
+
+// Internal absolute imports
+import { config } from '@/config';
+import { logger } from '@/utils/logger';
+
+// Relative imports last
+import { helper } from './helper';
+```
+
+### Type Definitions
+```typescript
+// Prefer interfaces for object shapes
+interface UserConfig {
+  readonly id: string;
+  name: string;
+  settings?: Settings;
 }
 
-export function Player({ position, onMove }: PlayerProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+// Use type for unions/intersections
+type Result<T> = Success<T> | Failure;
 
-  useFrame((state, delta) => {
-    if (meshRef.current) {
-      // Animation logic
-    }
+// Export types explicitly
+export type { UserConfig, Result };
+```
+
+### Error Handling
+```typescript
+// Custom error classes
+class ProcessingError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly cause?: Error
+  ) {
+    super(message);
+    this.name = 'ProcessingError';
+  }
+}
+
+// Result pattern (alternative to exceptions)
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+```
+
+### Async Patterns
+```typescript
+// Prefer async/await over .then()
+async function fetchData(url: string): Promise<Data> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new FetchError(`HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+// Use Promise.all for parallel operations
+const [users, posts] = await Promise.all([
+  fetchUsers(),
+  fetchPosts(),
+]);
+```
+
+### Testing Patterns
+```typescript
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+describe('Processor', () => {
+  let processor: Processor;
+
+  beforeEach(() => {
+    processor = new Processor({ debug: false });
   });
 
-  return (
-    <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[0.5, 32, 32]} />
-      <meshStandardMaterial color="brown" />
-    </mesh>
-  );
-}
-```
+  it('should process valid input', async () => {
+    const result = await processor.process('valid');
+    expect(result.success).toBe(true);
+  });
 
-### ECS System
+  it('should throw on invalid input', async () => {
+    await expect(processor.process('')).rejects.toThrow('Invalid');
+  });
 
-```typescript
-import { world } from '../world';
-import { Position, Velocity } from '../components';
-
-export function createMovementSystem() {
-  const entities = world.with('position', 'velocity');
-
-  return (delta: number) => {
-    for (const entity of entities) {
-      entity.position.x += entity.velocity.x * delta;
-      entity.position.y += entity.velocity.y * delta;
-      entity.position.z += entity.velocity.z * delta;
-    }
-  };
-}
-```
-
-### Zustand Store
-
-```typescript
-import { create } from 'zustand';
-
-interface GameState {
-  health: number;
-  score: number;
-  takeDamage: (amount: number) => void;
-  addScore: (points: number) => void;
-}
-
-export const useGameStore = create<GameState>((set) => ({
-  health: 100,
-  score: 0,
-  takeDamage: (amount) => set((s) => ({ health: Math.max(0, s.health - amount) })),
-  addScore: (points) => set((s) => ({ score: s.score + points })),
-}));
-```
-
-### Testing with Vitest
-
-```typescript
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useGameStore } from './gameStore';
-
-describe('GameStore', () => {
-  it('should reduce health on damage', () => {
-    const { result } = renderHook(() => useGameStore());
-    
-    act(() => {
-      result.current.takeDamage(25);
-    });
-    
-    expect(result.current.health).toBe(75);
+  it('should call external service', async () => {
+    const mockService = vi.fn().mockResolvedValue({ data: 'test' });
+    // ...
   });
 });
 ```
 
-## ⚠️ Critical Rules
-
-1. **Mobile-First**: Test touch interactions
-2. **Performance**: Avoid allocations in `useFrame`
-3. **ECS**: Game logic in systems, not components
-4. **Strata**: Use library components, don't recreate
-5. **Types**: Full TypeScript, no `any`
-
-## 🔗 Feature Issues
-
-Port features from integration sources by referencing:
-- #39-51: Rivers of Reckoning features
-- #28-33: Core integration tasks
-
-Comment source file when porting:
+### React Patterns (if applicable)
 ```typescript
-// Ported from: integration/pending/otter-river-rush/src/components/VirtualJoystick.tsx
+// Functional components with proper typing
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+export function Button({ label, onClick, disabled = false }: ButtonProps) {
+  return (
+    <button onClick={onClick} disabled={disabled}>
+      {label}
+    </button>
+  );
+}
+
+// Hooks
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  // ...
+  return debouncedValue;
+}
 ```
 
-## 📋 Commit Convention
+## Common Issues
 
-```
-feat(scope): add feature
-fix(scope): fix bug
-port(source): port from Rivers/Otter
-test: add tests
-docs: update docs
-refactor: code improvement
-```
-
-## 🧪 Test Requirements
-
-- Unit tests for stores and utilities
-- Integration tests for ECS systems
-- E2E tests for critical user flows
-- Snapshot tests for UI components
-
-Run before PR:
+### "Cannot find module"
 ```bash
-pnpm run typecheck && pnpm run lint && pnpm run test
+# Rebuild TypeScript
+pnpm build
+
+# Check tsconfig.json paths
+```
+
+### Type errors after package update
+```bash
+# Regenerate types
+pnpm install
+pnpm typecheck
+```
+
+### ESM vs CommonJS issues
+```typescript
+// In ESM (type: "module" in package.json)
+import { something } from './module.js';  // .js extension required
+
+// For JSON imports
+import config from './config.json' with { type: 'json' };
+```
+
+## File Structure
+```
+src/
+├── index.ts           # Main entry point
+├── core/              # Core logic (no framework deps)
+├── components/        # React components (if applicable)
+├── hooks/             # React hooks
+├── utils/             # Utility functions
+├── types/             # Type definitions
+└── __tests__/         # Unit tests
+tests/
+├── integration/       # Integration tests
+└── e2e/              # End-to-end tests
 ```
