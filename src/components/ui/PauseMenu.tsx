@@ -3,10 +3,11 @@ import React, { useEffect, useRef } from 'react';
 interface PauseMenuProps {
     onResume: () => void;
     onSettings?: () => void;
+    onShop?: () => void;
     onQuit?: () => void;
 }
 
-export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
+export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuProps) {
     const resumeButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -94,6 +95,15 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
                     aria-label="Resume game"
                 >
                     Resume
+                </button>
+                <button
+                    onClick={onShop}
+                    style={menuButtonStyle}
+                    onMouseEnter={(e) => handleButtonHover(e, true)}
+                    onMouseLeave={(e) => handleButtonHover(e, false)}
+                    aria-label="Open shop"
+                >
+                    Shop
                 </button>
                 <button
                     onClick={onSettings}
