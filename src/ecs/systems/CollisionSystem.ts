@@ -8,6 +8,7 @@
 import { useGameStore } from '@/stores/gameStore';
 import { PREDATOR_SPECIES } from '../data/species';
 import { world } from '../world';
+import { applyCurse } from './EnemyEffectsSystem';
 
 const PLAYER_RADIUS = 0.5;
 const NPC_RADIUS = 0.5;
@@ -41,17 +42,26 @@ export function CollisionSystem(delta: number) {
         if (distance < collisionDistance) {
             // Collision detected - apply damage
             const speciesData = PREDATOR_SPECIES[entity.species.id as keyof typeof PREDATOR_SPECIES];
-            if (speciesData) {
+            const combatData = entity.combat;
+            
+            if (speciesData || combatData) {
                 // Apply difficulty and event multipliers
                 const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
                 const difficultyMultiplier = worldEntity?.difficulty?.damageMultiplier ?? 1.0;
                 const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
                 const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
                 
-                const finalDamage = speciesData.damage * difficultyMultiplier * bloodMoonMultiplier;
+                const baseDamage = combatData ? combatData.damage : (speciesData?.damage ?? 5);
+                const finalDamage = baseDamage * difficultyMultiplier * bloodMoonMultiplier;
                 
                 damagePlayer(finalDamage);
-                console.log(`Hit by ${speciesData.name}! Damage: ${finalDamage.toFixed(1)} (Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
+                
+                // Apply special effects on hit
+                if (entity.enemyEffect?.type === 'curse') {
+                    applyCurse();
+                }
+
+                console.log(`Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
             }
         }
     }

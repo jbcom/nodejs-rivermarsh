@@ -86,15 +86,16 @@ export function Player() {
 
                 // Apply movement force
                 const waterMultiplier = isInWater ? 0.7 : 1.0;
+                const speedMultiplier = player.speedMultiplier || 1.0;
                 const force = {
-                    x: dirX * MOVE_FORCE * waterMultiplier,
+                    x: dirX * MOVE_FORCE * waterMultiplier * speedMultiplier,
                     y: 0,
-                    z: dirZ * MOVE_FORCE * waterMultiplier
+                    z: dirZ * MOVE_FORCE * waterMultiplier * speedMultiplier
                 };
                 
                 // Clamp horizontal velocity
                 const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-                if (speed < MAX_SPEED * waterMultiplier) {
+                if (speed < MAX_SPEED * waterMultiplier * speedMultiplier) {
                     rb.applyImpulse(force, true);
                 }
             }

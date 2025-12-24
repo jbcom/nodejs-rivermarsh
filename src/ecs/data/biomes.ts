@@ -35,9 +35,11 @@ export const BIOMES: Record<BiomeType, BiomeData> = {
         grassColor: new THREE.Color(0x335522),
         spawnTables: {
             predators: [
-                { species: 'fox', weight: 0.3 },
-                { species: 'raccoon', weight: 0.5 },
-                { species: 'mink', weight: 0.2 },
+                { species: 'fox', weight: 0.2 },
+                { species: 'raccoon', weight: 0.3 },
+                { species: 'mink', weight: 0.1 },
+                { species: 'slime', weight: 0.3 },
+                { species: 'wraith', weight: 0.1 },
             ],
             prey: [
                 { species: 'frog', weight: 0.6 },
@@ -57,10 +59,11 @@ export const BIOMES: Record<BiomeType, BiomeData> = {
         grassColor: new THREE.Color(0x2a4a1a),
         spawnTables: {
             predators: [
-                { species: 'wolf', weight: 0.3 },
+                { species: 'wolf', weight: 0.2 },
                 { species: 'bear', weight: 0.1 },
-                { species: 'fox', weight: 0.4 },
-                { species: 'badger', weight: 0.2 },
+                { species: 'fox', weight: 0.3 },
+                { species: 'badger', weight: 0.1 },
+                { species: 'goblin', weight: 0.3 },
             ],
             prey: [
                 { species: 'rabbit', weight: 0.4 },
@@ -152,9 +155,10 @@ export const BIOMES: Record<BiomeType, BiomeData> = {
         grassColor: new THREE.Color(0x4a5a3a),
         spawnTables: {
             predators: [
-                { species: 'mountain_lion', weight: 0.4 },
-                { species: 'bear', weight: 0.3 },
-                { species: 'eagle', weight: 0.3 },
+                { species: 'mountain_lion', weight: 0.3 },
+                { species: 'bear', weight: 0.2 },
+                { species: 'eagle', weight: 0.2 },
+                { species: 'orc', weight: 0.3 },
             ],
             prey: [
                 { species: 'goat', weight: 0.5 },

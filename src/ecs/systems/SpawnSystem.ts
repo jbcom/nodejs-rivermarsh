@@ -84,7 +84,11 @@ function spawnNPC(speciesId: string, type: 'predator' | 'prey', playerPos: THREE
     } while (spawnPos.distanceTo(playerPos) < MIN_SPAWN_DISTANCE && attempts < 10);
 
     // Create entity
-    world.add({
+    const baseHealth = speciesData.baseHealth + (speciesId === 'orc' ? 2 : speciesId === 'slime' ? -2 : 0);
+    const baseDamage = (speciesData as any).damage || 0;
+    const damage = baseDamage + (speciesId === 'orc' ? 1 : speciesId === 'slime' ? -1 : 0);
+
+    const entity: any = {
         isNPC: true,
         transform: {
             position: spawnPos,
@@ -101,12 +105,18 @@ function spawnNPC(speciesId: string, type: 'predator' | 'prey', playerPos: THREE
             id: speciesId,
             name: speciesData.name,
             type,
-            health: speciesData.baseHealth,
-            maxHealth: speciesData.baseHealth,
+            health: baseHealth,
+            maxHealth: baseHealth,
             stamina: 100,
             maxStamina: 100,
             speed: speciesData.walkSpeed,
             state: 'idle',
+        },
+        combat: {
+            damage: damage,
+            attackRange: 2,
+            attackSpeed: 1.5,
+            lastAttackTime: 0,
         },
         steering: {
             target: null,
@@ -114,7 +124,18 @@ function spawnNPC(speciesId: string, type: 'predator' | 'prey', playerPos: THREE
             wanderAngle: Math.random() * Math.PI * 2,
             wanderTimer: Math.random() * 3,
         },
-    });
+    };
+
+    // Add special effects
+    if (speciesId === 'orc') {
+        entity.enemyEffect = { type: 'rage', active: false, value: 1.5 };
+    } else if (speciesId === 'slime') {
+        entity.enemyEffect = { type: 'split', active: true, value: 2 };
+    } else if (speciesId === 'wraith') {
+        entity.enemyEffect = { type: 'curse', active: true };
+    }
+
+    world.add(entity);
 }
 
 export function SpawnSystem(playerPos: THREE.Vector3) {

@@ -53,6 +53,21 @@ export interface SpeciesComponent {
     state: 'idle' | 'walk' | 'run' | 'flee' | 'chase' | 'attack' | 'dead';
 }
 
+export interface CombatComponent {
+    damage: number;
+    attackRange: number;
+    attackSpeed: number; // Seconds between attacks
+    lastAttackTime: number;
+}
+
+export type EnemyEffect = 'rage' | 'split' | 'curse';
+
+export interface EnemyEffectComponent {
+    type: EnemyEffect;
+    active: boolean;
+    value?: number; // e.g., damage multiplier for rage, or split level
+}
+
 export interface MovementComponent {
     velocity: Vector3;
     acceleration: Vector3;
@@ -113,6 +128,8 @@ export type Entity = {
     transform?: TransformComponent;
     movement?: MovementComponent;
     species?: SpeciesComponent;
+    combat?: CombatComponent;
+    enemyEffect?: EnemyEffectComponent;
     steering?: SteeringComponent;
     resource?: ResourceComponent;
 
