@@ -36,6 +36,10 @@ export function BossBattleSystem() {
         if (!boss || !boss.isBossBattleActive) continue;
 
         if (boss.turn === 'boss') {
+            // Transition to thinking state to avoid multiple setTimeouts
+            boss.turn = 'boss_thinking';
+            world.update(entity);
+
             // Simple Boss AI logic
             setTimeout(() => {
                 const damage = Math.floor(Math.random() * 10) + 10; // 10-20 damage

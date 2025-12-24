@@ -106,7 +106,7 @@ export interface BossComponent {
     abilities: string[];
     cooldown: number; // Turn-based cooldown
     isBossBattleActive: boolean;
-    turn: 'player' | 'boss';
+    turn: 'player' | 'boss' | 'boss_thinking';
 }
 
 // The Entity Type
