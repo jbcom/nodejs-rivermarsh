@@ -22,6 +22,9 @@ export interface PlayerStats {
   otterAffinity: number;
   level: number;
   experience: number;
+  swordLevel: number;
+  shieldLevel: number;
+  bootsLevel: number;
   skills: Record<SkillType, OtterSkill>;
 }
 
@@ -128,6 +131,9 @@ export interface GameState {
   damageNPC: (npcId: string, amount: number) => void;
   addGold: (amount: number) => void;
   spendGold: (amount: number) => boolean;
+  upgradeSword: () => void;
+  upgradeShield: () => void;
+  upgradeBoots: () => void;
 }
 
 export const useRivermarsh = create<GameState>()(
@@ -147,6 +153,9 @@ export const useRivermarsh = create<GameState>()(
         otterAffinity: 50,
         level: 1,
         experience: 0,
+        swordLevel: 0,
+        shieldLevel: 0,
+        bootsLevel: 0,
         skills: {
           swimming: { name: "Swimming", level: 1, experience: 0, experienceToNext: 100 },
           diving: { name: "Diving", level: 1, experience: 0, experienceToNext: 100 },
@@ -543,26 +552,33 @@ export const useRivermarsh = create<GameState>()(
       })),
 
     damageNPC: (npcId, amount) =>
-      set((state) => ({
-        npcs: state.npcs.map((npc) => {
-          if (npc.id === npcId && npc.health !== undefined) {
-            const newHealth = Math.max(0, npc.health - amount);
-            return { ...npc, health: newHealth };
-          }
-          return npc;
-        }),
-      })),
+      set((state) => {
+        const swordBonus = state.player.stats.swordLevel;
+        const totalDamage = amount + swordBonus;
+        return {
+          npcs: state.npcs.map((npc) => {
+            if (npc.id === npcId && npc.health !== undefined) {
+              const newHealth = Math.max(0, npc.health - totalDamage);
+              return { ...npc, health: newHealth };
+            }
+            return npc;
+          }),
+        };
+      }),
 
     addGold: (amount) =>
-      set((state) => ({
-        player: {
-          ...state.player,
-          stats: {
-            ...state.player.stats,
-            gold: state.player.stats.gold + amount,
+      set((state) => {
+        const bonus = state.player.stats.bootsLevel;
+        return {
+          player: {
+            ...state.player,
+            stats: {
+              ...state.player.stats,
+              gold: state.player.stats.gold + amount + bonus,
+            },
           },
-        },
-      })),
+        };
+      }),
 
     spendGold: (amount) => {
       const state = get();
@@ -580,6 +596,36 @@ export const useRivermarsh = create<GameState>()(
       }
       return false;
     },
+    upgradeSword: () =>
+      set((state) => ({
+        player: {
+          ...state.player,
+          stats: {
+            ...state.player.stats,
+            swordLevel: state.player.stats.swordLevel + 1,
+          },
+        },
+      })),
+    upgradeShield: () =>
+      set((state) => ({
+        player: {
+          ...state.player,
+          stats: {
+            ...state.player.stats,
+            shieldLevel: state.player.stats.shieldLevel + 1,
+          },
+        },
+      })),
+    upgradeBoots: () =>
+      set((state) => ({
+        player: {
+          ...state.player,
+          stats: {
+            ...state.player.stats,
+            bootsLevel: state.player.stats.bootsLevel + 1,
+          },
+        },
+      })),
     })),
     {
       name: 'rivermarsh-game-state',

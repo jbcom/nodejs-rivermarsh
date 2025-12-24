@@ -1,5 +1,6 @@
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
+import { useRivermarsh } from '@/stores/useRivermarsh';
 import { useEffect, useRef, useState } from 'react';
 
 export function HUD() {
@@ -8,6 +9,8 @@ export function HUD() {
     const stamina = useGameStore((s) => s.player.stamina);
     const maxStamina = useGameStore((s) => s.player.maxStamina);
     const nearbyResource = useGameStore((s) => s.nearbyResource);
+    
+    const { toggleShop, showShop } = useRivermarsh();
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [isPaused, setIsPaused] = useState(false);
@@ -380,6 +383,18 @@ export function HUD() {
                             aria-label="Resume game"
                         >
                             Resume
+                        </button>
+                        <button
+                            onClick={() => {
+                                handleResume();
+                                toggleShop();
+                            }}
+                            style={menuButtonStyle}
+                            onMouseEnter={(e) => handleButtonHover(e, true)}
+                            onMouseLeave={(e) => handleButtonHover(e, false)}
+                            aria-label="Open shop"
+                        >
+                            Shop
                         </button>
                         <button
                             style={menuButtonStyle}

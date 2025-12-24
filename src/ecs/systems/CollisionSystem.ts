@@ -6,6 +6,7 @@
  */
 
 import { useGameStore } from '@/stores/gameStore';
+import { useRivermarsh } from '@/stores/useRivermarsh';
 import { PREDATOR_SPECIES } from '../data/species';
 import { world } from '../world';
 
@@ -48,10 +49,12 @@ export function CollisionSystem(delta: number) {
                 const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
                 const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
                 
-                const finalDamage = speciesData.damage * difficultyMultiplier * bloodMoonMultiplier;
+                const shieldLevel = useRivermarsh.getState().player.stats.shieldLevel;
+                const baseDamage = speciesData.damage * difficultyMultiplier * bloodMoonMultiplier;
+                const finalDamage = Math.max(1, baseDamage - shieldLevel);
                 
                 damagePlayer(finalDamage);
-                console.log(`Hit by ${speciesData.name}! Damage: ${finalDamage.toFixed(1)} (Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
+                console.log(`Hit by ${speciesData.name}! Damage: ${finalDamage.toFixed(1)} (Base: ${baseDamage.toFixed(1)}, Shield: -${shieldLevel})`);
             }
         }
     }
