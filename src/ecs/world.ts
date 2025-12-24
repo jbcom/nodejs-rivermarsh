@@ -1,5 +1,6 @@
 import { World } from 'miniplex';
 import { Entity } from './components';
+import { TIME, LIGHTING } from '@/constants/game';
 
 // Create the global world instance
 export const world = new World<Entity>();
@@ -8,14 +9,14 @@ export const world = new World<Entity>();
 export const globalEntity = world.add({
     isWorld: true,
     time: {
-        hour: 8, // Start at 8 AM
+        hour: TIME.STARTING_HOUR,
         phase: 'day',
         dayCount: 1,
-        sunIntensity: 1.0,
-        sunAngle: 30,
-        ambientLight: 1.0,
-        fogDensity: 0,
-        timeScale: 1.0 // Real-time for now, can speed up
+        sunIntensity: LIGHTING.SUN_INTENSITY.day,
+        sunAngle: (TIME.STARTING_HOUR - 6) / 12 * 180,
+        ambientLight: LIGHTING.AMBIENT_INTENSITY.day,
+        fogDensity: LIGHTING.FOG_DENSITY.day,
+        timeScale: TIME.TIME_SCALE
     },
     weather: {
         current: 'clear',
@@ -25,6 +26,7 @@ export const globalEntity = world.add({
         windSpeed: 2,
         windDirection: [1, 0],
         visibilityMod: 1.0,
+        fogDensity: 0,
         startTime: Date.now(),
         durationMinutes: 60
     },
