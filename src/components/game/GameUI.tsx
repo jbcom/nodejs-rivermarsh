@@ -1,13 +1,16 @@
 import { useRivermarsh } from "@/stores/useRivermarsh";
+import { ShopPanel } from "./ShopPanel";
 import { useEffect } from "react";
 
 export function GameUI() {
   const {
     showInventory,
     showQuestLog,
+    showShop,
     activeDialogue,
     toggleInventory,
     toggleQuestLog,
+    toggleShop,
     nextDialogue,
     endDialogue,
   } = useRivermarsh();
@@ -19,6 +22,12 @@ export function GameUI() {
       }
       if (e.key === "q" || e.key === "Q") {
         toggleQuestLog();
+      }
+      if (e.key === "b" || e.key === "B") {
+        toggleShop();
+      }
+      if (e.key === "r" || e.key === "R") {
+        useRivermarsh.getState().setGameMode('racing');
       }
       if (e.key === "Enter" || e.key === " ") {
         if (activeDialogue) {
@@ -41,6 +50,7 @@ export function GameUI() {
       <StatsDisplay />
       {showInventory && <InventoryPanel />}
       {showQuestLog && <QuestLogPanel />}
+      {showShop && <ShopPanel />}
       {activeDialogue && <DialogueBox />}
       <HelpText />
     </div>
@@ -116,6 +126,10 @@ function StatsDisplay() {
           />
         </div>
         <div style={{ fontSize: "11px", marginTop: "2px" }}>{player.stats.otterAffinity}%</div>
+      </div>
+
+      <div style={{ marginBottom: "8px", color: "#FFD700", fontWeight: "bold" }}>
+          Gold: {player.stats.gold}
       </div>
 
       <div style={{ marginTop: "10px", fontSize: "12px", borderTop: "1px solid #555", paddingTop: "8px" }}>
@@ -359,7 +373,7 @@ function HelpText() {
         border: "1px solid rgba(255, 255, 255, 0.3)",
       }}
     >
-      <div>WASD/Arrows: Move | Space: Jump | I: Inventory | Q: Quests | E: Interact</div>
+      <div>WASD: Move | Space: Jump | I: Inv | Q: Quests | B: Shop | R: Race | E: Interact</div>
     </div>
   );
 }

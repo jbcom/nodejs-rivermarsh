@@ -1,0 +1,84 @@
+{
+  "version": "1.0.0",
+  "generated": "2025-10-27T19:40:24.378Z",
+  "models": [
+    {
+      "id": "otter-rusty",
+      "name": "Rusty the Otter",
+      "category": "character",
+      "source": {
+        "type": "meshy",
+        "meshyTaskId": "019a26f6-9d33-750f-bd5d-8f105a4ed078",
+        "rigTaskId": "019a26fa-d9cb-7ffa-9df2-aa0c18a74c40",
+        "prompt": "cute otter character standing upright on two legs, wearing a small adventure vest, friendly expression, cartoon style, game-ready low-poly 3D model, smooth topology, T-pose for rigging"
+      },
+      "files": {
+        "glb": "/models/otter-rusty.glb"
+      },
+      "metadata": {
+        "polycount": 8000,
+        "size": 3954144,
+        "checksum": "ffa36142af6128d7dc5af84bc1befd9b148dfd1b23ddfa1e263ea283dc4804a6",
+        "generated": "2025-10-27T19:40:24.354Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "rock-river",
+      "name": "River Rock",
+      "category": "obstacle",
+      "source": {
+        "type": "meshy",
+        "prompt": "smooth river rock, rounded boulder, natural stone texture, game-ready low-poly 3D model, simple geometry"
+      },
+      "files": {
+        "glb": "/models/rock-river.glb"
+      },
+      "metadata": {
+        "polycount": 2000,
+        "size": 3729016,
+        "checksum": "6a845fdd8d168e382fc4ecb461be66c7bb5c94466952f4026b3b76796845c705",
+        "generated": "2025-10-27T19:40:24.358Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "coin-gold",
+      "name": "Gold Coin",
+      "category": "collectible",
+      "source": {
+        "type": "meshy",
+        "prompt": "shiny gold coin with otter paw print embossed on surface, game collectible, low-poly 3D model, metallic finish, cartoon style"
+      },
+      "files": {
+        "glb": "/models/coin-gold.glb"
+      },
+      "metadata": {
+        "polycount": 500,
+        "size": 13734828,
+        "checksum": "c6b1acaa84a72ceae5984c897f75dc48a40144ad4a4617e9427d95797f9ae650",
+        "generated": "2025-10-27T19:40:24.368Z",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "gem-red",
+      "name": "Red Gem",
+      "category": "collectible",
+      "source": {
+        "type": "meshy",
+        "prompt": "brilliant red ruby gemstone, faceted crystal, game collectible, low-poly 3D model, glowing appearance, stylized"
+      },
+      "files": {
+        "glb": "/models/gem-red.glb"
+      },
+      "metadata": {
+        "polycount": 300,
+        "size": 13684856,
+        "checksum": "a7d50e5ab2c7d9a9a309741ebc407343bf6172431d12a72025ea0850d5034fe0",
+        "generated": "2025-10-27T19:40:24.378Z",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

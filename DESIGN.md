@@ -1,7 +1,7 @@
-# Otterfall Design Document
+# Rivermarsh Design Document
 
 ## Vision
-Otterfall (formerly Rivermarsh) is a mobile-first 3D game where the player controls an otter navigating diverse biomes. The game emphasizes exploration, survival, and interaction with a simulated ecosystem.
+Rivermarsh (formerly Otterfall) is a mobile-first 3D game where the player controls an otter navigating diverse biomes. The game emphasizes exploration, survival, and interaction with a simulated ecosystem.
 
 ## Core Pillars
 1.  **Procedural Ecosystem**: A living world with predator/prey dynamics, weather systems, and biome-specific resources.

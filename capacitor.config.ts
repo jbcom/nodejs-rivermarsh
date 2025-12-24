@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.jbcom.otterfall',
-  appName: 'Otterfall',
+  appName: 'Rivermarsh',
   webDir: 'dist'
 };
 

@@ -85,11 +85,15 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
     );
 }
 
+import { RacingScene } from '@/features/racing/RacingScene';
+import { useRivermarsh } from '@/stores/useRivermarsh';
+
 export default function App() {
     // Detect mobile and enable Rivermarsh features
     const [isMobile, setIsMobile] = useState(false);
     // Rivermarsh features enabled by default - can be toggled in settings later
     const rivermarshEnabled = true;
+    const gameMode = useRivermarsh(state => state.gameMode);
 
     useEffect(() => {
         setIsMobile(isTouchDevice());
@@ -107,29 +111,37 @@ export default function App() {
                 dpr={[1, 1.5]}
                 style={{ background: '#0a0808' }}
             >
-                <Scene 
-                    useMobileControls={isMobile} 
-                    useRivermarshFeatures={rivermarshEnabled} 
-                />
+                {gameMode === 'racing' ? (
+                    <RacingScene />
+                ) : (
+                    <Scene
+                        useMobileControls={isMobile}
+                        useRivermarshFeatures={rivermarshEnabled}
+                    />
+                )}
             </Canvas>
 
-            {/* Mobile controls - virtual joystick and action buttons */}
-            {isMobile && (
+            {gameMode === 'exploration' && (
                 <>
-                    <VirtualJoysticks />
-                    <MobileActionButtons />
+                    {/* Mobile controls - virtual joystick and action buttons */}
+                    {isMobile && (
+                        <>
+                            <VirtualJoysticks />
+                            <MobileActionButtons />
+                        </>
+                    )}
+
+                    <InputZone />
+                    <HUD />
+
+                    {/* Rivermarsh game UI - inventory, quests, dialogue */}
+                    {rivermarshEnabled && <GameUI />}
+
+                    <GameOver />
+                    <Loader />
+                    <Tutorial />
                 </>
             )}
-
-            <InputZone />
-            <HUD />
-            
-            {/* Rivermarsh game UI - inventory, quests, dialogue */}
-            {rivermarshEnabled && <GameUI />}
-            
-            <GameOver />
-            <Loader />
-            <Tutorial />
         </>
     );
 }

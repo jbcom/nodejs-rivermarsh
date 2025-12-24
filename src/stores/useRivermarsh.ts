@@ -18,6 +18,7 @@ export interface PlayerStats {
   maxHealth: number;
   stamina: number;
   maxStamina: number;
+  gold: number;
   otterAffinity: number;
   level: number;
   experience: number;
@@ -70,7 +71,11 @@ export interface OtterNPC {
   maxHealth?: number;
 }
 
+export type GameMode = 'exploration' | 'racing';
+
 export interface GameState {
+  gameMode: GameMode;
+  setGameMode: (mode: GameMode) => void;
   player: {
     position: [number, number, number];
     rotation: [number, number];
@@ -86,6 +91,7 @@ export interface GameState {
   isPaused: boolean;
   showInventory: boolean;
   showQuestLog: boolean;
+  showShop: boolean;
   activeDialogue: {
     npcId: string;
     npcName: string;
@@ -105,6 +111,7 @@ export interface GameState {
   completeQuest: (questId: string) => void;
   toggleInventory: () => void;
   toggleQuestLog: () => void;
+  toggleShop: () => void;
   togglePause: () => void;
   startDialogue: (npcId: string, npcName: string, messages: string[]) => void;
   nextDialogue: () => void;
@@ -119,11 +126,15 @@ export interface GameState {
   spawnNPC: (npc: OtterNPC) => void;
   removeNPC: (npcId: string) => void;
   damageNPC: (npcId: string, amount: number) => void;
+  addGold: (amount: number) => void;
+  spendGold: (amount: number) => boolean;
 }
 
 export const useRivermarsh = create<GameState>()(
   persist(
     subscribeWithSelector((set, get) => ({
+    gameMode: 'exploration',
+    setGameMode: (mode) => set({ gameMode: mode }),
     player: {
       position: [0, 1, 0],
       rotation: [0, 0],
@@ -132,6 +143,7 @@ export const useRivermarsh = create<GameState>()(
         maxHealth: 100,
         stamina: 100,
         maxStamina: 100,
+        gold: 100,
         otterAffinity: 50,
         level: 1,
         experience: 0,
@@ -171,6 +183,7 @@ export const useRivermarsh = create<GameState>()(
     isPaused: false,
     showInventory: false,
     showQuestLog: false,
+    showShop: false,
     activeDialogue: null,
 
     updatePlayerPosition: (position) =>
@@ -342,6 +355,14 @@ export const useRivermarsh = create<GameState>()(
       set((state) => ({
         showQuestLog: !state.showQuestLog,
         showInventory: false,
+        showShop: false,
+      })),
+
+    toggleShop: () =>
+      set((state) => ({
+        showShop: !state.showShop,
+        showInventory: false,
+        showQuestLog: false,
       })),
 
     togglePause: () =>
@@ -531,6 +552,34 @@ export const useRivermarsh = create<GameState>()(
           return npc;
         }),
       })),
+
+    addGold: (amount) =>
+      set((state) => ({
+        player: {
+          ...state.player,
+          stats: {
+            ...state.player.stats,
+            gold: state.player.stats.gold + amount,
+          },
+        },
+      })),
+
+    spendGold: (amount) => {
+      const state = get();
+      if (state.player.stats.gold >= amount) {
+        set((state) => ({
+          player: {
+            ...state.player,
+            stats: {
+              ...state.player.stats,
+              gold: state.player.stats.gold - amount,
+            },
+          },
+        }));
+        return true;
+      }
+      return false;
+    },
     })),
     {
       name: 'rivermarsh-game-state',

@@ -119,7 +119,7 @@ export function HUD() {
                         textTransform: 'uppercase',
                         fontFamily: 'Cinzel, serif',
                     }}>
-                        Otterfall
+                        Rivermarsh
                     </h1>
                     <p style={{
                         color: '#ccc',
