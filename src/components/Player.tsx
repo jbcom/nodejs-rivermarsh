@@ -47,6 +47,7 @@ export function Player() {
     const input = useGameStore((s) => s.input);
     const player = useGameStore((s) => s.player);
     const playerStats = useRivermarsh((s) => s.player.stats);
+    const dashAction = useControlsStore((state) => state.actions.dash);
     const updatePlayer = useGameStore((s) => s.updatePlayer);
     const damagePlayer = useGameStore.getState().damagePlayer;
 
@@ -159,16 +160,17 @@ export function Player() {
 
                 // Apply movement force
                 const waterMultiplier = isInWater ? 0.7 : 1.0;
+                const dashMultiplier = dashAction ? 2.5 : 1.0;
                 const speedMultiplier = player.speedMultiplier || 1.0;
                 const force = {
-                    x: dirX * MOVE_FORCE * waterMultiplier * speedMultiplier,
+                    x: dirX * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier,
                     y: 0,
-                    z: dirZ * MOVE_FORCE * waterMultiplier * speedMultiplier
+                    z: dirZ * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier
                 };
                 
                 // Clamp horizontal velocity
                 const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-                if (speed < MAX_SPEED * waterMultiplier * speedMultiplier) {
+                if (speed < MAX_SPEED * waterMultiplier * dashMultiplier * speedMultiplier) {
                     rb.applyImpulse(force, true);
                 }
             }
@@ -219,7 +221,8 @@ export function Player() {
 
         const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
         if (input.active && speed > 0.5) {
-            consumeStamina(5 * delta);
+            const dashStaminaMult = dashAction ? 4 : 1;
+            consumeStamina(5 * delta * dashStaminaMult);
         } else if (!input.active) {
             restoreStamina(10 * delta);
         }
