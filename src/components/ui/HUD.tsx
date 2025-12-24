@@ -10,7 +10,7 @@ export function HUD() {
     const maxStamina = useGameStore((s) => s.player.maxStamina);
     const nearbyResource = useGameStore((s) => s.nearbyResource);
     
-    const { toggleShop, showShop } = useRivermarsh();
+    const { toggleShop } = useRivermarsh();
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [isPaused, setIsPaused] = useState(false);
