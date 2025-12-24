@@ -27,7 +27,11 @@ export function TimeSystem(delta: number) {
         // So 1 real second = 1/60 game hour
         const gameHoursPassed = (delta * time.timeScale) / 60;
 
-        time.hour = (time.hour + gameHoursPassed) % 24;
+        const nextHour = time.hour + gameHoursPassed;
+        if (nextHour >= 24) {
+            time.dayCount += 1;
+        }
+        time.hour = nextHour % 24;
         time.phase = getPhaseFromHour(time.hour);
 
         // Update lighting props based on time

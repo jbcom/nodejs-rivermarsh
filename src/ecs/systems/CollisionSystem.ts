@@ -42,8 +42,16 @@ export function CollisionSystem(delta: number) {
             // Collision detected - apply damage
             const speciesData = PREDATOR_SPECIES[entity.species.id as keyof typeof PREDATOR_SPECIES];
             if (speciesData) {
-                damagePlayer(speciesData.damage);
-                console.log(`Hit by ${speciesData.name}! Damage: ${speciesData.damage}`);
+                // Apply difficulty and event multipliers
+                const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
+                const difficultyMultiplier = worldEntity?.difficulty?.damageMultiplier ?? 1.0;
+                const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
+                const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
+                
+                const finalDamage = speciesData.damage * difficultyMultiplier * bloodMoonMultiplier;
+                
+                damagePlayer(finalDamage);
+                console.log(`Hit by ${speciesData.name}! Damage: ${finalDamage.toFixed(1)} (Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
             }
         }
     }

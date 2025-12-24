@@ -14,6 +14,7 @@ export type WeatherType =
 export interface TimeOfDayComponent {
     hour: number;          // 0.0 to 24.0
     phase: TimePhase;
+    dayCount: number;
     sunIntensity: number;
     sunAngle: number;
     ambientLight: number;
@@ -81,6 +82,23 @@ export interface ResourceComponent {
     collectedAt: number;
 }
 
+export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
+
+export interface DifficultyComponent {
+    level: DifficultyLevel;
+    spawnRateMultiplier: number;
+    damageMultiplier: number;
+    healthMultiplier: number;
+    experienceMultiplier: number;
+}
+
+export interface WorldEventComponent {
+    activeEvents: string[];
+    nextEventTime: number;
+    eventDuration: number;
+    lastEventTime: number;
+}
+
 // The Entity Type
 export type Entity = {
     id?: number; // Miniplex auto-generates this, so it's optional when creating entities
@@ -102,4 +120,6 @@ export type Entity = {
     time?: TimeOfDayComponent;
     weather?: WeatherComponent;
     biome?: BiomeComponent;
+    difficulty?: DifficultyComponent;
+    worldEvents?: WorldEventComponent;
 };

@@ -10,6 +10,17 @@ const MIN_SPAWN_DISTANCE = 15; // From player
 
 let initialized = false;
 
+function getDifficulty() {
+    const worldEntity = world.with('difficulty').entities[0];
+    return worldEntity?.difficulty || {
+        level: 'normal',
+        spawnRateMultiplier: 1.0,
+        damageMultiplier: 1.0,
+        healthMultiplier: 1.0,
+        experienceMultiplier: 1.0
+    };
+}
+
 export function initializeSpawns(playerPos: THREE.Vector3) {
     if (initialized) return;
 
@@ -112,10 +123,13 @@ export function SpawnSystem(playerPos: THREE.Vector3) {
         initializeSpawns(playerPos);
     }
 
+    const difficulty = getDifficulty();
+    const effectiveMaxNpcs = Math.floor(MAX_NPCS * difficulty.spawnRateMultiplier);
+
     // Check if we need to spawn more NPCs
     const npcCount = world.with('isNPC').entities.length;
 
-    if (npcCount < MAX_NPCS) {
+    if (npcCount < effectiveMaxNpcs) {
         // Spawn more based on biome
         const biome = getCurrentBiome();
         const biomeData = BIOMES[biome];

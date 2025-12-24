@@ -14,6 +14,7 @@ import {
     ArriveBehavior,
     Vector3 as YukaVector3,
 } from 'yuka';
+import { world } from '../../world';
 import { NPCVehicle, getYukaManager } from './YukaManager';
 
 // State IDs
@@ -433,15 +434,22 @@ export class AttackState extends NPCState {
                 if (distSq < 2.25) {
                     this.attackCooldown += 1 / 60;
                     
-                    if (this.attackCooldown >= this.ATTACK_INTERVAL) {
-                        this.attackCooldown = 0;
-                        
-                        // Deal damage
-                        if (targetEntity.species) {
-                            targetEntity.species.health = Math.max(
-                                0,
-                                targetEntity.species.health - this.ATTACK_DAMAGE
-                            );
+                        if (this.attackCooldown >= this.ATTACK_INTERVAL) {
+                            this.attackCooldown = 0;
+                            
+                            // Deal damage with difficulty and event multipliers
+                            const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
+                            const difficultyMultiplier = worldEntity?.difficulty?.damageMultiplier ?? 1.0;
+                            const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
+                            const bloodMoonMultiplier = isBloodMoon && entity.species.type === 'predator' ? 2.0 : 1.0;
+                            
+                            const finalDamage = this.ATTACK_DAMAGE * difficultyMultiplier * bloodMoonMultiplier;
+
+                            if (targetEntity.species) {
+                                targetEntity.species.health = Math.max(
+                                    0,
+                                    targetEntity.species.health - finalDamage
+                                );
                             
                             // Target died
                             if (targetEntity.species.health <= 0) {

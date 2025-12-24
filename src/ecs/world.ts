@@ -10,6 +10,7 @@ export const globalEntity = world.add({
     time: {
         hour: 8, // Start at 8 AM
         phase: 'day',
+        dayCount: 1,
         sunIntensity: 1.0,
         sunAngle: 30,
         ambientLight: 1.0,
@@ -30,6 +31,19 @@ export const globalEntity = world.add({
     biome: {
         current: 'marsh',
         transitionProgress: 0
+    },
+    difficulty: {
+        level: 'normal',
+        spawnRateMultiplier: 1.0,
+        damageMultiplier: 1.0,
+        healthMultiplier: 1.0,
+        experienceMultiplier: 1.0
+    },
+    worldEvents: {
+        activeEvents: [],
+        nextEventTime: Date.now() + 300000, // 5 minutes
+        eventDuration: 120000, // 2 minutes
+        lastEventTime: Date.now()
     }
 });
 

@@ -5,6 +5,8 @@ import { Resources } from '@/components/Resources';
 import { TapToCollect } from '@/components/TapToCollect';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
+import { AchievementOverlay } from '@/components/ui/AchievementOverlay';
+import { EventOverlay } from '@/components/ui/EventOverlay';
 import { Loader } from '@/components/ui/Loader';
 import { Tutorial } from '@/components/ui/Tutorial';
 import { World } from '@/components/World';
@@ -133,6 +135,8 @@ export default function App() {
 
                     <InputZone />
                     <HUD />
+                    <AchievementOverlay />
+                    <EventOverlay />
 
                     {/* Rivermarsh game UI - inventory, quests, dialogue */}
                     {rivermarshEnabled && <GameUI />}

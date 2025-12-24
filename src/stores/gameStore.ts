@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { create } from 'zustand';
 import { loadGame as loadGameUtil, saveGame as saveGameUtil } from '../utils/save';
 
+export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
+
 interface InputState {
     direction: { x: number; y: number };
     active: boolean;
@@ -41,6 +43,7 @@ interface NearbyResource {
 interface GameState {
     loaded: boolean;
     time: number;
+    difficulty: DifficultyLevel;
     input: InputState;
     player: PlayerState;
     rocks: RockData[];
@@ -50,6 +53,7 @@ interface GameState {
     // Actions
     setLoaded: (loaded: boolean) => void;
     updateTime: (delta: number) => void;
+    setDifficulty: (difficulty: DifficultyLevel) => void;
     setInput: (x: number, y: number, active: boolean, jump: boolean) => void;
     updatePlayer: (updates: Partial<PlayerState>) => void;
     setRocks: (rocks: RockData[]) => void;
@@ -67,6 +71,7 @@ interface GameState {
 export const useGameStore = create<GameState>((set) => ({
     loaded: false,
     time: 0,
+    difficulty: 'normal',
     input: { direction: { x: 0, y: 0 }, active: false, jump: false },
     player: {
         position: new THREE.Vector3(0, 0, 0),
@@ -89,6 +94,7 @@ export const useGameStore = create<GameState>((set) => ({
 
     setLoaded: (loaded) => set({ loaded }),
     updateTime: (delta) => set((state) => ({ time: state.time + delta })),
+    setDifficulty: (difficulty) => set({ difficulty }),
     setInput: (x, y, active, jump) => set({ input: { direction: { x, y }, active, jump } }),
     updatePlayer: (updates) => set((state) => ({
         player: { ...state.player, ...updates },
