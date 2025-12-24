@@ -216,7 +216,19 @@ function RacingHUD() {
 
                             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
                                 <button 
-                                    onClick={() => startGame()}
+                                    onClick={() => {
+                                        // Clear obstacles and collectibles when starting/restarting
+                                        for (const e of racingWorld.with('obstacle')) racingWorld.remove(e);
+                                        for (const e of racingWorld.with('collectible')) racingWorld.remove(e);
+                                        const player = racingWorld.with('player').first;
+                                        if (player) {
+                                            player.position.x = 0;
+                                            player.position.z = 0;
+                                            player.lane = 0;
+                                            if (player.animation) player.animation.current = 'run';
+                                        }
+                                        startGame();
+                                    }}
                                     style={{
                                         padding: '15px 30px',
                                         fontSize: '20px',
@@ -273,9 +285,11 @@ function RacingSystems() {
 
         // 1. Movement System
         for (const entity of racingWorld.with('velocity', 'position')) {
-            entity.position.z += currentSpeed * delta;
+            if (!entity.player) {
+                entity.position.z += currentSpeed * delta;
+            }
             
-            if (entity.velocity) {
+            if (entity.velocity && (entity.velocity.x !== 0 || entity.velocity.y !== 0 || entity.velocity.z !== 0)) {
                 entity.position.x += entity.velocity.x * delta;
                 entity.position.y += entity.velocity.y * delta;
                 entity.position.z += entity.velocity.z * delta;
@@ -367,10 +381,11 @@ function RacingSystems() {
              else if ((e.key === 'ArrowRight' || e.key === 'd') && newLane < 1) newLane++;
 
              if (newLane !== player.lane) {
+                 const isDodgeLeft = newLane < player.lane;
                  player.lane = newLane;
                  player.position.x = RACING_CONFIG.LANES[newLane + 1];
                  if (player.animation) {
-                    player.animation.current = newLane < player.lane ? 'dodge-left' : 'dodge-right';
+                    player.animation.current = isDodgeLeft ? 'dodge-left' : 'dodge-right';
                     setTimeout(() => { if (player.animation) player.animation.current = 'run'; }, 300);
                  }
              }
