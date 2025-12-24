@@ -67,13 +67,19 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
     });
 
     return (
-        <div style={panelStyle}>
-            <h2 style={{ color: '#d4af37', fontSize: '2.5em', marginBottom: '40px', letterSpacing: '4px' }}>SETTINGS</h2>
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-title"
+            style={panelStyle}
+        >
+            <h2 id="settings-title" style={{ color: '#d4af37', fontSize: '2.5em', marginBottom: '40px', letterSpacing: '4px' }}>SETTINGS</h2>
             
             <div style={sectionStyle}>
                 <div style={rowStyle}>
                     <span style={{ color: '#fff', fontSize: '1.1em' }}>SOUND EFFECTS</span>
                     <button 
+                        aria-label={`Toggle sound effects: ${settings.soundEnabled ? 'on' : 'off'}`}
                         style={toggleButtonStyle(settings.soundEnabled)}
                         onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
                     >
@@ -84,6 +90,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <div style={rowStyle}>
                     <span style={{ color: '#fff', fontSize: '1.1em' }}>MUSIC</span>
                     <button 
+                        aria-label={`Toggle music: ${settings.musicEnabled ? 'on' : 'off'}`}
                         style={toggleButtonStyle(settings.musicEnabled)}
                         onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
                     >
@@ -92,9 +99,10 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 </div>
 
                 <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                    <span style={{ color: '#fff', fontSize: '1.1em' }}>VOLUME: {Math.round(settings.volume * 100)}%</span>
+                    <span id="volume-label" style={{ color: '#fff', fontSize: '1.1em' }}>VOLUME: {Math.round(settings.volume * 100)}%</span>
                     <input 
                         type="range" 
+                        aria-labelledby="volume-label"
                         min="0" 
                         max="1" 
                         step="0.01" 
@@ -107,6 +115,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 <div style={rowStyle}>
                     <span style={{ color: '#fff', fontSize: '1.1em' }}>SHOW HELP TEXT</span>
                     <button 
+                        aria-label={`Toggle help text: ${settings.showHelp ? 'on' : 'off'}`}
                         style={toggleButtonStyle(settings.showHelp)}
                         onClick={() => updateSettings({ showHelp: !settings.showHelp })}
                     >
@@ -117,6 +126,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
             <button 
                 onClick={onClose}
+                aria-label="Close settings"
                 style={{
                     marginTop: '40px',
                     padding: '12px 60px',

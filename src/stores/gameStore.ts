@@ -170,11 +170,17 @@ export const useGameStore = create<GameState>((set) => ({
     })),
     saveGame: () => {
         const state = useGameStore.getState();
-        saveGameUtil({
-            position: state.player.position,
-            health: state.player.health,
-            stamina: state.player.stamina,
-        });
+        saveGameUtil(
+            {
+                position: state.player.position,
+                health: state.player.health,
+                stamina: state.player.stamina,
+            },
+            {
+                score: state.score,
+                distance: state.distance,
+            }
+        );
     },
     loadGame: () => {
         const saveData = loadGameUtil();
@@ -187,6 +193,8 @@ export const useGameStore = create<GameState>((set) => ({
                 health: saveData.player.health,
                 stamina: saveData.player.stamina,
             },
+            score: saveData.stats.score,
+            distance: saveData.stats.distance,
         }));
     },
 }));

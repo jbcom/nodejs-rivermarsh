@@ -50,9 +50,15 @@ export function HUD() {
                 }
                 break;
             }
-        }, 100);
+        }, 250);
         return () => clearInterval(interval);
     }, []);
+
+    const saveAndQuit = () => {
+        // Save game before quit to avoid data loss
+        useGameStore.getState().saveGame();
+        window.location.reload();
+    };
 
     const formatTime = () => {
         const { hour, phase } = timeDisplay;
@@ -156,6 +162,7 @@ export function HUD() {
                 </div>
                 <button
                     onClick={() => setIsPaused(true)}
+                    aria-label="Pause game"
                     style={{
                         background: 'rgba(0, 0, 0, 0.4)',
                         border: '1px solid rgba(255, 255, 255, 0.4)',
@@ -278,7 +285,7 @@ export function HUD() {
                 <PauseMenu 
                     onResume={() => setIsPaused(false)}
                     onSettings={() => setShowSettings(true)}
-                    onQuit={() => window.location.reload()} // Simple quit for now
+                    onQuit={saveAndQuit}
                 />
             )}
 

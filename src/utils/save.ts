@@ -9,6 +9,10 @@ export interface SaveData {
         health: number;
         stamina: number;
     };
+    stats: {
+        score: number;
+        distance: number;
+    };
     world: {
         time: number;
         weather: string;
@@ -23,11 +27,17 @@ export interface SaveData {
 const SAVE_KEY = 'otterfall_save';
 const SAVE_VERSION = '1.0.0';
 
-export function saveGame(playerState: {
-    position: THREE.Vector3;
-    health: number;
-    stamina: number;
-}): void {
+export function saveGame(
+    playerState: {
+        position: THREE.Vector3;
+        health: number;
+        stamina: number;
+    },
+    gameStats: {
+        score: number;
+        distance: number;
+    }
+): void {
     try {
         // Get world state from ECS
         let timeHour = 8;
@@ -55,6 +65,10 @@ export function saveGame(playerState: {
                 health: playerState.health,
                 stamina: playerState.stamina,
             },
+            stats: {
+                score: gameStats.score,
+                distance: gameStats.distance,
+            },
             world: {
                 time: timeHour,
                 weather: weatherType,
@@ -80,6 +94,10 @@ function isValidSaveData(data: any): data is SaveData {
     if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
     if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
     if (typeof data.player.health !== 'number' || typeof data.player.stamina !== 'number') return false;
+
+    // Check stats
+    if (!data.stats || typeof data.stats !== 'object') return false;
+    if (typeof data.stats.score !== 'number' || typeof data.stats.distance !== 'number') return false;
 
     // Check world
     if (!data.world || typeof data.world !== 'object') return false;

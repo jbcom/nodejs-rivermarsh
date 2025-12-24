@@ -8,11 +8,33 @@ interface PauseMenuProps {
 
 export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
     const resumeButtonRef = useRef<HTMLButtonElement>(null);
+    const settingsButtonRef = useRef<HTMLButtonElement>(null);
+    const quitButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (resumeButtonRef.current) {
             resumeButtonRef.current.focus();
         }
+    }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const buttons = [resumeButtonRef.current, settingsButtonRef.current, quitButtonRef.current].filter(Boolean) as HTMLButtonElement[];
+            const currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                const nextIndex = (currentIndex + 1) % buttons.length;
+                buttons[nextIndex].focus();
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const prevIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+                buttons[prevIndex].focus();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     const menuButtonStyle: React.CSSProperties = {
@@ -97,6 +119,7 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
                 </button>
                 <button
                     onClick={onSettings}
+                    ref={settingsButtonRef}
                     style={menuButtonStyle}
                     onMouseEnter={(e) => handleButtonHover(e, true)}
                     onMouseLeave={(e) => handleButtonHover(e, false)}
@@ -106,6 +129,7 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
                 </button>
                 <button
                     onClick={onQuit}
+                    ref={quitButtonRef}
                     style={{
                         ...menuButtonStyle,
                         marginTop: '20px',
