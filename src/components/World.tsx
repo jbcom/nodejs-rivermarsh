@@ -215,6 +215,8 @@ function Lighting() {
     const ambientRef = useRef<THREE.AmbientLight>(null!)
     const currentAmbientColor = useRef(new THREE.Color('#333344'))
     const targetAmbientColor = useRef(new THREE.Color('#333344'))
+    const currentSunColor = useRef(new THREE.Color('#ffaa77'))
+    const targetSunColor = useRef(new THREE.Color('#ffaa77'))
 
     useFrame(() => {
         // Read time data from ECS
@@ -230,13 +232,18 @@ function Lighting() {
                     sunDistance
                 )
 
-                if (time.phase === 'dawn' || time.phase === 'dusk') {
-                    sunRef.current.color.setHex(0xff8844)
+                if (time.phase === 'dawn') {
+                    targetSunColor.current.setHex(0xff8844)
+                } else if (time.phase === 'dusk') {
+                    targetSunColor.current.setHex(0xff5522)
                 } else if (time.phase === 'day') {
-                    sunRef.current.color.setHex(0xffaa77)
+                    targetSunColor.current.setHex(0xffccaa)
                 } else {
-                    sunRef.current.color.setHex(0x4466aa)
+                    targetSunColor.current.setHex(0x4466aa)
                 }
+                
+                currentSunColor.current.lerp(targetSunColor.current, 0.01)
+                sunRef.current.color.copy(currentSunColor.current)
             }
 
             if (ambientRef.current) {
@@ -252,7 +259,7 @@ function Lighting() {
                     targetAmbientColor.current.setHex(0x222244)
                 }
 
-                currentAmbientColor.current.lerp(targetAmbientColor.current, 0.02)
+                currentAmbientColor.current.lerp(targetAmbientColor.current, 0.01)
                 ambientRef.current.color.copy(currentAmbientColor.current)
             }
         }
@@ -282,18 +289,49 @@ function Atmosphere() {
     const [timePhase, setTimePhase] = useState<'dawn' | 'day' | 'dusk' | 'night'>('day')
     const [fogDensity, setFogDensity] = useState(0.025)
     const [hour, setHour] = useState(12)
+    const currentFogColor = useRef(new THREE.Color('#aabbcc'))
+    const targetFogColor = useRef(new THREE.Color('#aabbcc'))
 
     useFrame(() => {
-        for (const { time } of ecsWorld.with('time')) {
+        let combinedFogDensity = 0;
+        for (const entity of ecsWorld.with('time')) {
+            const time = entity.time;
             if (time.phase !== timePhase) {
                 setTimePhase(time.phase)
-            }
-            if (time.fogDensity !== fogDensity) {
-                setFogDensity(time.fogDensity)
             }
             if (time.hour !== hour) {
                 setHour(time.hour)
             }
+
+            combinedFogDensity += time.fogDensity;
+
+            if (time.phase === 'night') {
+                targetFogColor.current.setHex(0x1a1a2a)
+            } else if (time.phase === 'dawn') {
+                targetFogColor.current.setHex(0x99aabb)
+            } else if (time.phase === 'dusk') {
+                targetFogColor.current.setHex(0xaa8866)
+            } else {
+                targetFogColor.current.setHex(0xaabbcc)
+            }
+            currentFogColor.current.lerp(targetFogColor.current, 0.01)
+        }
+
+        for (const entity of ecsWorld.with('weather')) {
+            combinedFogDensity += entity.weather.fogDensity;
+            
+            // Influence fog color based on weather
+            if (entity.weather.current === 'storm') {
+                targetFogColor.current.lerp(new THREE.Color('#444455'), 0.5);
+            } else if (entity.weather.current === 'rain') {
+                targetFogColor.current.lerp(new THREE.Color('#666677'), 0.3);
+            } else if (entity.weather.current === 'sandstorm') {
+                targetFogColor.current.lerp(new THREE.Color('#ccaa88'), 0.8);
+            }
+        }
+
+        if (combinedFogDensity !== fogDensity) {
+            setFogDensity(combinedFogDensity)
         }
     })
 
@@ -310,7 +348,7 @@ function Atmosphere() {
             {/* Strata's volumetric fog */}
             <VolumetricFogMesh
                 density={fogDensity}
-                color={timePhase === 'night' ? '#1a1a2a' : '#aabbcc'}
+                color={currentFogColor.current}
                 height={20}
             />
         </>

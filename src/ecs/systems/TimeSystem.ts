@@ -1,31 +1,75 @@
 import { TimePhase } from '../components';
 import { world } from '../world';
-
-const TIME_PHASES = {
-    dawn: { start: 5, end: 7 },
-    day: { start: 7, end: 17 },
-    dusk: { start: 17, end: 19 },
-    night: { start: 19, end: 5 }
-} as const;
+import { TIME, LIGHTING } from '@/constants/game';
 
 function getPhaseFromHour(hour: number): TimePhase {
     const h = hour % 24;
-    if (h >= TIME_PHASES.dawn.start && h < TIME_PHASES.dawn.end) return 'dawn';
-    if (h >= TIME_PHASES.day.start && h < TIME_PHASES.day.end) return 'day';
-    if (h >= TIME_PHASES.dusk.start && h < TIME_PHASES.dusk.end) return 'dusk';
+    if (h >= TIME.DAWN_START && h < TIME.DAWN_END) return 'dawn';
+    if (h >= TIME.DAWN_END && h < TIME.DAY_END) return 'day';
+    if (h >= TIME.DAY_END && h < TIME.DUSK_END) return 'dusk';
     return 'night';
 }
 
+/**
+ * Linear interpolation between two values
+ */
+function lerp(start: number, end: number, t: number): number {
+    return start * (1 - t) + end * t;
+}
+
+/**
+ * Smoothly transitions between values based on hour and phase
+ */
+function calculateTimeValue(hour: number, phase: TimePhase, config: Record<TimePhase, number>): number {
+    const h = hour % 24;
+    
+    // Define transition points (1 hour before/after phase changes)
+    const transitionDuration = 1.0; 
+
+    if (phase === 'dawn') {
+        if (h < TIME.DAWN_START + transitionDuration) {
+            const t = (h - TIME.DAWN_START) / transitionDuration;
+            return lerp(config.night, config.dawn, t);
+        }
+        return config.dawn;
+    }
+    
+    if (phase === 'day') {
+        if (h < TIME.DAWN_END + transitionDuration) {
+            const t = (h - TIME.DAWN_END) / transitionDuration;
+            return lerp(config.dawn, config.day, t);
+        }
+        return config.day;
+    }
+    
+    if (phase === 'dusk') {
+        if (h < TIME.DAY_END + transitionDuration) {
+            const t = (h - TIME.DAY_END) / transitionDuration;
+            return lerp(config.day, config.dusk, t);
+        }
+        return config.dusk;
+    }
+    
+    // Night
+    if (h >= TIME.DUSK_END && h < TIME.DUSK_END + transitionDuration) {
+        const t = (h - TIME.DUSK_END) / transitionDuration;
+        return lerp(config.dusk, config.night, t);
+    }
+    
+    if (h >= TIME.DAWN_START - transitionDuration && h < TIME.DAWN_START) {
+        const t = (h - (TIME.DAWN_START - transitionDuration)) / transitionDuration;
+        return lerp(config.night, config.dawn, t);
+    }
+    
+    return config.night;
+}
+
 export function TimeSystem(delta: number) {
-    // Get the global entity
-    // Since we know there's only one world entity with time, we can iterate
-    // In Miniplex, we usually query.
     for (const { time } of world.with('time')) {
         // Advance time
-        // delta is in seconds. 
-        // Let's say 1 real second = 1 game minute (60x speed)
-        // So 1 real second = 1/60 game hour
-        const gameHoursPassed = (delta * time.timeScale) / 60;
+        // TIME_SCALE is game seconds per real second
+        const gameSecondsPassed = delta * time.timeScale;
+        const gameHoursPassed = gameSecondsPassed / 3600;
 
         const nextHour = time.hour + gameHoursPassed;
         if (nextHour >= 24) {
@@ -34,25 +78,15 @@ export function TimeSystem(delta: number) {
         time.hour = nextHour % 24;
         time.phase = getPhaseFromHour(time.hour);
 
-        // Update lighting props based on time
-        // Sun angle: 6am = 0, 12pm = 90, 6pm = 180
-        // Night: -1 (off)
-        if (time.phase === 'night') {
-            time.sunIntensity = 0;
-            time.ambientLight = 0.2; // Moonlight
-        } else {
-            // Day/Dawn/Dusk
-            const dayProgress = (time.hour - 6) / 12; // 0 at 6am, 1 at 6pm
-            time.sunAngle = dayProgress * 180;
-            time.sunIntensity = Math.sin(dayProgress * Math.PI);
-
-            if (time.phase === 'dawn' || time.phase === 'dusk') {
-                time.ambientLight = 0.5;
-                time.fogDensity = 0.04; // Foggy mornings
-            } else {
-                time.ambientLight = 0.8;
-                time.fogDensity = 0.025; // Clear day
-            }
-        }
+        // Update sun properties
+        // 6am = 0, 12pm = 90, 6pm = 180 (simplified for ProceduralSky elevation)
+        // We'll calculate a continuous angle for smoother sun movement
+        const dayProgress = (time.hour - 6) / 12; // 0 at 6am, 1 at 6pm
+        time.sunAngle = dayProgress * 180;
+        
+        // Intensity and Lighting transitions
+        time.sunIntensity = calculateTimeValue(time.hour, time.phase, LIGHTING.SUN_INTENSITY);
+        time.ambientLight = calculateTimeValue(time.hour, time.phase, LIGHTING.AMBIENT_INTENSITY);
+        time.fogDensity = calculateTimeValue(time.hour, time.phase, LIGHTING.FOG_DENSITY);
     }
 }

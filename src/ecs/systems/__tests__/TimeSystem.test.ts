@@ -42,7 +42,7 @@ describe('TimeSystem', () => {
                     const hourAfter = timeEntity.time.hour;
 
                     // Verify: Hour should increase (with wrap-around)
-                    const expectedIncrease = (deltaTime * 1) / 60; // timeScale = 1
+                    const expectedIncrease = (deltaTime * 1) / 3600; // timeScale = 1, using RoR /3600
                     const expectedHour = (hourBefore + expectedIncrease) % 24;
 
                     // Allow small floating point error
@@ -87,13 +87,13 @@ describe('TimeSystem', () => {
                 // Verify: Phase should be one of the four valid phases
                 expect(['dawn', 'day', 'dusk', 'night']).toContain(phase);
 
-                // Verify: Phase should match hour range
+                // Verify: Phase should match hour range (Updated to RoR ranges)
                 const h = hour % 24;
                 if (h >= 5 && h < 7) {
                     expect(phase).toBe('dawn');
-                } else if (h >= 7 && h < 17) {
+                } else if (h >= 7 && h < 18) {
                     expect(phase).toBe('day');
-                } else if (h >= 17 && h < 19) {
+                } else if (h >= 18 && h < 20) {
                     expect(phase).toBe('dusk');
                 } else {
                     expect(phase).toBe('night');
@@ -107,7 +107,7 @@ describe('TimeSystem', () => {
     });
 
     it('should handle boundary hours correctly', () => {
-        const boundaryHours = [4.99, 5.0, 5.01, 6.99, 7.0, 7.01, 16.99, 17.0, 17.01, 18.99, 19.0, 19.01];
+        const boundaryHours = [4.99, 5.0, 5.01, 6.99, 7.0, 7.01, 17.99, 18.0, 18.01, 19.99, 20.0, 20.01];
 
         boundaryHours.forEach((hour) => {
             const timeEntity = world.add({

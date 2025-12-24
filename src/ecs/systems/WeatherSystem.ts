@@ -1,7 +1,6 @@
 import { WeatherType } from '../components';
 import { world } from '../world';
-
-const WEATHER_TYPES: WeatherType[] = ['clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'];
+import { WEATHER } from '@/constants/game';
 
 const WEATHER_CONFIG = {
     clear: {
@@ -9,40 +8,67 @@ const WEATHER_CONFIG = {
         visibilityMod: 1.0,
         windSpeedMult: 1.0,
         movementSpeedMult: 1.0,
+        fogDensity: 0,
     },
     rain: {
         intensity: 0.7,
-        visibilityMod: 0.8, // 20% reduction
+        visibilityMod: 0.8,
         windSpeedMult: 1.5,
         movementSpeedMult: 1.0,
+        fogDensity: 0.02,
     },
     fog: {
         intensity: 0.5,
-        visibilityMod: 0.5, // 50% reduction
+        visibilityMod: 0.5,
         windSpeedMult: 0.5,
         movementSpeedMult: 1.0,
+        fogDensity: 0.08,
     },
     snow: {
         intensity: 0.6,
         visibilityMod: 0.7,
         windSpeedMult: 1.2,
-        movementSpeedMult: 0.85, // 15% reduction
+        movementSpeedMult: 0.85,
+        fogDensity: 0.03,
     },
     storm: {
         intensity: 1.0,
         visibilityMod: 0.5,
-        windSpeedMult: 4.0, // 300% increase
+        windSpeedMult: 4.0,
         movementSpeedMult: 0.9,
+        fogDensity: 0.05,
     },
     sandstorm: {
         intensity: 0.9,
-        visibilityMod: 0.3, // 70% reduction
-        windSpeedMult: 5.0, // 400% increase
+        visibilityMod: 0.3,
+        windSpeedMult: 5.0,
         movementSpeedMult: 0.8,
+        fogDensity: 0.1,
     },
 } as const;
 
 const TRANSITION_DURATION = 30; // seconds
+
+function getRandomWeather(): WeatherType {
+    const choices: [WeatherType, number][] = [
+        ['clear', WEATHER.CLEAR_WEIGHT],
+        ['rain', WEATHER.RAIN_WEIGHT],
+        ['fog', WEATHER.FOG_WEIGHT],
+        ['snow', WEATHER.SNOW_WEIGHT],
+        ['storm', WEATHER.STORM_WEIGHT],
+    ];
+
+    const total = choices.reduce((sum, [, weight]) => sum + weight, 0);
+    const r = Math.random() * total;
+    let cumulative = 0;
+
+    for (const [weather, weight] of choices) {
+        cumulative += weight;
+        if (r <= cumulative) return weather;
+    }
+
+    return 'clear';
+}
 
 export function WeatherSystem(delta: number) {
     for (const { weather } of world.with('weather')) {
@@ -51,9 +77,7 @@ export function WeatherSystem(delta: number) {
 
         // Check if we need to transition to new weather
         if (elapsedMinutes > weather.durationMinutes && !weather.nextWeather) {
-            // Select next weather
-            const nextIndex = Math.floor(Math.random() * WEATHER_TYPES.length);
-            weather.nextWeather = WEATHER_TYPES[nextIndex];
+            weather.nextWeather = getRandomWeather();
             weather.transitionProgress = 0;
         }
 
@@ -67,13 +91,14 @@ export function WeatherSystem(delta: number) {
                 weather.nextWeather = null;
                 weather.transitionProgress = 0;
                 weather.startTime = now;
-                weather.durationMinutes = 5 + Math.random() * 15; // 5-20 mins
+                weather.durationMinutes = WEATHER.MIN_DURATION + Math.random() * WEATHER.MAX_ADDITIONAL_DURATION;
                 
                 // Apply new weather properties immediately
                 const config = WEATHER_CONFIG[weather.current];
                 weather.intensity = config.intensity;
                 weather.visibilityMod = config.visibilityMod;
                 weather.windSpeed = 2 * config.windSpeedMult;
+                weather.fogDensity = config.fogDensity;
             } else {
                 // Interpolate weather properties during transition
                 const currentConfig = WEATHER_CONFIG[weather.current];
@@ -83,6 +108,7 @@ export function WeatherSystem(delta: number) {
                 weather.intensity = currentConfig.intensity * (1 - t) + nextConfig.intensity * t;
                 weather.visibilityMod = currentConfig.visibilityMod * (1 - t) + nextConfig.visibilityMod * t;
                 weather.windSpeed = 2 * (currentConfig.windSpeedMult * (1 - t) + nextConfig.windSpeedMult * t);
+                weather.fogDensity = currentConfig.fogDensity * (1 - t) + nextConfig.fogDensity * t;
             }
         } else {
             // Apply current weather properties
@@ -90,6 +116,7 @@ export function WeatherSystem(delta: number) {
             weather.intensity = config.intensity;
             weather.visibilityMod = config.visibilityMod;
             weather.windSpeed = 2 * config.windSpeedMult;
+            weather.fogDensity = config.fogDensity;
         }
 
         // Clamp visibility to [0, 1]
@@ -97,7 +124,6 @@ export function WeatherSystem(delta: number) {
     }
 }
 
-// Export for use in other systems (e.g., player movement)
 export function getWeatherMovementMultiplier(): number {
     for (const { weather } of world.with('weather')) {
         const config = WEATHER_CONFIG[weather.current];

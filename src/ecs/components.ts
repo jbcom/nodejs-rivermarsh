@@ -30,6 +30,7 @@ export interface WeatherComponent {
     windSpeed: number;
     windDirection: [number, number];
     visibilityMod: number;
+    fogDensity: number; // Added for weather-specific fog
     startTime: number;
     durationMinutes: number;
 }
