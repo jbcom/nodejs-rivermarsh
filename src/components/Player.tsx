@@ -1,5 +1,6 @@
 import { furFragmentShader, furVertexShader } from '@/shaders/fur';
 import { useGameStore } from '@/stores/gameStore';
+import { useControlsStore } from '@/stores/useControlsStore';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
 import { useFrame } from '@react-three/fiber';
@@ -40,6 +41,7 @@ export function Player() {
 
     const input = useGameStore((s) => s.input);
     const player = useGameStore((s) => s.player);
+    const dashAction = useControlsStore((state: any) => state.actions.dash);
     const updatePlayer = useGameStore((s) => s.updatePlayer);
     const damagePlayer = useGameStore.getState().damagePlayer;
 
@@ -86,15 +88,16 @@ export function Player() {
 
                 // Apply movement force
                 const waterMultiplier = isInWater ? 0.7 : 1.0;
+                const dashMultiplier = dashAction ? 2.5 : 1.0;
                 const force = {
-                    x: dirX * MOVE_FORCE * waterMultiplier,
+                    x: dirX * MOVE_FORCE * waterMultiplier * dashMultiplier,
                     y: 0,
-                    z: dirZ * MOVE_FORCE * waterMultiplier
+                    z: dirZ * MOVE_FORCE * waterMultiplier * dashMultiplier
                 };
                 
                 // Clamp horizontal velocity
                 const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-                if (speed < MAX_SPEED * waterMultiplier) {
+                if (speed < MAX_SPEED * waterMultiplier * dashMultiplier) {
                     rb.applyImpulse(force, true);
                 }
             }
@@ -145,7 +148,8 @@ export function Player() {
 
         const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
         if (input.active && speed > 0.5) {
-            consumeStamina(5 * delta);
+            const dashStaminaMult = dashAction ? 4 : 1;
+            consumeStamina(5 * delta * dashStaminaMult);
         } else if (!input.active) {
             restoreStamina(10 * delta);
         }

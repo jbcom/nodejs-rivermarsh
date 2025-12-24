@@ -15,13 +15,14 @@ interface ControlsState {
     interact: boolean;
     attack: boolean;
     jump: boolean;
+    dash: boolean;
   };
   debugLogging: boolean;
   
   setMovement: (x: number, y: number) => void;
   setCamera: (x: number, y: number) => void;
   setCameraAzimuth: (azimuth: number) => void;
-  setAction: (action: 'interact' | 'attack' | 'jump', pressed: boolean) => void;
+  setAction: (action: 'interact' | 'attack' | 'jump' | 'dash', pressed: boolean) => void;
   resetMovement: () => void;
   resetCamera: () => void;
   toggleDebugLogging: () => void;
@@ -36,6 +37,7 @@ export const useControlsStore = create<ControlsState>()(
     interact: false,
     attack: false,
     jump: false,
+    dash: false,
   },
   debugLogging: false,
 
