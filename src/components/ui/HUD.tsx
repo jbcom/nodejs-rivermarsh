@@ -7,6 +7,9 @@ export function HUD() {
     const maxHealth = useGameStore((s) => s.player.maxHealth);
     const stamina = useGameStore((s) => s.player.stamina);
     const maxStamina = useGameStore((s) => s.player.maxStamina);
+    const level = useGameStore((s) => s.player.level);
+    const experience = useGameStore((s) => s.player.experience);
+    const expToNext = useGameStore((s) => s.player.expToNext);
     const nearbyResource = useGameStore((s) => s.nearbyResource);
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
@@ -16,6 +19,7 @@ export function HUD() {
     // Clamp percentages to 0-100 range to handle edge cases
     const healthPercent = Math.min(100, Math.max(0, (health / maxHealth) * 100));
     const staminaPercent = Math.min(100, Math.max(0, (stamina / maxStamina) * 100));
+    const xpPercent = Math.min(100, Math.max(0, (experience / expToNext) * 100));
 
     // Update time display from ECS
     useEffect(() => {
@@ -263,6 +267,47 @@ export function HUD() {
                                 width: `${staminaPercent}%`,
                                 height: '100%',
                                 background: '#60a5fa',
+                                transition: 'width 0.3s ease',
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {/* Level and XP Bar */}
+                <div
+                    data-testid="xp-bar"
+                    role="progressbar"
+                    aria-label="Experience"
+                    aria-valuenow={Math.round(experience)}
+                    aria-valuemin={0}
+                    aria-valuemax={expToNext}
+                >
+                    <div style={{
+                        fontSize: '10px',
+                        color: '#d4af37',
+                        marginBottom: '4px',
+                        textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                        fontFamily: 'sans-serif',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        fontWeight: 'bold',
+                    }}>
+                        Level {level}
+                    </div>
+                    <div style={{
+                        width: '200px',
+                        height: '10px',
+                        background: 'rgba(0,0,0,0.5)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '2px',
+                        overflow: 'hidden',
+                    }}>
+                        <div
+                            data-testid="xp-bar-fill"
+                            style={{
+                                width: `${xpPercent}%`,
+                                height: '100%',
+                                background: '#fbbf24',
                                 transition: 'width 0.3s ease',
                             }}
                         />

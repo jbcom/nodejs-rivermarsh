@@ -8,6 +8,8 @@ export interface SaveData {
         position: [number, number, number];
         health: number;
         stamina: number;
+        level: number;
+        experience: number;
     };
     world: {
         time: number;
@@ -27,6 +29,8 @@ export function saveGame(playerState: {
     position: THREE.Vector3;
     health: number;
     stamina: number;
+    level: number;
+    experience: number;
 }): void {
     try {
         // Get world state from ECS
@@ -54,6 +58,8 @@ export function saveGame(playerState: {
                 position: [playerState.position.x, playerState.position.y, playerState.position.z],
                 health: playerState.health,
                 stamina: playerState.stamina,
+                level: playerState.level,
+                experience: playerState.experience,
             },
             world: {
                 time: timeHour,
@@ -79,7 +85,8 @@ function isValidSaveData(data: any): data is SaveData {
     if (!data.player || typeof data.player !== 'object') return false;
     if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
     if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
-    if (typeof data.player.health !== 'number' || typeof data.player.stamina !== 'number') return false;
+    if (typeof data.player.health !== 'number' || typeof data.player.stamina !== 'number' || 
+        typeof data.player.level !== 'number' || typeof data.player.experience !== 'number') return false;
 
     // Check world
     if (!data.world || typeof data.world !== 'object') return false;
