@@ -127,6 +127,8 @@ export interface BossComponent {
         gold: number;
         experience: number;
     };
+    isBossBattleActive: boolean;
+    isProcessingTurn?: boolean;
 }
 
 export interface CombatComponent {

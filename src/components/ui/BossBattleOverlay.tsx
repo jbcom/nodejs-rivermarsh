@@ -15,7 +15,7 @@ export const BossBattleOverlay: React.FC = () => {
     const { boss, species, combat } = bossEntity;
     const bossData = BOSSES[boss.type];
 
-    const healthPercent = (species.health / species.maxHealth) * 100;
+    const healthPercent = species.maxHealth > 0 ? (species.health / species.maxHealth) * 100 : 0;
 
     // Keyboard listeners for A and S keys
     useEffect(() => {

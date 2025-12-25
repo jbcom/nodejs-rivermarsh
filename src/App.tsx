@@ -23,7 +23,7 @@ import * as THREE from 'three';
 import { useEffect } from 'react';
 
 // New Rivermarsh game components
-import { NPCManager, GameUI, Combat } from '@/components/game';
+import { NPCManager, GameUI, Combat, BossBattleEffects } from '@/components/game';
 import { VirtualJoysticks, MobileActionButtons, GyroscopeCamera, SwipeGestures } from '@/components/mobile';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 
@@ -58,6 +58,7 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
                 
                 {/* Rivermarsh NPC system - spawns story NPCs */}
                 {useRivermarshFeatures && <NPCManager />}
+                {useRivermarshFeatures && <BossBattleEffects />}
             </Physics>
             
             {/* Use gyroscope camera on mobile, follow camera on desktop */}

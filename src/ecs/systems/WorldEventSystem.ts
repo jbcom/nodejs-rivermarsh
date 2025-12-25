@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { world } from '../world';
 import { useAchievementStore } from '../../stores/useAchievementStore';
 import { useGameStore } from '../../stores/gameStore';
@@ -21,6 +22,20 @@ export function WorldEventSystem() {
         if (worldEvents.activeEvents.length > 0) {
             if (now - worldEvents.lastEventTime > worldEvents.eventDuration) {
                 console.log('World Event(s) Ended:', worldEvents.activeEvents);
+                
+                // Cleanup boss if encounter ended
+                if (worldEvents.activeEvents.includes('boss_encounter')) {
+                    const bossEntity = world.with('isBoss').entities[0];
+                    if (bossEntity) {
+                        world.remove(bossEntity);
+                    }
+                    const { setMode, setActiveBossId } = useGameStore.getState();
+                    const { setGameMode } = useRivermarsh.getState();
+                    setMode('exploration');
+                    setGameMode('exploration');
+                    setActiveBossId(null);
+                }
+
                 worldEvents.activeEvents = [];
                 worldEvents.nextEventTime = now + 120000 + Math.random() * 300000; // Next event in 2-7 mins
                 worldEvents.lastEventTime = now;
@@ -74,6 +89,13 @@ function triggerBossEncounter() {
     const { setMode: setGameMode, setActiveBossId, player } = useGameStore.getState();
     const { setGameMode: setRivermarshMode } = useRivermarsh.getState();
     
+    // Check if a boss already exists
+    const existingBoss = world.with('isBoss').entities[0];
+    if (existingBoss) {
+        console.log('Boss already exists, skipping spawn');
+        return;
+    }
+
     // Pick a boss based on player level
     const bossTypes: ('dread_hydra' | 'shadow_golem' | 'chaos_drake')[] = ['dread_hydra', 'shadow_golem', 'chaos_drake'];
     const bossType = bossTypes[Math.min(player.level - 1, bossTypes.length - 1)];
@@ -82,6 +104,11 @@ function triggerBossEncounter() {
     // Create boss entity
     const bossEntity = world.add({
         isBoss: true,
+        transform: {
+            position: new THREE.Vector3(0, 0, 0),
+            rotation: new THREE.Quaternion(),
+            scale: new THREE.Vector3(2, 2, 2)
+        },
         species: {
             id: `boss_${Date.now()}`,
             name: bossData.name,
@@ -97,7 +124,8 @@ function triggerBossEncounter() {
             type: bossType,
             specialAbilityCooldown: 3,
             phase: 1,
-            rewards: bossData.rewards
+            rewards: bossData.rewards,
+            isBossBattleActive: true
         },
         combat: {
             turn: 'player',
