@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { create } from 'zustand';
 import { loadGame as loadGameUtil, saveGame as saveGameUtil } from '../utils/save';
 import { PLAYER, LEVELING } from '../constants/game';
+import { getAudioManager } from '../utils/audioManager';
 
 export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
 
@@ -138,14 +139,9 @@ export const useGameStore = create<GameState>((set) => ({
         const gameOver = newHealth <= 0;
         
         // Play damage sound (optional, may not be available in tests)
-        try {
-            const { getAudioManager } = require('@/utils/audioManager');
-            const audioManager = getAudioManager();
-            if (audioManager) {
-                audioManager.playSound('damage', 0.5);
-            }
-        } catch (e) {
-            // Audio manager not available (e.g., in tests)
+        const audioManager = getAudioManager();
+        if (audioManager) {
+            audioManager.playSound('damage', 0.5);
         }
         
         return {
@@ -205,14 +201,9 @@ export const useGameStore = create<GameState>((set) => ({
             health = maxHealth;
             
             // Play level up sound
-            try {
-                const { getAudioManager } = require('@/utils/audioManager');
-                const audioManager = getAudioManager();
-                if (audioManager) {
-                    audioManager.playSound('level-up', 0.7);
-                }
-            } catch (e) {
-                // Audio manager not available
+            const audioManager = getAudioManager();
+            if (audioManager) {
+                audioManager.playSound('level-up' as any, 0.7);
             }
         }
 

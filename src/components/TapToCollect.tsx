@@ -4,6 +4,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
+import { getAudioManager } from '@/utils/audioManager';
 
 const COLLECTION_DISTANCE = 1.5;
 
@@ -56,14 +57,9 @@ export function TapToCollect() {
                     }
 
                     // Play collection sound
-                    try {
-                        const { getAudioManager } = require('@/utils/audioManager');
-                        const audioManager = getAudioManager();
-                        if (audioManager) {
-                            audioManager.playSound('collect', 0.6);
-                        }
-                    } catch (e) {
-                        // Audio manager not available
+                    const audioManager = getAudioManager();
+                    if (audioManager) {
+                        audioManager.playSound('collect', 0.6);
                     }
 
                     // Mark first resource as collected for tutorial
