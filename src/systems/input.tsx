@@ -1,14 +1,9 @@
-
 import { useGameStore } from '@/stores/gameStore';
 import { useControlsStore } from '@/stores/useControlsStore';
-import nipplejs, { JoystickManager } from 'nipplejs';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 export function useInput() {
     const setInput = useGameStore((s) => s.setInput);
-    const joystickRef = useRef<JoystickManager | null>(null);
-    const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-    const jumpTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         // Keyboard state
@@ -17,6 +12,7 @@ export function useInput() {
             w: 0, a: 0, s: 0, d: 0,
             " ": 0, f: 0, e: 0
         };
+        (window as any).pressedKeys = keys;
 
         const updateInput = () => {
             const setAction = useControlsStore.getState().setAction;
@@ -30,8 +26,10 @@ export function useInput() {
 
             if (x !== 0 || y !== 0 || jump) {
                 setInput(x, y, true, jump);
-            } else if (!joystickRef.current?.ids.length) {
-                setInput(0, 0, false, false);
+            } else {
+                // If no keys, use the controls store (which might have mobile input)
+                const { movement, actions } = useControlsStore.getState();
+                setInput(movement.x, movement.y, movement.x !== 0 || movement.y !== 0, actions.jump);
             }
 
             // Sync to controls store for systems that use it
@@ -59,99 +57,31 @@ export function useInput() {
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
 
-        // Touch handling for Swipe Up (Jump)
-        const handleTouchStart = (e: TouchEvent) => {
-            const touch = e.changedTouches[0];
-            touchStartRef.current = {
-                x: touch.clientX,
-                y: touch.clientY,
-                time: Date.now()
-            };
-        };
-
-        const handleTouchEnd = (e: TouchEvent) => {
-            if (!touchStartRef.current) return;
-
-            const touch = e.changedTouches[0];
-            const deltaY = touchStartRef.current.y - touch.clientY; // Positive is UP
-            const deltaTime = Date.now() - touchStartRef.current.time;
-
-            // Swipe Up detection (min distance 50px, max time 300ms)
-            if (deltaY > 50 && deltaTime < 300) {
-                setInput(0, 0, true, true); // Trigger jump
-                // Clear any existing timeout before setting a new one
-                if (jumpTimeoutRef.current) {
-                    clearTimeout(jumpTimeoutRef.current);
-                }
-                jumpTimeoutRef.current = setTimeout(() => {
-                    // Reset jump after short delay
-                    const currentInput = useGameStore.getState().input;
-                    setInput(currentInput.direction.x, currentInput.direction.y, currentInput.active, false);
-                    jumpTimeoutRef.current = null;
-                }, 100);
-            }
-
-            touchStartRef.current = null;
-        };
-
-        window.addEventListener('touchstart', handleTouchStart);
-        window.addEventListener('touchend', handleTouchEnd);
-
-        // Joystick
-        const zone = document.getElementById('joystick-zone');
-        if (zone) {
-            joystickRef.current = nipplejs.create({
-                zone,
-                mode: 'dynamic',
-                color: '#d4af37',
-                size: 100,
-            });
-
-            joystickRef.current.on('move', (_evt, data) => {
-                if (data.angle) {
-                    const angle = data.angle.radian;
-                    setInput(Math.cos(angle), Math.sin(angle), true, false);
-                }
-            });
-
-            joystickRef.current.on('end', () => {
-                // Only reset if no keys are pressed
-                const anyKey = Object.values(keys).some(v => v);
-                if (!anyKey) {
-                    setInput(0, 0, false, false);
-                }
-            });
-        }
-
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
-            window.removeEventListener('touchstart', handleTouchStart);
-            window.removeEventListener('touchend', handleTouchEnd);
-            joystickRef.current?.destroy();
-            // Clear any pending jump timeout to prevent memory leaks
-            if (jumpTimeoutRef.current) {
-                clearTimeout(jumpTimeoutRef.current);
-                jumpTimeoutRef.current = null;
-            }
         };
+    }, [setInput]);
+
+    // Sync controls store to game store, but only when no keyboard input is active
+    useEffect(() => {
+        const unsubscribe = useControlsStore.subscribe((state) => {
+            // Check if any movement keys are pressed
+            const keys = (window as any).pressedKeys || {};
+            const hasKeyboardInput = Object.values(keys).some(v => v);
+
+            // Only sync mobile input if no keyboard input is active
+            if (!hasKeyboardInput) {
+                setInput(state.movement.x, state.movement.y, 
+                         state.movement.x !== 0 || state.movement.y !== 0, 
+                         state.actions.jump);
+            }
+        });
+        return unsubscribe;
     }, [setInput]);
 }
 
 export function InputZone() {
-    return (
-        <div
-            id="joystick-zone"
-            style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                touchAction: 'none',
-                pointerEvents: 'auto',
-                zIndex: 10,
-            }}
-        />
-    );
+    // We no longer need the fullscreen joystick-zone div if we use VirtualJoysticks
+    return null;
 }

@@ -19,20 +19,15 @@ import { Canvas } from '@react-three/fiber';
 // import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
 import * as THREE from 'three';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 // New Rivermarsh game components
 import { NPCManager, GameUI, Combat } from '@/components/game';
-import { VirtualJoysticks, MobileActionButtons, GyroscopeCamera } from '@/components/mobile';
+import { VirtualJoysticks, MobileActionButtons, GyroscopeCamera, SwipeGestures } from '@/components/mobile';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 
 // Initialize test hooks for E2E testing
 initTestHooks();
-
-// Detect if running on a mobile/touch device
-const isTouchDevice = () => {
-    if (typeof window === 'undefined') return false;
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-};
 
 interface SceneProps {
     useMobileControls?: boolean;
@@ -92,15 +87,10 @@ import { RacingScene } from '@/features/racing/RacingScene';
 import { useRivermarsh } from '@/stores/useRivermarsh';
 
 export default function App() {
-    // Detect mobile and enable Rivermarsh features
-    const [isMobile, setIsMobile] = useState(false);
+    const constraints = useMobileConstraints();
     // Rivermarsh features enabled by default - can be toggled in settings later
     const rivermarshEnabled = true;
     const gameMode = useRivermarsh(state => state.gameMode);
-
-    useEffect(() => {
-        setIsMobile(isTouchDevice());
-    }, []);
 
     return (
         <>
@@ -118,7 +108,7 @@ export default function App() {
                     <RacingScene />
                 ) : (
                     <Scene
-                        useMobileControls={isMobile}
+                        useMobileControls={constraints.isMobile}
                         useRivermarshFeatures={rivermarshEnabled}
                     />
                 )}
@@ -127,10 +117,11 @@ export default function App() {
             {gameMode === 'exploration' && (
                 <>
                     {/* Mobile controls - virtual joystick and action buttons */}
-                    {isMobile && (
+                    {constraints.isMobile && (
                         <>
                             <VirtualJoysticks />
                             <MobileActionButtons />
+                            <SwipeGestures />
                         </>
                     )}
 
