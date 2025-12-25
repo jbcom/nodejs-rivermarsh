@@ -85,8 +85,18 @@ function isValidSaveData(data: any): data is SaveData {
     if (!data.player || typeof data.player !== 'object') return false;
     if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
     if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
-    if (typeof data.player.health !== 'number' || typeof data.player.stamina !== 'number' || 
-        typeof data.player.level !== 'number' || typeof data.player.experience !== 'number') return false;
+    
+    // Type validation for optional fields (backward compatibility)
+    if (data.player.health !== undefined && typeof data.player.health !== 'number') return false;
+    if (data.player.stamina !== undefined && typeof data.player.stamina !== 'number') return false;
+    if (data.player.level !== undefined && typeof data.player.level !== 'number') return false;
+    if (data.player.experience !== undefined && typeof data.player.experience !== 'number') return false;
+
+    // Range validation to prevent corrupted save data
+    if ((data.player.health ?? 0) < 0) return false;
+    if ((data.player.stamina ?? 0) < 0) return false;
+    if ((data.player.level ?? 1) < 1) return false;
+    if ((data.player.experience ?? 0) < 0) return false;
 
     // Check world
     if (!data.world || typeof data.world !== 'object') return false;

@@ -214,6 +214,8 @@ describe('GameStore - Death and Respawn', () => {
                 }),
                 health: 75,
                 stamina: 60,
+                level: 1,
+                experience: 0,
             });
         });
 
@@ -236,6 +238,8 @@ describe('GameStore - Death and Respawn', () => {
                 }),
                 health: 100,
                 stamina: 100,
+                level: 1,
+                experience: 0,
             });
         });
     });

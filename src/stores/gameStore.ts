@@ -194,7 +194,8 @@ export const useGameStore = create<GameState>((set) => ({
             leveledUp = true;
         }
 
-        // If at max level, cap experience at expToNext - 1
+        // If at max level, cap experience at expToNext - 1 to keep the bar full 
+        // but not level up again.
         if (level >= LEVELING.MAX_LEVEL && exp >= expToNext) {
             exp = expToNext - 1;
         }

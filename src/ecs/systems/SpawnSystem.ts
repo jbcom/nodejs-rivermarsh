@@ -181,7 +181,6 @@ export function SpawnSystem(playerPos: THREE.Vector3) {
                     const baseXP = entity.species.type === 'predator' ? LEVELING.PREDATOR_XP : LEVELING.PREY_XP;
                     const finalXP = baseXP * difficulty.experienceMultiplier;
                     useGameStore.getState().addExperience(finalXP);
-                    console.log(`Earned ${finalXP} XP from ${entity.species.name}`);
                 }
             }
             world.remove(entity);

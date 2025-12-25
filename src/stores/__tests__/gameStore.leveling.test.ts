@@ -78,5 +78,7 @@ describe('GameStore Leveling', () => {
         
         const { player } = useGameStore.getState();
         expect(player.level).toBe(LEVELING.MAX_LEVEL);
+        // Verify excess XP is handled properly (capped at expToNext - 1)
+        expect(player.experience).toBe(player.expToNext - 1);
     });
 });
