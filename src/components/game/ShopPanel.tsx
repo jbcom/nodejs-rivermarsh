@@ -7,21 +7,21 @@ export function ShopPanel() {
     {
       id: 'sword',
       name: 'Sword',
-      cost: 3,
+      cost: 10,
       description: `+1 attack damage (Level: ${player.stats.swordLevel})`,
       action: () => updatePlayerStats({ swordLevel: player.stats.swordLevel + 1 })
     },
     {
       id: 'shield',
       name: 'Shield',
-      cost: 3,
+      cost: 8,
       description: `-1 enemy damage (Level: ${player.stats.shieldLevel})`,
       action: () => updatePlayerStats({ shieldLevel: player.stats.shieldLevel + 1 })
     },
     {
       id: 'boots',
       name: 'Boots',
-      cost: 2,
+      cost: 5,
       description: `Negate confusion, +1 gold bonus (Level: ${player.stats.bootsLevel})`,
       action: () => updatePlayerStats({ bootsLevel: player.stats.bootsLevel + 1 })
     },
