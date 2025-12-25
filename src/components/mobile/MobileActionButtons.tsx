@@ -64,6 +64,9 @@ export function MobileActionButtons() {
         onTouchEnd={(e) => { e.preventDefault(); handleAction('attack', false); }}
         onMouseDown={(e) => { e.preventDefault(); handleAction('attack', true); }}
         onMouseUp={(e) => { e.preventDefault(); handleAction('attack', false); }}
+        aria-label="Attack action button"
+        role="button"
+        tabIndex={0}
       >
         <span style={{ fontSize: "24px", marginBottom: "2px" }}>⚔️</span>
         ATTACK

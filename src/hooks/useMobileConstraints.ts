@@ -94,6 +94,8 @@ export function useMobileConstraints(): MobileConstraints {
   });
 
   const updateConstraints = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    
     const { isPhone, isTablet } = detectDeviceType();
     const orientation =
       window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
@@ -113,7 +115,7 @@ export function useMobileConstraints(): MobileConstraints {
       viewportHeight: window.innerHeight,
       pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
       hasNotch: detectNotch(),
-      hasHaptics: 'vibrate' in navigator,
+      hasHaptics: typeof navigator !== 'undefined' && 'vibrate' in navigator,
       isMobile: isPhone || isTablet,
     });
   }, []);

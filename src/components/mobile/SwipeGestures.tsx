@@ -11,27 +11,44 @@ export function SwipeGestures() {
 
     let startX = 0;
     let startY = 0;
+    let startTime = 0;
     const swipeThreshold = 50;
+    const swipeTimeThreshold = 300; // ms
     const dashDuration = 200; // ms
+    const timeouts = new Set<ReturnType<typeof setTimeout>>();
 
     const handleTouchStart = (e: TouchEvent) => {
-      // Only single touch for swipes
-      if (e.touches.length !== 1) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      // Only single touch for swipes (unless we want to support swiping while moving)
+      // If we want to support swiping while moving, we need to track multiple touches.
+      // For now, let's just make sure we don't start a swipe on the joystick side.
+      const touch = e.touches[0];
+      if (touch.clientX < window.innerWidth / 2) return;
+
+      startX = touch.clientX;
+      startY = touch.clientY;
+      startTime = Date.now();
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (e.changedTouches.length !== 1) return;
+      // Find the touch that ended
+      const touch = Array.from(e.changedTouches).find(t => 
+        Math.abs(t.clientX - startX) < 100 && Math.abs(t.clientY - startY) < 100
+      );
+      if (!touch || !startTime) return;
       
-      const endX = e.changedTouches[0].clientX;
-      const endY = e.changedTouches[0].clientY;
+      const deltaTime = Date.now() - startTime;
+      startTime = 0; // Reset
+      if (deltaTime > swipeTimeThreshold) return;
+
+      const endX = touch.clientX;
+      const endY = touch.clientY;
       
       const deltaX = endX - startX;
       const deltaY = endY - startY;
       const absX = Math.abs(deltaX);
       const absY = Math.abs(deltaY);
 
+      // Check both distance and time threshold to prevent false triggers from joystick movement
       if (Math.max(absX, absY) > swipeThreshold) {
         if (absY > absX) {
           // Vertical swipe
@@ -39,19 +56,25 @@ export function SwipeGestures() {
             // Swipe Up: Jump
             setAction('jump', true);
             hapticFeedback(HAPTIC_PATTERNS.jump);
-            setTimeout(() => setAction('jump', false), 100);
+            const t = setTimeout(() => setAction('jump', false), 100);
+            timeouts.add(t);
           }
         } else {
           // Horizontal swipe: Dash
           const direction = deltaX > 0 ? 1 : -1;
+          
           setAction('dash', true);
-          setMovement(direction, 0); // Burst in horizontal direction
+          setMovement(direction, 0); 
           hapticFeedback(HAPTIC_PATTERNS.dodge);
           
-          setTimeout(() => {
+          const t = setTimeout(() => {
             setAction('dash', false);
-            resetMovement();
+            // Only reset if joystick is not active
+            if (!useControlsStore.getState().isJoystickActive) {
+              resetMovement();
+            }
           }, dashDuration);
+          timeouts.add(t);
         }
       }
     };
@@ -62,6 +85,8 @@ export function SwipeGestures() {
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchend', handleTouchEnd);
+      timeouts.forEach(t => clearTimeout(t));
+      timeouts.clear();
     };
   }, [constraints.isMobile, setAction, setMovement, resetMovement]);
 
