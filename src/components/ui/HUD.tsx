@@ -19,8 +19,10 @@ export function HUD() {
     const level = useRivermarsh((s) => s.player.stats.level);
     const gold = useRivermarsh((s) => s.player.stats.gold);
     const experience = useRivermarsh((s) => s.player.stats.experience);
-    const showHelpSetting = useRivermarsh((s) => s.settings.showHelp);
+    const showHelpSetting = useRivermarsh((s) => s.settings?.showHelp ?? true);
     const xpToNext = level * 100;
+    
+    const { toggleShop } = useRivermarsh();
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');
@@ -278,6 +280,10 @@ export function HUD() {
                 <PauseMenu 
                     onResume={() => setIsPaused(false)}
                     onSettings={() => setShowSettings(true)}
+                    onShop={() => {
+                        setIsPaused(false);
+                        toggleShop();
+                    }}
                     onQuit={() => window.location.reload()} // Simple quit for now
                 />
             )}

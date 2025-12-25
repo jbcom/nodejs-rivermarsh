@@ -6,6 +6,7 @@
  */
 
 import { useGameStore } from '@/stores/gameStore';
+import { useRivermarsh } from '@/stores/useRivermarsh';
 import { PREDATOR_SPECIES } from '../data/species';
 import { world } from '../world';
 import { applyCurse } from './EnemyEffectsSystem';
@@ -52,16 +53,22 @@ export function CollisionSystem(delta: number) {
                 const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
                 
                 const baseDamage = combatData ? combatData.damage : (speciesData?.damage ?? 5);
-                const finalDamage = baseDamage * difficultyMultiplier * bloodMoonMultiplier;
+                const shieldLevel = useRivermarsh.getState().player.stats.shieldLevel;
+                const finalDamage = Math.max(0, (baseDamage * difficultyMultiplier * bloodMoonMultiplier) - shieldLevel);
                 
                 damagePlayer(finalDamage);
                 
                 // Apply special effects on hit
                 if (entity.enemyEffect?.type === 'curse') {
-                    applyCurse();
+                    const bootsLevel = useRivermarsh.getState().player.stats.bootsLevel;
+                    if (bootsLevel > 0) {
+                        console.log('Curse negated by Boots!');
+                    } else {
+                        applyCurse();
+                    }
                 }
 
-                console.log(`Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
+                console.log(`Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Shield: -${shieldLevel}, Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
             }
         }
     }
