@@ -15,4 +15,10 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'),
         },
     },
+    // Handle ESM directory imports issue
+    server: {
+        deps: {
+            inline: [/@jbcom\/strata/],
+        },
+    },
 });

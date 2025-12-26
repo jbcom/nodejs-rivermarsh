@@ -6,11 +6,11 @@ import { useRPGStore } from '@/stores/rpgStore';
 
 export function GyroscopeCamera() {
     const { camera } = useThree();
-    const { player } = useRPGStore();
+    const playerPosition = useRPGStore((state) => state.player.position);
     const setCameraAzimuth = useControlsStore((state) => state.setCameraAzimuth);
 
     const cameraRotation = useRef({ azimuth: 0, elevation: Math.PI / 6 });
-    const targetPosition = useRef(new THREE.Vector3(...player.position));
+    const targetPosition = useRef(new THREE.Vector3(...playerPosition));
     const cameraDistance = useRef(15);
     const targetDistance = useRef(15);
 
@@ -76,8 +76,6 @@ export function GyroscopeCamera() {
                     }
                 })
                 .catch((error: Error) => {
-                    // Permission denied or error - gyroscope camera will not be enabled
-                    // Fall back to standard camera controls
                     console.warn(
                         'DeviceOrientation permission denied or unavailable:',
                         error.message
@@ -100,7 +98,7 @@ export function GyroscopeCamera() {
     }, []);
 
     useFrame((_state, delta) => {
-        const playerPos = new THREE.Vector3(...player.position);
+        const playerPos = new THREE.Vector3(...playerPosition);
         targetPosition.current.lerp(playerPos, delta * 5);
 
         if (initialOrientation.current) {
@@ -125,14 +123,14 @@ export function GyroscopeCamera() {
             delta * 5
         );
 
-        const distance = cameraDistance.current;
+        const dist = cameraDistance.current;
         const offsetX =
-            distance *
+            dist *
             Math.sin(cameraRotation.current.azimuth) *
             Math.cos(cameraRotation.current.elevation);
-        const offsetY = distance * Math.sin(cameraRotation.current.elevation);
+        const offsetY = dist * Math.sin(cameraRotation.current.elevation);
         const offsetZ =
-            distance *
+            dist *
             Math.cos(cameraRotation.current.azimuth) *
             Math.cos(cameraRotation.current.elevation);
 

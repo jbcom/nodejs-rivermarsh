@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
@@ -10,24 +10,24 @@ import { AmbientAudio, FootstepAudio, WeatherAudio } from '@jbcom/strata';
  * AudioSystem - Manages game audio including footsteps and biome ambient sounds
  */
 export function AudioSystem() {
-    const currentBiome = useRef<string>('marsh');
-    const currentWeather = useRef<string>('clear');
+    const [currentBiome, setCurrentBiome] = useState<string>('marsh');
+    const [currentWeather, setCurrentWeather] = useState<string>('clear');
     const footstepRef = useRef<any>(null);
 
     // Update current biome and weather from ECS
     useEffect(() => {
         const interval = setInterval(() => {
             const weatherEntity = ecsWorld.with('weather').entities[0];
-            if (weatherEntity?.weather) {
-                currentWeather.current = weatherEntity.weather.current;
+            if (weatherEntity?.weather && weatherEntity.weather.current !== currentWeather) {
+                setCurrentWeather(weatherEntity.weather.current);
             }
             const biomeEntity = ecsWorld.with('biome').entities[0];
-            if (biomeEntity?.biome) {
-                currentBiome.current = biomeEntity.biome.current;
+            if (biomeEntity?.biome && biomeEntity.biome.current !== currentBiome) {
+                setCurrentBiome(biomeEntity.biome.current);
             }
         }, 100);
         return () => clearInterval(interval);
-    }, []);
+    }, [currentBiome, currentWeather]);
 
     const playerPos = useEngineStore((s) => s.player.position);
     const isMoving = useEngineStore((s) => s.player.isMoving);
@@ -77,7 +77,7 @@ export function AudioSystem() {
                 volume={0.3}
             />
             <AmbientAudio 
-                url={biomeToUrl[currentBiome.current] || biomeToUrl.marsh} 
+                url={biomeToUrl[currentBiome] || biomeToUrl.marsh} 
                 autoplay 
                 fadeTime={2} 
             />
@@ -85,9 +85,9 @@ export function AudioSystem() {
                 rainUrl="/audio/ambient/rain_loop.ogg"
                 windUrl="/audio/ambient/wind_loop.ogg"
                 thunderUrl="/audio/sfx/thunder.ogg"
-                rainIntensity={currentWeather.current === 'rain' || currentWeather.current === 'storm' ? 0.5 : 0}
-                windIntensity={currentWeather.current === 'storm' ? 0.4 : 0}
-                thunderActive={currentWeather.current === 'storm'}
+                rainIntensity={currentWeather === 'rain' || currentWeather === 'storm' ? 0.5 : 0}
+                windIntensity={currentWeather === 'storm' ? 0.4 : 0}
+                thunderActive={currentWeather === 'storm'}
             />
         </>
     );

@@ -29,7 +29,6 @@ export function VirtualJoysticks() {
         });
 
         joystickManager.on('move', (_evt, data) => {
-            // Improved movement mapping: 50 is the radius (size/2)
             const clampedDistance = Math.min(data.distance, 50) / 50;
             const forward = -data.vector.y * clampedDistance;
             const right = -data.vector.x * clampedDistance;

@@ -2,31 +2,28 @@ import React, { useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { ParticleEmitter } from '@jbcom/strata';
 import { world } from '../../ecs/world';
-import { useGameStore } from '../../stores/gameStore';
+import { useEngineStore } from '../../stores/engineStore';
 
 export const BossBattleEffects: React.FC = () => {
-    const { mode, activeBossId } = useGameStore();
+    const { mode, activeBossId } = useEngineStore();
     const [bossPosition, setBossPosition] = useState<[number, number, number]>([0, 0, 0]);
     const [spellActive, setSpellActive] = useState(false);
 
     useFrame(() => {
         if (mode !== 'boss_battle' || activeBossId === null) return;
 
-        // Combine logic into a single useFrame for better performance and reduced ECS queries
-        const bossEntity = world.entities.find(e => e.id === activeBossId);
+        // activeBossId is number, e.id is number
+        const bossEntity = world.entities.find(e => String(e.id) === String(activeBossId));
         if (bossEntity) {
-            // Update boss position for effects
             if (bossEntity.transform) {
                 setBossPosition([
                     bossEntity.transform.position.x,
-                    bossEntity.transform.position.y + 1, // Aim for the chest/middle
+                    bossEntity.transform.position.y + 1,
                     bossEntity.transform.position.z
                 ]);
             }
 
-            // Update spell casting state
             if (bossEntity.boss) {
-                // If boss is processing turn and using special ability
                 const isCasting = bossEntity.boss.specialAbilityCooldown === 3 && 
                                   bossEntity.combat?.turn === 'boss' &&
                                   bossEntity.boss.isProcessingTurn === true;

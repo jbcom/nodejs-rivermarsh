@@ -216,6 +216,8 @@ describe('GameStore - Death and Respawn', () => {
                 stamina: 60,
                 level: 1,
                 experience: 0,
+                mana: 20,
+                gold: 0,
             });
         });
 
@@ -240,6 +242,8 @@ describe('GameStore - Death and Respawn', () => {
                 stamina: 100,
                 level: 1,
                 experience: 0,
+                mana: 20,
+                gold: 0,
             });
         });
     });
