@@ -11,6 +11,12 @@ vi.mock('@/ecs/world', () => ({
         with: vi.fn((type) => {
             if (type === 'time') {
                 return {
+                    entities: [{
+                        time: {
+                            hour: 8,
+                            phase: 'day',
+                        },
+                    }],
                     *[Symbol.iterator]() {
                         yield {
                             time: {
@@ -23,6 +29,11 @@ vi.mock('@/ecs/world', () => ({
             }
             if (type === 'weather') {
                 return {
+                    entities: [{
+                        weather: {
+                            current: 'clear',
+                        },
+                    }],
                     *[Symbol.iterator]() {
                         yield {
                             weather: {
@@ -33,6 +44,7 @@ vi.mock('@/ecs/world', () => ({
                 };
             }
             return {
+                entities: [],
                 *[Symbol.iterator]() {},
             };
         }),
