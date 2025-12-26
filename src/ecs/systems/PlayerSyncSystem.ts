@@ -10,13 +10,15 @@ import { world } from '../world';
  * - Stats: engineStore <-> rpgStore (via syncStores.ts)
  */
 export function PlayerSyncSystem() {
+    const engineState = useEngineStore.getState();
+    const rpgState = rivermarshStore.getState();
+
     for (const entity of world.with('isPlayer', 'species', 'transform')) {
-        const engineState = useEngineStore.getState();
         // Get position from engineStore (updated by Player physics)
         const enginePos = engineState.player.position;
         
         // Sync position to rpgStore
-        rivermarshStore.getState().updatePlayerPosition([enginePos.x, enginePos.y, enginePos.z]);
+        rpgState.updatePlayerPosition([enginePos.x, enginePos.y, enginePos.z]);
         
         // Update ECS position
         entity.transform!.position.set(enginePos.x, enginePos.y, enginePos.z);

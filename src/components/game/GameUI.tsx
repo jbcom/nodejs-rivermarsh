@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRPGStore } from '@/stores/rpgStore';
 import { ShopPanel } from './ShopPanel';
+
+const MAX_DISPLAYED_SKILLS = 4;
 
 export function GameUI() {
     const {
@@ -145,7 +147,7 @@ function StatsDisplay() {
 
             {/* Core Skills */}
             <div style={{ fontSize: '11px', color: '#ccc' }}>
-                {Object.entries(player.stats.skills).slice(0, 4).map(([key, skill]) => (
+                {Object.entries(player.stats.skills).slice(0, MAX_DISPLAYED_SKILLS).map(([key, skill]) => (
                     <div key={key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                         <span>{skill.name}</span>
                         <span style={{ color: '#DAA520' }}>Lv.{skill.level}</span>

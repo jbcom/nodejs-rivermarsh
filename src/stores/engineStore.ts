@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
 import { loadGame as loadGameUtil, saveGame as saveGameUtil } from '../utils/save';
 import { PLAYER, LEVELING } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
@@ -104,7 +105,8 @@ interface GameState {
     loadGame: () => void;
 }
 
-export const useEngineStore = create<GameState>((set, get) => ({
+export const useEngineStore = create<GameState>()(
+    subscribeWithSelector((set, get) => ({
     loaded: false,
     time: 0,
     difficulty: 'normal',
@@ -321,4 +323,4 @@ export const useEngineStore = create<GameState>((set, get) => ({
             };
         });
     },
-}));
+})));

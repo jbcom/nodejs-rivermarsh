@@ -8,6 +8,7 @@
  * This module keeps them in sync so the HUD and game systems work together.
  */
 
+import { shallow } from 'zustand/shallow';
 import { useEngineStore } from './engineStore';
 import { useRPGStore } from './rpgStore';
 
@@ -29,38 +30,40 @@ export function initStoreSync() {
             level: state.player.level,
             experience: state.player.experience,
         }),
-        (current, prev) => {
+        (current: any, prev: any) => {
             if (isSyncing) return;
             isSyncing = true;
 
-            const rpgState = useRPGStore.getState();
+            try {
+                const rpgState = useRPGStore.getState();
 
-            // Sync health changes
-            if (current.health !== prev.health) {
-                rpgState.updatePlayerStats({ health: current.health });
+                // Sync health changes
+                if (current.health !== prev.health) {
+                    rpgState.updatePlayerStats({ health: current.health });
+                }
+
+                // Sync stamina changes
+                if (current.stamina !== prev.stamina) {
+                    rpgState.updatePlayerStats({ stamina: current.stamina });
+                }
+
+                // Sync gold changes
+                if (current.gold !== prev.gold) {
+                    rpgState.updatePlayerStats({ gold: current.gold });
+                }
+
+                // Sync level/XP changes
+                if (current.level !== prev.level || current.experience !== prev.experience) {
+                    rpgState.updatePlayerStats({
+                        level: current.level,
+                        experience: current.experience,
+                        maxHealth: current.maxHealth,
+                        maxStamina: current.maxStamina,
+                    });
+                }
+            } finally {
+                isSyncing = false;
             }
-
-            // Sync stamina changes
-            if (current.stamina !== prev.stamina) {
-                rpgState.updatePlayerStats({ stamina: current.stamina });
-            }
-
-            // Sync gold changes
-            if (current.gold !== prev.gold) {
-                rpgState.updatePlayerStats({ gold: current.gold });
-            }
-
-            // Sync level/XP changes
-            if (current.level !== prev.level || current.experience !== prev.experience) {
-                rpgState.updatePlayerStats({
-                    level: current.level,
-                    experience: current.experience,
-                    maxHealth: current.maxHealth,
-                    maxStamina: current.maxStamina,
-                });
-            }
-
-            isSyncing = false;
         },
         { equalityFn: shallow }
     );
@@ -72,33 +75,32 @@ export function initStoreSync() {
             health: state.player.stats.health,
             stamina: state.player.stats.stamina,
         }),
-        (current, prev) => {
+        (current: any, prev: any) => {
             if (isSyncing) return;
             isSyncing = true;
 
-            const engineState = useEngineStore.getState();
+            try {
+                const engineState = useEngineStore.getState();
 
-            // If gold changed in rpgStore (e.g., from shop), sync to engineStore
-            if (current.gold !== prev.gold && current.gold !== engineState.player.gold) {
-                const diff = current.gold - engineState.player.gold;
-                if (diff !== 0) {
+                // If gold changed in rpgStore (e.g., from shop), sync to engineStore
+                if (current.gold !== prev.gold && current.gold !== engineState.player.gold) {
                     engineState.updatePlayer({ gold: current.gold });
                 }
-            }
 
-            // If health changed in rpgStore (e.g., from potions), sync to engineStore
-            if (current.health !== prev.health && current.health !== engineState.player.health) {
-                engineState.updatePlayer({ health: current.health });
-            }
+                // If health changed in rpgStore (e.g., from potions), sync to engineStore
+                if (current.health !== prev.health && current.health !== engineState.player.health) {
+                    engineState.updatePlayer({ health: current.health });
+                }
 
-            // If stamina changed in rpgStore, sync to engineStore
-            if (current.stamina !== prev.stamina && current.stamina !== engineState.player.stamina) {
-                engineState.updatePlayer({ stamina: current.stamina });
+                // If stamina changed in rpgStore, sync to engineStore
+                if (current.stamina !== prev.stamina && current.stamina !== engineState.player.stamina) {
+                    engineState.updatePlayer({ stamina: current.stamina });
+                }
+            } finally {
+                isSyncing = false;
             }
-
-            isSyncing = false;
         },
-        { equalityFn: (a, b) => JSON.stringify(a) === JSON.stringify(b) }
+        { equalityFn: shallow }
     );
 
     // Do an initial sync from rpgStore to engineStore (rpgStore has persisted data)
@@ -114,13 +116,4 @@ export function initStoreSync() {
     });
 
     console.log('[StoreSync] Store synchronization initialized');
-}
-
-/**
- * Sync player position from engineStore to rpgStore
- * Called from the game loop
- */
-export function syncPlayerPosition() {
-    const enginePos = useEngineStore.getState().player.position;
-    useRPGStore.getState().updatePlayerPosition([enginePos.x, enginePos.y, enginePos.z]);
 }

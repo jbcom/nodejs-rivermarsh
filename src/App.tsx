@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
 import { Combat, GameUI, NPCManager, BossBattleEffects } from '@/components/game';
@@ -32,12 +32,6 @@ import { useRPGStore } from '@/stores/rpgStore';
 import { initStoreSync } from '@/stores/syncStores';
 import { BasicStrataExample } from '../examples/BasicStrata';
 import { WeatherExample } from '../examples/WeatherSystem';
-
-// Initialize test hooks for E2E testing
-initTestHooks();
-
-// Initialize store synchronization (bridging engineStore and rpgStore)
-initStoreSync();
 
 interface SceneProps {
     useMobileControls?: boolean;
@@ -95,6 +89,13 @@ function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: Scene
 }
 
 export default function App() {
+    useEffect(() => {
+        // Initialize test hooks for E2E testing
+        initTestHooks();
+        // Initialize store synchronization (bridging engineStore and rpgStore)
+        initStoreSync();
+    }, []);
+
     const constraints = useMobileConstraints();
     const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
     // Rivermarsh features enabled by default - can be toggled in settings later
