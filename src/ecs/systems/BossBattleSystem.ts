@@ -1,6 +1,6 @@
 import { world } from '../world';
-import { useGameStore } from '../../stores/gameStore';
-import { useRivermarsh } from '../../stores/useRivermarsh';
+import { useEngineStore } from '../../stores/engineStore';
+import { useRPGStore } from '../../stores/rpgStore';
 import { BOSSES } from '../data/bosses';
 
 // Constants for combat balancing
@@ -15,10 +15,10 @@ const SPELL_DAMAGE_MAX = 6;
 const SPECIAL_ABILITY_COOLDOWN = 3;
 
 export function BossBattleSystem() {
-    const { mode, activeBossId, damagePlayer, addExperience, addGold, setMode, setActiveBossId } = useGameStore.getState();
-    const { setGameMode } = useRivermarsh.getState();
+    const { mode, activeBossId, damagePlayer, addExperience, addGold, setMode, setActiveBossId } = useEngineStore.getState();
+    const { setGameMode } = useRPGStore.getState();
 
-    if (mode !== 'boss_battle' || activeBossId === null) return;
+    if (mode !== ('boss_battle' as any) || activeBossId === null) return;
 
     const bossEntity = world.entities.find(e => e.id === activeBossId);
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) {
@@ -35,22 +35,21 @@ export function BossBattleSystem() {
     if (combat.turn === 'boss' && !boss.isProcessingTurn) {
         boss.isProcessingTurn = true;
         
-        // Simple Boss AI logic - use a flag to prevent multiple executions
-        if (!boss.isProcessingTurn) {
-            boss.isProcessingTurn = true;
-            setTimeout(() => {
+        setTimeout(() => {
             // Check if still in boss battle and boss still exists
             const currentBoss = world.entities.find(e => e.id === activeBossId);
-            if (!currentBoss || !currentBoss.boss || !currentBoss.combat || useGameStore.getState().mode !== 'boss_battle') {
+            if (!currentBoss || !currentBoss.boss || !currentBoss.combat || (useEngineStore.getState().mode as any) !== 'boss_battle') {
+                if (currentBoss?.boss) currentBoss.boss.isProcessingTurn = false;
                 return;
             }
             
             // Additional check: ensure we're still processing the same turn
-            if (currentBoss.combat.turn !== 'boss' || !currentBoss.boss.isProcessingTurn) {
+            if (currentBoss.combat.turn !== 'boss') {
+                currentBoss.boss.isProcessingTurn = false;
                 return;
             }
 
-            const bossData = BOSSES[boss.type];
+            const bossData = (BOSSES as any)[boss.type];
             let damage = 0;
             let actionName = 'Attack';
 
@@ -95,7 +94,7 @@ export function BossBattleSystem() {
 
 // Function to handle player actions (called from UI)
 export function handlePlayerAction(action: 'attack' | 'spell') {
-    const { activeBossId, player, useMana } = useGameStore.getState();
+    const { activeBossId, player, useMana } = useEngineStore.getState() as any;
     if (activeBossId === null) return;
 
     const bossEntity = world.entities.find(e => e.id === activeBossId);
