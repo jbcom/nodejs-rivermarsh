@@ -1,4 +1,5 @@
 import { GyroscopeCamera as StrataGyroCamera } from '@jbcom/strata';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
 import { useRPGStore } from '@/stores/rpgStore';
@@ -6,7 +7,7 @@ import { useRPGStore } from '@/stores/rpgStore';
 export function GyroscopeCamera() {
     const playerPosition = useRPGStore((state) => state.player.position);
     const setCameraAzimuth = useControlsStore((state) => state.setCameraAzimuth);
-    const targetPos = new THREE.Vector3(...playerPosition);
+    const targetPos = useMemo(() => new THREE.Vector3(...playerPosition), [playerPosition]);
 
     return (
         <StrataGyroCamera

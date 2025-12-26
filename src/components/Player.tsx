@@ -227,7 +227,9 @@ export function Player() {
         characterRef.current.state.isAttacking = attackAnimTimerRef.current > 0;
         
         // Use Strata's animation system
-        animateCharacter(characterRef.current, time);
+        animateCharacter(characterRef.current, time, {
+            isAttacking: attackAnimTimerRef.current > 0
+        });
 
         // Update game store
         updatePlayer({

@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { VirtualJoystick } from '@jbcom/strata';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 import { useControlsStore } from '@/stores/controlsStore';
