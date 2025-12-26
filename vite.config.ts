@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 import glsl from 'vite-plugin-glsl';
 
 export default defineConfig({
-    base: '/rivermarsh/',
+    base: process.env.VITE_BASE_URL || '/rivermarsh/',
     plugins: [react(), glsl()],
     resolve: {
         alias: {
