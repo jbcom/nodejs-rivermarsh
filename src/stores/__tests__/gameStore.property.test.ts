@@ -2,7 +2,6 @@ import * as fc from 'fast-check';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore } from '../gameStore';
 import * as THREE from 'three';
-import { LEVELING } from '../../constants/game';
 
 describe('GameStore Properties', () => {
     beforeEach(() => {
