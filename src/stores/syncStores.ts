@@ -37,32 +37,17 @@ export function initStoreSync() {
 
             // Sync health changes
             if (current.health !== prev.health) {
-                const diff = current.health - rpgState.player.stats.health;
-                if (diff > 0) {
-                    rpgState.heal(diff);
-                } else if (diff < 0) {
-                    rpgState.takeDamage(-diff);
-                }
+                rpgState.updatePlayerStats({ health: current.health });
             }
 
             // Sync stamina changes
             if (current.stamina !== prev.stamina) {
-                const diff = current.stamina - rpgState.player.stats.stamina;
-                if (diff > 0) {
-                    rpgState.restoreStamina(diff);
-                } else if (diff < 0) {
-                    rpgState.useStamina(-diff);
-                }
+                rpgState.updatePlayerStats({ stamina: current.stamina });
             }
 
             // Sync gold changes
-            if (current.gold !== prev.gold && current.gold !== rpgState.player.stats.gold) {
-                const diff = current.gold - rpgState.player.stats.gold;
-                if (diff > 0) {
-                    rpgState.addGold(diff);
-                } else if (diff < 0) {
-                    rpgState.spendGold(-diff);
-                }
+            if (current.gold !== prev.gold) {
+                rpgState.updatePlayerStats({ gold: current.gold });
             }
 
             // Sync level/XP changes
@@ -77,7 +62,7 @@ export function initStoreSync() {
 
             isSyncing = false;
         },
-        { equalityFn: (a, b) => JSON.stringify(a) === JSON.stringify(b) }
+        { equalityFn: shallow }
     );
 
     // Sync rpgStore changes -> engineStore (for gold/shop purchases)

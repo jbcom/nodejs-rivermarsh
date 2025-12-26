@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
 import { Combat, GameUI, NPCManager, BossBattleEffects } from '@/components/game';
