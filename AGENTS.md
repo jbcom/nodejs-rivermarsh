@@ -111,8 +111,6 @@ integration/pending/     # Frozen source repos
 ├── rivers-of-reckoning/ # TypeScript/Strata RPG codebase
 └── otter-river-rush/    # Racing mini-game source
 
-.crewai/                # CrewAI agent configurations
-.kiro/                  # Kiro agent specifications
 .cursor/                # Cursor IDE rules
 ```
 
@@ -171,16 +169,6 @@ chore:    Build/tooling changes
 - **Role**: IDE-integrated development
 - **Files**: `.cursor/rules/*.mdc`
 - **Focus**: Real-time assistance, quick fixes
-
-### CrewAI
-- **Role**: Multi-agent collaboration
-- **Config**: `.crewai/manifest.yaml`
-- **Crews**: Asset pipeline, creature design, gameplay design
-
-### Kiro
-- **Role**: Specification-driven development
-- **Config**: `.kiro/steering/*.md`
-- **Focus**: Quality standards, mobile-first design
 
 ## 🚀 Deployment
 
