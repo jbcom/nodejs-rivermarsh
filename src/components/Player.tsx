@@ -6,9 +6,9 @@ import * as THREE from 'three';
 import { world } from '@/ecs/world';
 import { combatEvents } from '@/events/combatEvents';
 import { furFragmentShader, furVertexShader } from '@/shaders/fur';
-import { useGameStore } from '@/stores/gameStore';
-import { useControlsStore } from '@/stores/useControlsStore';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useEngineStore } from '@/stores/engineStore';
+import { useControlsStore } from '@/stores/controlsStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
 
@@ -44,12 +44,12 @@ export function Player() {
     const attackCooldownRef = useRef(0);
     const attackAnimTimerRef = useRef(0);
 
-    const input = useGameStore((s) => s.input);
-    const player = useGameStore((s) => s.player);
-    const playerStats = useRivermarsh((s) => s.player.stats);
+    const input = useEngineStore((s) => s.input);
+    const player = useEngineStore((s) => s.player);
+    const playerStats = useRPGStore((s) => s.player.stats);
     const dashAction = useControlsStore((state) => state.actions.dash);
-    const updatePlayer = useGameStore((s) => s.updatePlayer);
-    const damagePlayer = useGameStore.getState().damagePlayer;
+    const updatePlayer = useEngineStore((s) => s.updatePlayer);
+    const damagePlayer = useEngineStore.getState().damagePlayer;
 
     // Register player in ECS world
     useEffect(() => {
@@ -224,8 +224,8 @@ export function Player() {
         meshRef.current.position.set(position.x, position.y, position.z);
 
         // Stamina management
-        const consumeStamina = useGameStore.getState().consumeStamina;
-        const restoreStamina = useGameStore.getState().restoreStamina;
+        const consumeStamina = useEngineStore.getState().consumeStamina;
+        const restoreStamina = useEngineStore.getState().restoreStamina;
 
         const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
         if (input.active && speed > 0.5) {

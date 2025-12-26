@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { useGameStore } from '@/stores/gameStore';
-import { useControlsStore } from '@/stores/useControlsStore';
+import { useEngineStore } from '@/stores/engineStore';
+import { useControlsStore } from '@/stores/controlsStore';
 
 export function useInput() {
-    const setInput = useGameStore((s) => s.setInput);
+    const setInput = useEngineStore((s) => s.setInput);
 
     useEffect(() => {
         // Keyboard state

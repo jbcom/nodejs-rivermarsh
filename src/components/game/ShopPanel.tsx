@@ -1,8 +1,8 @@
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useRPGStore } from '@/stores/rpgStore';
 
 export function ShopPanel() {
     const { player, spendGold, toggleShop, heal, restoreStamina, updatePlayerStats } =
-        useRivermarsh();
+        useRPGStore();
 
     const items = [
         {
@@ -45,7 +45,7 @@ export function ShopPanel() {
             name: 'Otter Treat',
             cost: 50,
             description: 'A delicious snack. (+50 XP)',
-            action: () => useRivermarsh.getState().addExperience(50),
+            action: () => useRPGStore.getState().addExperience(50),
         },
     ];
 

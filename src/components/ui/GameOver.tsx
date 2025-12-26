@@ -1,8 +1,8 @@
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores/engineStore';
 
 export function GameOver() {
-    const gameOver = useGameStore((s) => s.gameOver);
-    const respawn = useGameStore((s) => s.respawn);
+    const gameOver = useEngineStore((s) => s.gameOver);
+    const respawn = useEngineStore((s) => s.respawn);
 
     if (!gameOver) {
         return null;

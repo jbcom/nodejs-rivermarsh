@@ -1,15 +1,15 @@
 import * as fc from 'fast-check';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useGameStore } from '../gameStore';
+import { useEngineStore } from '../engineStore';
 
 describe('GameStore Save System - Property-Based Tests', () => {
     beforeEach(() => {
         localStorage.clear();
         vi.clearAllMocks();
-        useGameStore.setState({
+        useEngineStore.setState({
             player: {
-                ...useGameStore.getState().player,
+                ...useEngineStore.getState().player,
                 position: new THREE.Vector3(0, 0, 0),
                 health: 100,
                 stamina: 100,
@@ -30,22 +30,22 @@ describe('GameStore Save System - Property-Based Tests', () => {
                         z: fc.float({ min: Math.fround(-100), max: Math.fround(100), noNaN: true }),
                     }),
                     ({ x, y, z }: { x: number; y: number; z: number }) => {
-                        const { saveGame, loadGame } = useGameStore.getState();
-                        useGameStore.setState({
+                        const { saveGame, loadGame } = useEngineStore.getState();
+                        useEngineStore.setState({
                             player: {
-                                ...useGameStore.getState().player,
+                                ...useEngineStore.getState().player,
                                 position: new THREE.Vector3(x, y, z),
                             },
                         });
                         saveGame();
-                        useGameStore.setState({
+                        useEngineStore.setState({
                             player: {
-                                ...useGameStore.getState().player,
+                                ...useEngineStore.getState().player,
                                 position: new THREE.Vector3(999, 999, 999),
                             },
                         });
                         loadGame();
-                        const loadedPosition = useGameStore.getState().player.position;
+                        const loadedPosition = useEngineStore.getState().player.position;
                         expect(loadedPosition.x).toBeCloseTo(x, 1);
                         expect(loadedPosition.y).toBeCloseTo(y, 1);
                         expect(loadedPosition.z).toBeCloseTo(z, 1);
@@ -71,24 +71,24 @@ describe('GameStore Save System - Property-Based Tests', () => {
                         }),
                     }),
                     ({ health, stamina }: { health: number; stamina: number }) => {
-                        const { saveGame, loadGame } = useGameStore.getState();
-                        useGameStore.setState({
+                        const { saveGame, loadGame } = useEngineStore.getState();
+                        useEngineStore.setState({
                             player: {
-                                ...useGameStore.getState().player,
+                                ...useEngineStore.getState().player,
                                 health,
                                 stamina,
                             },
                         });
                         saveGame();
-                        useGameStore.setState({
+                        useEngineStore.setState({
                             player: {
-                                ...useGameStore.getState().player,
+                                ...useEngineStore.getState().player,
                                 health: 50,
                                 stamina: 50,
                             },
                         });
                         loadGame();
-                        const loadedPlayer = useGameStore.getState().player;
+                        const loadedPlayer = useEngineStore.getState().player;
                         expect(loadedPlayer.health).toBeCloseTo(health, 1);
                         expect(loadedPlayer.stamina).toBeCloseTo(stamina, 1);
                     }
@@ -126,27 +126,27 @@ describe('GameStore Save System - Property-Based Tests', () => {
                         { minLength: 2, maxLength: 5 }
                     ),
                     (states: Array<{ x: number; z: number; health: number; stamina: number }>) => {
-                        const { saveGame, loadGame } = useGameStore.getState();
+                        const { saveGame, loadGame } = useEngineStore.getState();
                         states.forEach((state) => {
-                            useGameStore.setState({
+                            useEngineStore.setState({
                                 player: {
-                                    ...useGameStore.getState().player,
+                                    ...useEngineStore.getState().player,
                                     position: new THREE.Vector3(state.x, 0, state.z),
                                     health: state.health,
                                     stamina: state.stamina,
                                 },
                             });
                             saveGame();
-                            useGameStore.setState({
+                            useEngineStore.setState({
                                 player: {
-                                    ...useGameStore.getState().player,
+                                    ...useEngineStore.getState().player,
                                     position: new THREE.Vector3(0, 0, 0),
                                     health: 50,
                                     stamina: 50,
                                 },
                             });
                             loadGame();
-                            const loaded = useGameStore.getState().player;
+                            const loaded = useEngineStore.getState().player;
                             expect(loaded.position.x).toBeCloseTo(state.x, 1);
                             expect(loaded.position.z).toBeCloseTo(state.z, 1);
                             expect(loaded.health).toBeCloseTo(state.health, 1);
@@ -170,10 +170,10 @@ describe('GameStore Save System - Property-Based Tests', () => {
                         ''
                     ),
                     (corruptedData: string) => {
-                        const { loadGame } = useGameStore.getState();
+                        const { loadGame } = useEngineStore.getState();
                         localStorage.setItem('otterfall-save', corruptedData);
                         expect(() => loadGame()).not.toThrow();
-                        const loaded = useGameStore.getState().player;
+                        const loaded = useEngineStore.getState().player;
                         expect(loaded).toBeTruthy();
                         expect(typeof loaded.health).toBe('number');
                         expect(typeof loaded.stamina).toBe('number');

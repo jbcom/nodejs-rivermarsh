@@ -1,12 +1,12 @@
 import type React from 'react';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useRPGStore } from '@/stores/rpgStore';
 
 interface SettingsPanelProps {
     onClose: () => void;
 }
 
 export function SettingsPanel({ onClose }: SettingsPanelProps) {
-    const { settings, updateSettings } = useRivermarsh();
+    const { settings, updateSettings } = useRPGStore();
 
     const panelStyle: React.CSSProperties = {
         position: 'fixed',

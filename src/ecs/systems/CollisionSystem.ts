@@ -5,8 +5,8 @@
  * This system only handles game logic like damage from predators.
  */
 
-import { useGameStore } from '@/stores/gameStore';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { PREDATOR_SPECIES } from '../data/species';
 import { world } from '../world';
 import { applyCurse } from './EnemyEffectsSystem';
@@ -26,8 +26,8 @@ export function CollisionSystem(delta: number) {
 
     lastCheckTime = 0;
 
-    const playerPos = useGameStore.getState().player.position;
-    const damagePlayer = useGameStore.getState().damagePlayer;
+    const playerPos = useEngineStore.getState().player.position;
+    const damagePlayer = useEngineStore.getState().damagePlayer;
 
     // Check collisions with predator NPCs for damage
     for (const entity of world.with('isNPC', 'transform', 'species')) {
@@ -60,7 +60,7 @@ export function CollisionSystem(delta: number) {
                 const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
 
                 const baseDamage = combatData ? combatData.damage : (speciesData?.damage ?? 5);
-                const shieldLevel = useRivermarsh.getState().player.stats.shieldLevel;
+                const shieldLevel = useRPGStore.getState().player.stats.shieldLevel;
                 const finalDamage = Math.max(
                     0,
                     baseDamage * difficultyMultiplier * bloodMoonMultiplier - shieldLevel
@@ -70,7 +70,7 @@ export function CollisionSystem(delta: number) {
 
                 // Apply special effects on hit
                 if (entity.enemyEffect?.type === 'curse') {
-                    const bootsLevel = useRivermarsh.getState().player.stats.bootsLevel;
+                    const bootsLevel = useRPGStore.getState().player.stats.bootsLevel;
                     if (bootsLevel > 0) {
                         console.log('Curse negated by Boots!');
                     } else {

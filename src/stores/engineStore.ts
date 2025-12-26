@@ -92,7 +92,7 @@ interface GameState {
     loadGame: () => void;
 }
 
-export const useGameStore = create<GameState>((set) => ({
+export const useEngineStore = create<GameState>((set) => ({
     loaded: false,
     time: 0,
     difficulty: 'normal',

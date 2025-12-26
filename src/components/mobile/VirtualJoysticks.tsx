@@ -1,7 +1,7 @@
 import nipplejs from 'nipplejs';
 import { useEffect, useRef } from 'react';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
-import { useControlsStore } from '@/stores/useControlsStore';
+import { useControlsStore } from '@/stores/controlsStore';
 
 export function VirtualJoysticks() {
     const containerRef = useRef<HTMLDivElement>(null);

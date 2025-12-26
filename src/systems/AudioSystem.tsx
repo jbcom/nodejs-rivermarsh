@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores/engineStore';
 import { disposeAudioManager, getAudioManager, initAudioManager } from '@/utils/audioManager';
 import { disposeBiomeAmbience, getBiomeAmbience, initBiomeAmbience } from '@/utils/biomeAmbience';
 import {
@@ -77,7 +77,7 @@ export function AudioSystem() {
             return;
         }
 
-        const player = useGameStore.getState().player;
+        const player = useEngineStore.getState().player;
         const isMoving = player.isMoving;
         const isRunning = player.stamina > 10 && player.speed / player.maxSpeed > 0.7;
 

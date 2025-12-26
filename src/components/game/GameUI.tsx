@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useRPGStore } from '@/stores/rpgStore';
 import { ShopPanel } from './ShopPanel';
 
 export function GameUI() {
@@ -13,7 +13,7 @@ export function GameUI() {
         toggleShop,
         nextDialogue,
         endDialogue,
-    } = useRivermarsh();
+    } = useRPGStore();
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
@@ -27,7 +27,7 @@ export function GameUI() {
                 toggleShop();
             }
             if (e.key === 'r' || e.key === 'R') {
-                useRivermarsh.getState().setGameMode('racing');
+                useRPGStore.getState().setGameMode('racing');
             }
             if (e.key === 'Enter' || e.key === ' ') {
                 if (activeDialogue) {
@@ -58,7 +58,7 @@ export function GameUI() {
 }
 
 function StatsDisplay() {
-    const { player } = useRivermarsh();
+    const { player } = useRPGStore();
 
     return (
         <div
@@ -193,7 +193,7 @@ function StatsDisplay() {
 }
 
 function InventoryPanel() {
-    const { player } = useRivermarsh();
+    const { player } = useRPGStore();
 
     return (
         <div
@@ -261,7 +261,7 @@ function InventoryPanel() {
 }
 
 function QuestLogPanel() {
-    const { player } = useRivermarsh();
+    const { player } = useRPGStore();
 
     return (
         <div
@@ -385,7 +385,7 @@ function QuestLogPanel() {
 }
 
 function DialogueBox() {
-    const { activeDialogue, nextDialogue, endDialogue } = useRivermarsh();
+    const { activeDialogue, nextDialogue, endDialogue } = useRPGStore();
 
     if (!activeDialogue) {
         return null;

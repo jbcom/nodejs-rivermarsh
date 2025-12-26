@@ -4,7 +4,7 @@ import {
     hapticFeedback,
     useMobileConstraints,
 } from '@/hooks/useMobileConstraints';
-import { useControlsStore } from '@/stores/useControlsStore';
+import { useControlsStore } from '@/stores/controlsStore';
 
 export function SwipeGestures() {
     const { setAction, setMovement, resetMovement } = useControlsStore();

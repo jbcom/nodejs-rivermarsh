@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores/engineStore';
 import { getAdaptiveQualityManager } from '@/utils/adaptiveQuality';
 import { getMemoryMonitor } from '@/utils/memoryMonitor';
 import { AchievementSystem } from '../ecs/systems/AchievementSystem';
@@ -19,7 +19,7 @@ import { world } from '../ecs/world';
 import { AudioSystem } from './AudioSystem';
 
 export function GameSystems() {
-    const playerPos = useGameStore((s) => s.player.position);
+    const playerPos = useEngineStore((s) => s.player.position);
     const qualityManager = useRef(getAdaptiveQualityManager());
     const memoryMonitor = useRef(getMemoryMonitor());
     const lastQualityCheck = useRef(0);
@@ -27,7 +27,7 @@ export function GameSystems() {
 
     useFrame((_, delta) => {
         // Sync difficulty from Zustand to ECS
-        const currentDifficulty = useGameStore.getState().difficulty;
+        const currentDifficulty = useEngineStore.getState().difficulty;
         const worldEntity = world.with('difficulty').entities[0];
         if (worldEntity && worldEntity.difficulty.level !== currentDifficulty) {
             worldEntity.difficulty.level = currentDifficulty;

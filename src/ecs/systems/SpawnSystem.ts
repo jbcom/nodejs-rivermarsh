@@ -3,7 +3,7 @@ import { BIOMES } from '../data/biomes';
 import { PREDATOR_SPECIES, PREY_SPECIES } from '../data/species';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores/engineStore';
 import { LEVELING } from '@/constants/game';
 
 const MAX_NPCS = 30;
@@ -188,7 +188,7 @@ export function SpawnSystem(playerPos: THREE.Vector3) {
                 if (distance < 20) { // Within 20 meters
                     const baseXP = entity.species.type === 'predator' ? LEVELING.PREDATOR_XP : LEVELING.PREY_XP;
                     const finalXP = baseXP * difficulty.experienceMultiplier;
-                    useGameStore.getState().addExperience(finalXP);
+                    useEngineStore.getState().addExperience(finalXP);
                 }
             }
             world.remove(entity);

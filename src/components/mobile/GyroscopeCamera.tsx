@@ -1,12 +1,12 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { useControlsStore } from '@/stores/useControlsStore';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useControlsStore } from '@/stores/controlsStore';
+import { useRPGStore } from '@/stores/rpgStore';
 
 export function GyroscopeCamera() {
     const { camera } = useThree();
-    const { player } = useRivermarsh();
+    const { player } = useRPGStore();
     const setCameraAzimuth = useControlsStore((state) => state.setCameraAzimuth);
 
     const cameraRotation = useRef({ azimuth: 0, elevation: Math.PI / 6 });

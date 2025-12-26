@@ -2,8 +2,8 @@ import { Billboard, Text } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useControlsStore } from '@/stores/useControlsStore';
-import { type OtterNPC as OtterNPCType, useRivermarsh } from '@/stores/useRivermarsh';
+import { useControlsStore } from '@/stores/controlsStore';
+import { type OtterNPC as OtterNPCType, useRPGStore } from '@/stores/rpgStore';
 
 interface OtterNPCProps {
     npc: OtterNPCType;
@@ -11,7 +11,7 @@ interface OtterNPCProps {
 
 export function OtterNPC({ npc }: OtterNPCProps) {
     const meshRef = useRef<THREE.Group>(null);
-    const { player, startDialogue, damageNPC } = useRivermarsh();
+    const { player, startDialogue, damageNPC } = useRPGStore();
     const interactAction = useControlsStore((state) => state.actions.interact);
     const isInRange = useRef(false);
     const currentDistance = useRef(Infinity);
@@ -303,7 +303,7 @@ const initialNPCs: OtterNPCType[] = [
 ];
 
 export function NPCManager() {
-    const { npcs, spawnNPC } = useRivermarsh();
+    const { npcs, spawnNPC } = useRPGStore();
     const hasInitialized = useRef(false);
 
     useEffect(() => {

@@ -1,10 +1,10 @@
 import * as fc from 'fast-check';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { useGameStore } from '../gameStore';
+import { useEngineStore } from '../engineStore';
 
 describe('Input System - Property-Based Tests', () => {
     beforeEach(() => {
-        useGameStore.setState({
+        useEngineStore.setState({
             input: {
                 active: false,
                 direction: { x: 0, y: 0 },
@@ -22,13 +22,13 @@ describe('Input System - Property-Based Tests', () => {
                         y: fc.float({ min: Math.fround(-1), max: Math.fround(1), noNaN: true }),
                     }),
                     ({ x, y }: { x: number; y: number }) => {
-                        const { setInput } = useGameStore.getState();
+                        const { setInput } = useEngineStore.getState();
                         const startTime = performance.now();
                         setInput(x, y, true, false);
                         const endTime = performance.now();
                         const updateTime = endTime - startTime;
                         expect(updateTime).toBeLessThan(16.67);
-                        const input = useGameStore.getState().input;
+                        const input = useEngineStore.getState().input;
                         expect(input.active).toBe(true);
                         expect(input.direction.x).toBeCloseTo(x, 5);
                         expect(input.direction.y).toBeCloseTo(y, 5);
@@ -49,7 +49,7 @@ describe('Input System - Property-Based Tests', () => {
                         { minLength: 5, maxLength: 20 }
                     ),
                     (inputs: Array<{ x: number; y: number }>) => {
-                        const { setInput } = useGameStore.getState();
+                        const { setInput } = useEngineStore.getState();
                         const updateTimes: number[] = [];
                         inputs.forEach(({ x, y }: { x: number; y: number }) => {
                             const startTime = performance.now();
@@ -61,7 +61,7 @@ describe('Input System - Property-Based Tests', () => {
                             expect(time).toBeLessThan(16.67);
                         });
                         const lastInput = inputs[inputs.length - 1];
-                        const finalState = useGameStore.getState().input;
+                        const finalState = useEngineStore.getState().input;
                         expect(finalState.direction.x).toBeCloseTo(lastInput.x, 5);
                         expect(finalState.direction.y).toBeCloseTo(lastInput.y, 5);
                     }
@@ -78,15 +78,15 @@ describe('Input System - Property-Based Tests', () => {
                         y: fc.float({ min: Math.fround(-1), max: Math.fround(1), noNaN: true }),
                     }),
                     ({ x, y }: { x: number; y: number }) => {
-                        const { setInput } = useGameStore.getState();
+                        const { setInput } = useEngineStore.getState();
                         setInput(x, y, true, false);
-                        expect(useGameStore.getState().input.active).toBe(true);
+                        expect(useEngineStore.getState().input.active).toBe(true);
                         const startTime = performance.now();
                         setInput(0, 0, false, false);
                         const endTime = performance.now();
                         const updateTime = endTime - startTime;
                         expect(updateTime).toBeLessThan(16.67);
-                        const input = useGameStore.getState().input;
+                        const input = useEngineStore.getState().input;
                         expect(input.active).toBe(false);
                     }
                 ),
@@ -97,13 +97,13 @@ describe('Input System - Property-Based Tests', () => {
         it('should handle jump input immediately', () => {
             fc.assert(
                 fc.property(fc.boolean(), (jumpState: boolean) => {
-                    const { setInput } = useGameStore.getState();
+                    const { setInput } = useEngineStore.getState();
                     const startTime = performance.now();
                     setInput(0, 0, false, jumpState);
                     const endTime = performance.now();
                     const updateTime = endTime - startTime;
                     expect(updateTime).toBeLessThan(16.67);
-                    const input = useGameStore.getState().input;
+                    const input = useEngineStore.getState().input;
                     expect(input.jump).toBe(jumpState);
                 }),
                 { numRuns: 100 }
@@ -125,7 +125,7 @@ describe('Input System - Property-Based Tests', () => {
                     (
                         operations: Array<{ active: boolean; x: number; y: number; jump: boolean }>
                     ) => {
-                        const { setInput } = useGameStore.getState();
+                        const { setInput } = useEngineStore.getState();
                         operations.forEach(
                             ({
                                 active,
@@ -139,7 +139,7 @@ describe('Input System - Property-Based Tests', () => {
                                 jump: boolean;
                             }) => {
                                 setInput(x, y, active, jump);
-                                const input = useGameStore.getState().input;
+                                const input = useEngineStore.getState().input;
                                 expect(input.active).toBe(active);
                                 expect(input.jump).toBe(jump);
                                 if (active) {

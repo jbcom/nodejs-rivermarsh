@@ -1,28 +1,28 @@
 import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { useEffect, useState } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 
 export function HUD() {
     // Game loop stats
-    const health = useGameStore((s) => s.player.health);
-    const maxHealth = useGameStore((s) => s.player.maxHealth);
-    const stamina = useGameStore((s) => s.player.stamina);
-    const maxStamina = useGameStore((s) => s.player.maxStamina);
-    const level = useGameStore((s) => s.player.level);
-    const experience = useGameStore((s) => s.player.experience);
-    const expToNext = useGameStore((s) => s.player.expToNext);
-    const nearbyResource = useGameStore((s) => s.nearbyResource);
-    const score = useGameStore((s) => s.score);
-    const distance = useGameStore((s) => s.distance);
+    const health = useEngineStore((s) => s.player.health);
+    const maxHealth = useEngineStore((s) => s.player.maxHealth);
+    const stamina = useEngineStore((s) => s.player.stamina);
+    const maxStamina = useEngineStore((s) => s.player.maxStamina);
+    const level = useEngineStore((s) => s.player.level);
+    const experience = useEngineStore((s) => s.player.experience);
+    const expToNext = useEngineStore((s) => s.player.expToNext);
+    const nearbyResource = useEngineStore((s) => s.nearbyResource);
+    const score = useEngineStore((s) => s.score);
+    const distance = useEngineStore((s) => s.distance);
     
-    // UI/Meta stats from useRivermarsh
-    const gold = useRivermarsh((s) => s.player.stats.gold);
-    const showHelpSetting = useRivermarsh((s) => s.settings?.showHelp ?? true);
+    // UI/Meta stats from useRPGStore
+    const gold = useRPGStore((s) => s.player.stats.gold);
+    const showHelpSetting = useRPGStore((s) => s.settings?.showHelp ?? true);
     
-    const { toggleShop } = useRivermarsh();
+    const { toggleShop } = useRPGStore();
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');

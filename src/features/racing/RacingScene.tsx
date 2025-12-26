@@ -3,7 +3,7 @@ import { Html, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/dr
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useRPGStore } from '@/stores/rpgStore';
 import { ASSET_URLS, RACING_CONFIG, VISUAL } from './constants';
 import { useRacingStore } from './store';
 import { type RacingEntity, racingWorld } from './world';
@@ -186,7 +186,7 @@ function Collectibles() {
 
 function RacingHUD() {
     const { score, lives, distance, status, startGame } = useRacingStore();
-    const setGameMode = useRivermarsh((state) => state.setGameMode);
+    const setGameMode = useRPGStore((state) => state.setGameMode);
 
     return (
         <Html fullscreen>

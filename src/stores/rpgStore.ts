@@ -140,7 +140,7 @@ export interface GameState {
   spendGold: (amount: number) => boolean;
 }
 
-export const useRivermarsh = create<GameState>()(
+export const useRPGStore = create<GameState>()(
   persist(
     subscribeWithSelector((set, get) => ({
     gameMode: 'exploration',

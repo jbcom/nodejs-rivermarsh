@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useGameStore } from '../gameStore';
+import { useEngineStore } from '../engineStore';
 
 // Mock the audio manager
 vi.mock('@/utils/audioManager', () => ({
@@ -23,7 +23,7 @@ describe('GameStore - Death and Respawn', () => {
         mockSaveGame.mockClear();
 
         // Reset store to initial state
-        const store = useGameStore.getState();
+        const store = useEngineStore.getState();
         store.updatePlayer({
             position: new THREE.Vector3(0, 0, 0),
             health: 100,
@@ -40,47 +40,47 @@ describe('GameStore - Death and Respawn', () => {
 
     describe('Death Mechanics', () => {
         it('should set gameOver to true when health reaches 0', () => {
-            const { damagePlayer } = useGameStore.getState();
+            const { damagePlayer } = useEngineStore.getState();
 
             // Damage player to death
             damagePlayer(100);
 
-            const state = useGameStore.getState();
+            const state = useEngineStore.getState();
             expect(state.player.health).toBe(0);
             expect(state.gameOver).toBe(true);
         });
 
         it('should set gameOver to true when health goes below 0', () => {
-            const { damagePlayer } = useGameStore.getState();
+            const { damagePlayer } = useEngineStore.getState();
 
             // Damage player beyond death
             damagePlayer(150);
 
-            const state = useGameStore.getState();
+            const state = useEngineStore.getState();
             expect(state.player.health).toBe(0);
             expect(state.gameOver).toBe(true);
         });
 
         it('should not set gameOver if health is above 0', () => {
-            const { damagePlayer } = useGameStore.getState();
+            const { damagePlayer } = useEngineStore.getState();
 
             // Damage player but not to death
             damagePlayer(50);
 
-            const state = useGameStore.getState();
+            const state = useEngineStore.getState();
             expect(state.player.health).toBe(50);
             expect(state.gameOver).toBe(false);
         });
 
         it('should preserve position when player dies', () => {
-            const { updatePlayer, damagePlayer } = useGameStore.getState();
+            const { updatePlayer, damagePlayer } = useEngineStore.getState();
             const deathPosition = new THREE.Vector3(10, 5, 15);
 
             updatePlayer({ position: deathPosition });
             damagePlayer(100);
 
             // Position should remain at death location until respawn
-            const state = useGameStore.getState();
+            const state = useEngineStore.getState();
             expect(state.player.position.x).toBe(10);
             expect(state.player.position.y).toBe(5);
             expect(state.player.position.z).toBe(15);
@@ -89,7 +89,7 @@ describe('GameStore - Death and Respawn', () => {
 
     describe('Respawn Mechanics', () => {
         it('should reset player to spawn point (0, 0, 0)', () => {
-            const { updatePlayer, respawn } = useGameStore.getState();
+            const { updatePlayer, respawn } = useEngineStore.getState();
 
             // Move player away from spawn
             updatePlayer({ position: new THREE.Vector3(50, 10, 30) });
@@ -97,53 +97,53 @@ describe('GameStore - Death and Respawn', () => {
             // Respawn
             respawn();
 
-            const state = useGameStore.getState();
+            const state = useEngineStore.getState();
             expect(state.player.position.x).toBe(0);
             expect(state.player.position.y).toBe(0);
             expect(state.player.position.z).toBe(0);
         });
 
         it('should reset health to maxHealth', () => {
-            const { damagePlayer, respawn } = useGameStore.getState();
+            const { damagePlayer, respawn } = useEngineStore.getState();
 
             // Damage player
             damagePlayer(80);
-            expect(useGameStore.getState().player.health).toBe(20);
+            expect(useEngineStore.getState().player.health).toBe(20);
 
             // Respawn
             respawn();
 
-            expect(useGameStore.getState().player.health).toBe(100);
+            expect(useEngineStore.getState().player.health).toBe(100);
         });
 
         it('should reset stamina to maxStamina', () => {
-            const { consumeStamina, respawn } = useGameStore.getState();
+            const { consumeStamina, respawn } = useEngineStore.getState();
 
             // Consume stamina
             consumeStamina(60);
-            expect(useGameStore.getState().player.stamina).toBe(40);
+            expect(useEngineStore.getState().player.stamina).toBe(40);
 
             // Respawn
             respawn();
 
-            expect(useGameStore.getState().player.stamina).toBe(100);
+            expect(useEngineStore.getState().player.stamina).toBe(100);
         });
 
         it('should reset gameOver to false', () => {
-            const { damagePlayer, respawn } = useGameStore.getState();
+            const { damagePlayer, respawn } = useEngineStore.getState();
 
             // Kill player
             damagePlayer(100);
-            expect(useGameStore.getState().gameOver).toBe(true);
+            expect(useEngineStore.getState().gameOver).toBe(true);
 
             // Respawn
             respawn();
 
-            expect(useGameStore.getState().gameOver).toBe(false);
+            expect(useEngineStore.getState().gameOver).toBe(false);
         });
 
         it('should reset vertical speed to 0', () => {
-            const { updatePlayer, respawn } = useGameStore.getState();
+            const { updatePlayer, respawn } = useEngineStore.getState();
 
             // Set vertical speed (falling)
             updatePlayer({ verticalSpeed: -5 });
@@ -151,11 +151,11 @@ describe('GameStore - Death and Respawn', () => {
             // Respawn
             respawn();
 
-            expect(useGameStore.getState().player.verticalSpeed).toBe(0);
+            expect(useEngineStore.getState().player.verticalSpeed).toBe(0);
         });
 
         it('should reset isJumping to false', () => {
-            const { updatePlayer, respawn } = useGameStore.getState();
+            const { updatePlayer, respawn } = useEngineStore.getState();
 
             // Set jumping state
             updatePlayer({ isJumping: true });
@@ -163,11 +163,11 @@ describe('GameStore - Death and Respawn', () => {
             // Respawn
             respawn();
 
-            expect(useGameStore.getState().player.isJumping).toBe(false);
+            expect(useEngineStore.getState().player.isJumping).toBe(false);
         });
 
         it('should work with custom maxHealth', () => {
-            const { updatePlayer, respawn } = useGameStore.getState();
+            const { updatePlayer, respawn } = useEngineStore.getState();
 
             // Set custom max health
             updatePlayer({ maxHealth: 150, health: 30 });
@@ -175,11 +175,11 @@ describe('GameStore - Death and Respawn', () => {
             // Respawn
             respawn();
 
-            expect(useGameStore.getState().player.health).toBe(150);
+            expect(useEngineStore.getState().player.health).toBe(150);
         });
 
         it('should work with custom maxStamina', () => {
-            const { updatePlayer, respawn } = useGameStore.getState();
+            const { updatePlayer, respawn } = useEngineStore.getState();
 
             // Set custom max stamina
             updatePlayer({ maxStamina: 200, stamina: 50 });
@@ -187,13 +187,13 @@ describe('GameStore - Death and Respawn', () => {
             // Respawn
             respawn();
 
-            expect(useGameStore.getState().player.stamina).toBe(200);
+            expect(useEngineStore.getState().player.stamina).toBe(200);
         });
     });
 
     describe('Save Data Preservation', () => {
         it('should allow saving game state before death', () => {
-            const store = useGameStore.getState();
+            const store = useEngineStore.getState();
 
             // Move player and modify stats
             store.updatePlayer({
@@ -220,7 +220,7 @@ describe('GameStore - Death and Respawn', () => {
         });
 
         it('should allow saving after respawn', () => {
-            const store = useGameStore.getState();
+            const store = useEngineStore.getState();
 
             // Kill and respawn player
             store.damagePlayer(100);
@@ -246,7 +246,7 @@ describe('GameStore - Death and Respawn', () => {
 
     describe('Edge Cases', () => {
         it('should handle multiple respawns', () => {
-            const store = useGameStore.getState();
+            const store = useEngineStore.getState();
 
             // First death and respawn
             store.damagePlayer(100);
@@ -263,11 +263,11 @@ describe('GameStore - Death and Respawn', () => {
             expect(store.player.position.z).toBe(0);
             expect(store.player.health).toBe(100);
             expect(store.player.stamina).toBe(100);
-            expect(useGameStore.getState().gameOver).toBe(false);
+            expect(useEngineStore.getState().gameOver).toBe(false);
         });
 
         it('should handle respawn without prior death', () => {
-            const store = useGameStore.getState();
+            const store = useEngineStore.getState();
 
             // Respawn without dying
             store.updatePlayer({ position: new THREE.Vector3(15, 2, 10) });
@@ -282,20 +282,20 @@ describe('GameStore - Death and Respawn', () => {
         });
 
         it('should handle respawn with partial health', () => {
-            const store = useGameStore.getState();
+            const store = useEngineStore.getState();
 
             // Damage player partially
             store.damagePlayer(40);
 
             // Get updated state after damage
-            const stateAfterDamage = useGameStore.getState();
+            const stateAfterDamage = useEngineStore.getState();
             expect(stateAfterDamage.player.health).toBe(60);
 
             // Respawn
             store.respawn();
 
             // Should restore to full health
-            const stateAfterRespawn = useGameStore.getState();
+            const stateAfterRespawn = useEngineStore.getState();
             expect(stateAfterRespawn.player.health).toBe(100);
         });
     });

@@ -59,16 +59,20 @@ export async function initBiomeAmbience(): Promise<void> {
         ];
 
         for (const biome of biomes) {
-<<<<<<< HEAD
             const config = BIOME_CONFIGS[biome];
             const biomeGain = state.context.createGain();
             biomeGain.gain.value = 0;
-            biomeGain.connect(state.masterGain);
+            if (state.masterGain) {
+                biomeGain.connect(state.masterGain);
+            }
             state.gains.set(biome, biomeGain);
 
             const oscillators: OscillatorNode[] = [];
             config.frequencies.forEach((freq, i) => {
-                const osc = state.context?.createOscillator();
+                if (!state.context) {
+                    return;
+                }
+                const osc = state.context.createOscillator();
                 osc.type = config.types[i] || 'sine';
                 osc.frequency.value = freq;
                 osc.connect(biomeGain);
@@ -76,27 +80,6 @@ export async function initBiomeAmbience(): Promise<void> {
                 oscillators.push(osc);
             });
             state.oscillators.set(biome, oscillators);
-=======
-            const config = BIOME_CONFIGS[biome]
-            const biomeGain = state.context.createGain()
-            biomeGain.gain.value = 0
-            if (state.masterGain) {
-                biomeGain.connect(state.masterGain)
-            }
-            state.gains.set(biome, biomeGain)
-            
-            const oscillators: OscillatorNode[] = []
-            config.frequencies.forEach((freq, i) => {
-                if (!state.context) return
-                const osc = state.context.createOscillator()
-                osc.type = config.types[i] || 'sine'
-                osc.frequency.value = freq
-                osc.connect(biomeGain)
-                osc.start()
-                oscillators.push(osc)
-            })
-            state.oscillators.set(biome, oscillators)
->>>>>>> main
         }
 
         state.initialized = true;
@@ -144,15 +127,9 @@ export function getBiomeAmbience(): BiomeAmbienceController | null {
  * Set volume for a specific biome
  */
 function setVolume(biome: BiomeType, volume: number): void {
-<<<<<<< HEAD
     const gain = state.gains.get(biome);
-    if (gain) {
-        gain.gain.setTargetAtTime(volume * 0.3, state.context?.currentTime || 0, 0.5);
-=======
-    const gain = state.gains.get(biome)
     if (gain && state.context) {
-        gain.gain.setTargetAtTime(volume * 0.3, state.context.currentTime, 0.5)
->>>>>>> main
+        gain.gain.setTargetAtTime(volume * 0.3, state.context.currentTime, 0.5);
     }
 }
 

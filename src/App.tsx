@@ -35,10 +35,10 @@ initTestHooks();
 
 interface SceneProps {
     useMobileControls?: boolean;
-    useRivermarshFeatures?: boolean;
+    useRPGStoreFeatures?: boolean;
 }
 
-function Scene({ useMobileControls = false, useRivermarshFeatures = false }: SceneProps) {
+function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: SceneProps) {
     useInput();
 
     // Mark game as ready after first frame
@@ -60,7 +60,7 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
                 <Combat />
 
                 {/* Rivermarsh NPC system - spawns story NPCs */}
-                {useRivermarshFeatures && <NPCManager />}
+                {useRPGStoreFeatures && <NPCManager />}
             </Physics>
 
             {/* Use gyroscope camera on mobile, follow camera on desktop */}
@@ -88,7 +88,7 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
 }
 
 import { RacingScene } from '@/features/racing/RacingScene';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useRPGStore } from '@/stores/rpgStore';
 import { BasicStrataExample } from '../examples/BasicStrata';
 import { WeatherExample } from '../examples/WeatherSystem';
 
@@ -97,8 +97,8 @@ export default function App() {
     const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
     // Rivermarsh features enabled by default - can be toggled in settings later
     const rivermarshEnabled = true;
-    const gameMode = useRivermarsh((state) => state.gameMode);
-    const setGameMode = useRivermarsh((state) => state.setGameMode);
+    const gameMode = useRPGStore((state) => state.gameMode);
+    const setGameMode = useRPGStore((state) => state.setGameMode);
 
     if (gameMode === 'examples') {
         return (
@@ -185,7 +185,7 @@ export default function App() {
                 ) : (
                     <Scene
                         useMobileControls={constraints.isMobile}
-                        useRivermarshFeatures={rivermarshEnabled}
+                        useRPGStoreFeatures={rivermarshEnabled}
                     />
                 )}
             </Canvas>
