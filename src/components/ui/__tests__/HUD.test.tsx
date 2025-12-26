@@ -60,6 +60,10 @@ describe('HUD Component', () => {
                 maxHealth: 100,
                 stamina: 100,
                 maxStamina: 100,
+                level: 1,
+                experience: 0,
+                expToNext: 1000,
+                gold: 0,
                 position: new THREE.Vector3(0, 0, 0),
                 rotation: 0,
                 speed: 0,
@@ -69,8 +73,14 @@ describe('HUD Component', () => {
                 isJumping: false,
                 invulnerable: false,
                 invulnerableUntil: 0,
+                damage: 10,
+                speedMultiplier: 1,
+                mana: 20,
+                maxMana: 20,
             },
             nearbyResource: null,
+            score: 0,
+            distance: 0,
         });
     });
 

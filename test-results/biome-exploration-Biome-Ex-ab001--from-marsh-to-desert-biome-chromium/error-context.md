@@ -1,0 +1,63 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e7]:
+    - button "Attack action button" [ref=e8]:
+      - generic [ref=e9]: ⚔️
+      - text: ATTACK
+    - generic [ref=e10]:
+      - button "Jump" [ref=e11]:
+        - generic [ref=e12]: 🚀
+        - text: JUMP
+      - button "Talk" [ref=e13]:
+        - generic [ref=e14]: 💬
+        - text: TALK
+  - generic:
+    - generic [ref=e15]:
+      - generic [ref=e17]: LVL 1
+      - generic [ref=e19]: 💰 100
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]: 8:00 AM - Day
+        - generic [ref=e23]: ☀️ CLEAR
+      - button "⏸" [ref=e24] [cursor=pointer]
+    - generic:
+      - generic:
+        - generic: Inventory
+        - generic:
+          - generic: "3"
+      - generic:
+        - generic:
+          - generic: Health
+          - generic: 100 / 100
+      - generic:
+        - generic:
+          - generic: Stamina
+          - generic: 100 / 100
+      - progressbar "Experience":
+        - generic: XP Progress
+    - generic:
+      - generic: "0"
+      - generic: 0m
+    - generic:
+      - generic: "WASD: Move • Space: Jump • ESC: Pause"
+  - generic:
+    - generic: 🏆
+    - generic:
+      - generic: Achievement Unlocked!
+      - generic: First Steps
+      - generic: Start your journey in Rivermarsh.
+  - generic:
+    - button "Skills & Stats" [ref=e25] [cursor=pointer]
+    - generic:
+      - generic: "WASD: Move | Space: Jump | I: Inv | Q: Quests | B: Shop | R: Race | E: Interact"
+  - dialog "Movement" [ref=e26]:
+    - generic [ref=e27]:
+      - generic [ref=e28]: 🎮
+      - heading "Movement" [level=2] [ref=e29]
+      - paragraph [ref=e30]: Tap anywhere on the screen to move your otter. The virtual joystick will appear where you touch.
+      - generic [ref=e36]:
+        - button "Skip tutorial" [ref=e37] [cursor=pointer]: Skip
+        - button "Next step" [ref=e38] [cursor=pointer]: Next
+```

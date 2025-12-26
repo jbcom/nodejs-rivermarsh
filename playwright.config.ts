@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = process.env.PORT || '5173';
-const BASE_URL = `http://localhost:${PORT}`;
+const BASE_URL = `http://localhost:${PORT}/rivermarsh/`;
 
 export default defineConfig({
     testDir: './e2e',
