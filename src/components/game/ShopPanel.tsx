@@ -53,72 +53,87 @@ export function ShopPanel() {
     const handleBuy = (item: (typeof items)[0]) => {
         if (spendGold(item.cost)) {
             item.action();
-            // TODO: On successful purchase, show a brief success animation (e.g., item row highlight/particle sparkle) and play a short "coin" purchase sound; consider adding distinct feedback for failed purchases when spendGold returns false.
+            // TODO: Play sound effect here once Audio system is unified
         }
     };
 
     return (
         <div
             style={{
-                position: 'absolute',
+                position: 'fixed',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                background: 'rgba(0, 0, 0, 0.95)',
-                padding: '30px',
-                borderRadius: '15px',
+                background: 'rgba(5, 5, 10, 0.95)',
+                backdropFilter: 'blur(15px)',
+                padding: '40px',
+                borderRadius: '12px',
                 color: '#fff',
                 fontFamily: 'Inter, sans-serif',
-                minWidth: '400px',
-                maxWidth: '600px',
-                border: '3px solid #DAA520',
+                minWidth: '600px',
+                maxWidth: '900px',
+                width: '80%',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
                 pointerEvents: 'auto',
-                zIndex: 1000,
+                zIndex: 1500,
             }}
         >
             <div
                 style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '20px',
+                    alignItems: 'baseline',
+                    marginBottom: '30px',
+                    borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
+                    paddingBottom: '15px'
                 }}
             >
                 <h2
                     style={{
                         margin: 0,
-                        color: '#DAA520',
-                        fontSize: '24px',
+                        color: '#d4af37',
+                        fontSize: '32px',
                         fontFamily: 'Cinzel, serif',
+                        letterSpacing: '4px'
                     }}
                 >
-                    River Market
+                    RIVER MARKET
                 </h2>
-                <div style={{ color: '#FFD700', fontWeight: 'bold' }}>{player.stats.gold} Gold</div>
+                <div style={{ 
+                    color: '#ffd700', 
+                    fontWeight: 'bold', 
+                    fontSize: '20px',
+                    fontFamily: 'Cinzel, serif',
+                    textShadow: '0 0 10px rgba(212, 175, 55, 0.3)'
+                }}>
+                    💰 {player.stats.gold} <span style={{ fontSize: '12px', opacity: 0.6 }}>GOLD</span>
+                </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '20px' }}>
-                <div style={{ flex: 1, display: 'grid', gap: '10px', maxHeight: '60vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', gap: '30px' }}>
+                <div style={{ flex: 1, display: 'grid', gap: '12px', maxHeight: '50vh', overflow: 'auto', paddingRight: '10px' }}>
                     {items.map((item) => {
                         const canAfford = player.stats.gold >= item.cost;
                         return (
                             <div
                                 key={item.id}
                                 style={{
-                                    background: 'rgba(50, 50, 50, 0.8)',
-                                    padding: '15px',
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    padding: '18px 25px',
                                     borderRadius: '8px',
-                                    border: '1px solid #555',
+                                    border: `1px solid ${canAfford ? 'rgba(255,255,255,0.1)' : 'rgba(239, 68, 68, 0.1)'}`,
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
+                                    transition: 'all 0.2s ease',
                                 }}
                             >
                                 <div>
-                                    <div style={{ fontWeight: 'bold', color: '#DAA520' }}>
+                                    <div style={{ fontWeight: 'bold', color: '#d4af37', fontSize: '16px', letterSpacing: '1px' }}>
                                         {item.name}
                                     </div>
-                                    <div style={{ fontSize: '12px', color: '#ccc' }}>
+                                    <div style={{ fontSize: '13px', color: '#999', marginTop: '4px' }}>
                                         {item.description}
                                     </div>
                                 </div>
@@ -126,14 +141,23 @@ export function ShopPanel() {
                                     onClick={() => handleBuy(item)}
                                     disabled={!canAfford}
                                     style={{
-                                        padding: '8px 16px',
-                                        background: canAfford ? '#DAA520' : '#555',
-                                        color: canAfford ? '#000' : '#888',
+                                        padding: '10px 20px',
+                                        background: canAfford ? '#d4af37' : 'rgba(255,255,255,0.05)',
+                                        color: canAfford ? '#000' : '#555',
                                         border: 'none',
                                         borderRadius: '4px',
                                         cursor: canAfford ? 'pointer' : 'not-allowed',
                                         fontWeight: 'bold',
-                                        minWidth: '80px',
+                                        minWidth: '100px',
+                                        fontFamily: 'Cinzel, serif',
+                                        transition: 'all 0.2s ease',
+                                        transform: canAfford ? 'none' : 'none'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (canAfford) e.currentTarget.style.background = '#e5c05b';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (canAfford) e.currentTarget.style.background = '#d4af37';
                                     }}
                                 >
                                     {item.cost} G
@@ -143,26 +167,38 @@ export function ShopPanel() {
                     })}
                 </div>
 
-                <div style={{ width: '200px' }}>
-                    <h3 style={{ fontSize: '16px', color: '#DAA520', marginBottom: '10px' }}>Inventory</h3>
-                    <RPGInventory slots={player.inventory as any} />
+                <div style={{ width: '220px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
+                    <h3 style={{ fontSize: '14px', color: '#d4af37', marginBottom: '15px', fontFamily: 'Cinzel, serif', letterSpacing: '2px' }}>YOUR PACK</h3>
+                    <RPGInventory slots={player.inventory as any} columns={4} />
                 </div>
             </div>
 
             <button
                 onClick={toggleShop}
                 style={{
-                    marginTop: '20px',
+                    marginTop: '30px',
                     width: '100%',
-                    padding: '10px',
+                    padding: '12px',
                     background: 'transparent',
-                    border: '1px solid #555',
-                    color: '#aaa',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#666',
                     borderRadius: '4px',
                     cursor: 'pointer',
+                    fontFamily: 'Cinzel, serif',
+                    letterSpacing: '2px',
+                    fontSize: '12px',
+                    transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+                    e.currentTarget.style.color = '#999';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                    e.currentTarget.style.color = '#666';
                 }}
             >
-                Close (P)
+                LEAVE MARKET
             </button>
         </div>
     );

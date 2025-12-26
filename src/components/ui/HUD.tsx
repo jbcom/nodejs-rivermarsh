@@ -61,26 +61,43 @@ function RPGInventory({ slots = [], columns = 5, slotSize = 44, style }: SimpleI
     return (
         <div style={{ 
             display: 'flex', 
-            gap: '4px', 
+            gap: '6px', 
             flexWrap: 'wrap', 
-            maxWidth: columns * (slotSize + 4),
+            maxWidth: columns * (slotSize + 6),
             ...style 
         }}>
             {Array.from({ length: columns }).map((_, i) => {
                 const item = slots[i];
+                const icon = item?.id?.includes('fish') ? '🐟' : item?.id?.includes('berry') ? '🫐' : item?.id?.includes('potion') ? '🧪' : item?.id?.includes('tonic') ? '🥃' : '📦';
+                
                 return (
                     <div key={i} style={{
                         width: slotSize,
                         height: slotSize,
-                        background: 'rgba(0,0,0,0.4)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '4px',
+                        background: 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${item ? 'rgba(212, 175, 55, 0.4)' : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius: '6px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '20px',
+                        position: 'relative',
+                        boxShadow: item ? 'inset 0 0 10px rgba(212, 175, 55, 0.1)' : 'none',
                     }}>
-                        {item?.quantity ? `${item.quantity}` : ''}
+                        {item && <span style={{ opacity: 0.9 }}>{icon}</span>}
+                        {item?.quantity > 1 && (
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '2px',
+                                right: '4px',
+                                fontSize: '10px',
+                                color: '#d4af37',
+                                fontWeight: 'bold',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.8)'
+                            }}>
+                                {item.quantity}
+                            </div>
+                        )}
                     </div>
                 );
             })}
@@ -285,33 +302,35 @@ export function HUD() {
                 </div>
 
                 {/* Health */}
-                <div>
-                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Health</span>
+                <div style={{ transform: 'skewX(-10deg)' }}>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', fontFamily: 'Cinzel, serif' }}>
+                        <span>Vitality</span>
                         <span>{Math.round(health)} / {maxHealth}</span>
                     </div>
                     <HealthBar 
                         value={health} 
                         maxValue={maxHealth} 
-                        width={250} 
+                        width={280} 
                         height={12} 
-                        fillColor={health / maxHealth > 0.5 ? '#4ade80' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
+                        fillColor={health / maxHealth > 0.5 ? '#22c55e' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
                         testId="health-bar-fill"
+                        style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
                     />
                 </div>
                 {/* Stamina */}
-                <div>
-                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Stamina</span>
+                <div style={{ transform: 'skewX(-10deg)', marginLeft: '10px' }}>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', fontFamily: 'Cinzel, serif' }}>
+                        <span>Energy</span>
                         <span>{Math.round(stamina)} / {maxStamina}</span>
                     </div>
                     <HealthBar 
                         value={stamina} 
                         maxValue={maxStamina} 
-                        width={250} 
+                        width={240} 
                         height={8} 
-                        fillColor="#60a5fa"
+                        fillColor="#3b82f6"
                         testId="stamina-bar-fill"
+                        style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
                     />
                 </div>
 
