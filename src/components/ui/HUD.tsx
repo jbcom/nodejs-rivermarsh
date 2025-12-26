@@ -4,7 +4,79 @@ import { useRPGStore } from '@/stores/rpgStore';
 import { useEffect, useState } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
-import { HealthBar, Inventory as RPGInventory } from '@jbcom/strata';
+// Note: Don't use strata's HealthBar here - it's a 3D component that requires Canvas context
+// Using a simple HTML-based progress bar instead
+interface SimpleBarProps {
+    value: number;
+    maxValue: number;
+    width?: number;
+    height?: number;
+    fillColor?: string;
+    backgroundColor?: string;
+    style?: React.CSSProperties;
+}
+
+function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style }: SimpleBarProps) {
+    const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100));
+    return (
+        <div style={{ 
+            width, 
+            height, 
+            backgroundColor, 
+            borderRadius: height / 2,
+            overflow: 'hidden',
+            ...style 
+        }}>
+            <div style={{
+                width: `${percentage}%`,
+                height: '100%',
+                backgroundColor: fillColor,
+                borderRadius: height / 2,
+                transition: 'width 0.2s ease-out',
+            }} />
+        </div>
+    );
+}
+
+// Alias for drop-in replacement
+const HealthBar = SimpleBar;
+
+// Simple placeholder for RPGInventory (strata's Inventory may use R3F hooks)
+interface SimpleInventoryProps {
+    slots: any[];
+    columns?: number;
+    rows?: number;
+    slotSize?: number;
+    style?: React.CSSProperties;
+}
+
+function RPGInventory({ slots, columns = 5, slotSize = 44, style }: SimpleInventoryProps) {
+    return (
+        <div style={{ 
+            display: 'flex', 
+            gap: '4px', 
+            flexWrap: 'wrap', 
+            maxWidth: columns * (slotSize + 4),
+            ...style 
+        }}>
+            {slots.slice(0, columns).map((item, i) => (
+                <div key={i} style={{
+                    width: slotSize,
+                    height: slotSize,
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '20px',
+                }}>
+                    {item?.quantity ? `${item.quantity}` : ''}
+                </div>
+            ))}
+        </div>
+    );
+}
 
 export function HUD() {
     // Game loop stats
