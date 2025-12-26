@@ -1,110 +1,59 @@
-# Kiro Local YOLO Development
+# Kiro Development - First Class Environment
 
 ## Core Philosophy
 
-This is LOCAL development with NO CI/CD gates, NO branch protection, NO GitHub tokens. You work directly on the codebase, test locally, and commit when ready.
+This is a FIRST CLASS development environment at `https://github.com/arcade-cabinet/rivermarsh.git`. We use CI/CD gates, branch protection, and GitHub tokens for automated validation and pull request management.
 
 ## Development Flow
 
-1. **Read the task** from `.kiro/specs/{feature}/tasks.md`
-2. **Implement the code** - write all necessary files
-3. **Test locally** - run tests with `pnpm test` or `pytest`
-4. **Update memory bank** - document what was completed
-5. **Commit** - use conventional commits
-6. **Move to next task immediately** - Don't stop for review
+1.  **Read the task** from GitHub Issues or `.kiro/specs/{feature}/tasks.md`.
+2.  **Create a feature branch** based on `main`.
+3.  **Implement the code** - write all necessary files, adhering to TypeScript standards.
+4.  **Test locally** - run tests with `pnpm test`.
+5.  **Verify with Linter** - run `pnpm run lint` (ESLint/Biome).
+6.  **Create a Pull Request** - push branch to `arcade` remote and use `gh pr create`.
+7.  **CI/CD Validation** - ensure the PR passes all checks (build, test, android).
+8.  **Merge** - once validated, merge into `main` (usually via squash).
 
 ## Key Rules
 
 ### DO:
-- ✅ Work on ONE task at a time
-- ✅ Test locally before committing
-- ✅ Use `pnpm` for TypeScript packages
-- ✅ Use `uv` for Python packages
-- ✅ Read requirements and design docs to understand context
-- ✅ Update memory bank with progress
-- ✅ Commit with conventional commit messages
-- ✅ Move to next task immediately without stopping for review
+- ✅ Work on feature branches.
+- ✅ Ensure CI/CD passes before merging.
+- ✅ Maintain updated agentic documentation (`AGENTS.md`, `CLAUDE.md`).
+- ✅ Use conventional commits.
+- ✅ Address all linter/typecheck errors.
 
 ### DON'T:
-- ❌ Try to use GitHub MCP or create PRs (no tokens configured)
-- ❌ Worry about CI/CD (not set up yet)
-- ❌ Try to push to remote (local development only)
-- ❌ Work on multiple tasks simultaneously
-- ❌ Skip testing before moving to next task
+- ❌ Bypass CI/CD gates unless absolutely necessary for infrastructure setup.
+- ❌ Push directly to `main` (protected branch).
+- ❌ Recreate functionality provided by `@jbcom/strata`.
 
-## Testing Commands
+## Testing & Validation Commands
 
-### TypeScript (Otterfall)
+### TypeScript (Rivermarsh)
 ```bash
-cd packages/otterfall
-pnpm test --run              # Unit tests
-pnpm run lint                # Linting
-pnpm run build               # Build check
+pnpm run check      # Type checking
+pnpm run lint       # ESLint/Biome linting
+pnpm test           # Unit tests (Vitest)
+pnpm run test:e2e   # Playwright E2E tests
+pnpm run build      # Production build check
 ```
 
-### Python
+### Android
 ```bash
-cd packages/{package-name}
-pytest                       # Unit tests
-ruff check .                 # Linting
-mypy .                       # Type checking
+pnpm run cap:sync:android   # Sync to Android
+cd android && ./gradlew assembleDebug  # Build Android debug APK
 ```
 
 ## Task Execution
 
-When implementing a task:
+1.  **Understand Requirements**: Read requirements and design docs.
+2.  **Implementation**: Focus on robustness, type safety, and mobile-first design.
+3.  **Verification**: Run the full validation suite.
+4.  **Documentation**: Update `AGENTS.md` and `CLAUDE.md` if architectural changes were made.
+5.  **Submission**: Create and monitor the PR until merged.
 
-1. **Mark task as in_progress** using taskStatus tool
-2. **Read all relevant files** (requirements, design, existing code)
-3. **Implement the feature** completely
-4. **Test the implementation** locally
-5. **Mark task as completed** using taskStatus tool
-6. **Update memory bank** with what was completed
-7. **Commit** with conventional commit message
-8. **Move to next subtask/task immediately** - no stopping for review
+## First-Class Location
 
-## Autonomous Task Execution
-
-**CRITICAL: Work through ALL subtasks autonomously**
-
-When given a parent task with subtasks:
-- ✅ Complete ALL subtasks in sequence
-- ✅ Move from one subtask to the next automatically
-- ✅ Only stop when ALL subtasks are complete
-- ❌ DO NOT stop after each subtask to ask for permission
-- ❌ DO NOT wait for user approval between subtasks
-
-Example: If task 2.1 has subtasks 2.1.1 through 2.1.5:
-1. Complete 2.1.1 → commit → move to 2.1.2
-2. Complete 2.1.2 → commit → move to 2.1.3
-3. Continue until 2.1.5 is done
-4. Mark parent task 2.1 as complete
-5. Report completion of entire task group
-
-**The user wants you to work autonomously. Trust yourself and keep going.**
-
-## Memory Bank
-
-Update `memory-bank/{feature}-progress.md` with:
-- What was completed
-- What files were modified
-- Any issues encountered
-- Next steps
-
-## No External Dependencies
-
-- No GitHub tokens
-- No CI/CD pipelines
-- No remote pushes
-- No PR creation
-- Just local code, local tests, local commits
-
-## Focus on Implementation
-
-Your job is to:
-1. Implement features according to specs
-2. Write tests that validate correctness
-3. Ensure code works locally
-4. Document progress
-
-That's it. Keep it simple.
+The project now resides at `https://github.com/arcade-cabinet/rivermarsh.git`. All automation and "agentic" workflows should target this repository.
