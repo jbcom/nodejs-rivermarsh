@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { ParticleEmitter } from '@jbcom/strata';
 import { world } from '../../ecs/world';
-import { useGameStore } from '../../stores/gameStore';
+import { useRPGStore as useGameStore } from '@/stores/rpgStore';
 
 export const BossBattleEffects: React.FC = () => {
     const { mode, activeBossId } = useGameStore();

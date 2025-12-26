@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useGameStore } from '../../stores/gameStore';
+import { useRPGStore as useGameStore } from '@/stores/rpgStore';
 import { world } from '../../ecs/world';
 import { handlePlayerAction } from '../../ecs/systems/BossBattleSystem';
 import { BOSSES } from '../../ecs/data/bosses';
