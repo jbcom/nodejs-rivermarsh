@@ -74,7 +74,7 @@ export interface OtterNPC {
   maxHealth?: number;
 }
 
-export type GameMode = 'exploration' | 'racing' | 'boss_battle' | 'examples';
+export type GameMode = 'main_menu' | 'exploration' | 'racing' | 'boss_battle' | 'examples';
 
 export interface GameState {
   gameMode: GameMode;
