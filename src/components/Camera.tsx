@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { world } from '@/ecs/world';
 
 const BASE_CAMERA_OFFSET = new THREE.Vector3(0, 3.5, -5);
@@ -13,7 +13,7 @@ const DEFAULT_ZOOM = 1.0;
 const ZOOM_SENSITIVITY = 0.01;
 
 export function FollowCamera() {
-    const player = useEngineStore((s) => s.player);
+    const player = useGameStore((s) => s.player);
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
     const lastPinchDistanceRef = useRef<number | null>(null);
 
@@ -98,11 +98,13 @@ export function FollowCamera() {
         // Apply zoom to camera offset (reuse vector to avoid GC pressure)
         cameraOffsetRef.current.copy(BASE_CAMERA_OFFSET).multiplyScalar(zoomLevel);
 
+        const { position: playerPos } = player;
+
         // Target position: behind and above player
         idealPosRef.current.set(
-            player.position.x + cameraOffsetRef.current.x,
-            player.position.y + cameraOffsetRef.current.y,
-            player.position.z + cameraOffsetRef.current.z
+            playerPos.x + cameraOffsetRef.current.x,
+            playerPos.y + cameraOffsetRef.current.y,
+            playerPos.z + cameraOffsetRef.current.z
         );
 
         // Smooth lag follow
@@ -110,9 +112,9 @@ export function FollowCamera() {
 
         // Look at player center
         lookTargetRef.current.set(
-            player.position.x + LOOK_OFFSET.x,
-            player.position.y + LOOK_OFFSET.y,
-            player.position.z + LOOK_OFFSET.z
+            playerPos.x + LOOK_OFFSET.x,
+            playerPos.y + LOOK_OFFSET.y,
+            playerPos.z + LOOK_OFFSET.z
         );
         camera.lookAt(lookTargetRef.current);
 

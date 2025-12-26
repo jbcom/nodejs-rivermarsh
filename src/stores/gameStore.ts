@@ -86,16 +86,6 @@ interface RockData {
     radius: number;
 }
 
-// --- Helper Functions ---
-
-const calculateExpToNext = (level: number): number => {
-    let required: number = LEVELING.BASE_XP_REQUIRED;
-    for (let i = 1; i < level; i++) {
-        required = Math.floor(required * LEVELING.XP_MULTIPLIER);
-    }
-    return required;
-};
-
 // --- Store Interface ---
 
 export interface GameState {
@@ -110,7 +100,7 @@ export interface GameState {
     // Player State
     player: {
         // Physics & Movement
-        position: [number, number, number];
+        position: THREE.Vector3;
         rotation: number;
         speed: number;
         maxSpeed: number;
@@ -179,7 +169,7 @@ export interface GameState {
     
     // Player Actions
     updatePlayer: (updates: any) => void;
-    updatePlayerPosition: (position: [number, number, number]) => void;
+    updatePlayerPosition: (position: THREE.Vector3) => void;
     damagePlayer: (amount: number) => void;
     healPlayer: (amount: number) => void;
     consumeStamina: (amount: number) => void;
@@ -249,7 +239,7 @@ export const useGameStore = create<GameState>()(
                 gameOver: false,
                 
                 player: {
-                    position: [0, 1, 0],
+                    position: new THREE.Vector3(0, 1, 0),
                     rotation: 0,
                     speed: 0,
                     maxSpeed: 0.15,
@@ -474,7 +464,7 @@ export const useGameStore = create<GameState>()(
                 respawn: () => set((state) => ({
                     player: {
                         ...state.player,
-                        position: [0, 1, 0],
+                        position: new THREE.Vector3(0, 1, 0),
                         health: state.player.maxHealth,
                         stamina: state.player.maxStamina,
                         mana: state.player.maxMana,
@@ -662,23 +652,39 @@ export const useGameStore = create<GameState>()(
                 name: 'rivermarsh-game-state',
                 partialize: (state) => ({
                     player: {
-                        stats: state.player.stats,
+                        position: [state.player.position.x, state.player.position.y, state.player.position.z],
+                        rotation: state.player.rotation,
+                        health: state.player.health,
+                        maxHealth: state.player.maxHealth,
+                        stamina: state.player.stamina,
+                        maxStamina: state.player.maxStamina,
+                        mana: state.player.mana,
+                        maxMana: state.player.maxMana,
+                        gold: state.player.gold,
+                        level: state.player.level,
+                        experience: state.player.experience,
+                        expToNext: state.player.expToNext,
+                        swordLevel: state.player.swordLevel,
+                        shieldLevel: state.player.shieldLevel,
+                        bootsLevel: state.player.bootsLevel,
                         inventory: state.player.inventory,
                         equipped: state.player.equipped,
                         activeQuests: state.player.activeQuests,
                         completedQuests: state.player.completedQuests,
                         factionReputation: state.player.factionReputation,
                         otterAffinity: state.player.otterAffinity,
-                        level: state.player.level,
-                        experience: state.player.experience,
-                        gold: state.player.gold,
-                        swordLevel: state.player.swordLevel,
-                        shieldLevel: state.player.shieldLevel,
-                        bootsLevel: state.player.bootsLevel,
                         skills: state.player.skills,
                     },
                     settings: state.settings,
                 }),
+                merge: (persistedState: any, currentState: GameState) => {
+                    const merged = { ...currentState, ...persistedState };
+                    if (persistedState?.player?.position) {
+                        const pos = persistedState.player.position;
+                        merged.player.position = new THREE.Vector3(pos[0], pos[1], pos[2]);
+                    }
+                    return merged;
+                }
             }
         )
     )

@@ -2,15 +2,15 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 
 export function GyroscopeCamera() {
     const { camera } = useThree();
-    const playerPosition = useRPGStore((state) => state.player.position);
+    const playerPosition = useGameStore((state) => state.player.position);
     const setCameraAzimuth = useControlsStore((state) => state.setCameraAzimuth);
 
     const cameraRotation = useRef({ azimuth: 0, elevation: Math.PI / 6 });
-    const targetPosition = useRef(new THREE.Vector3(...playerPosition));
+    const targetPosition = useRef(new THREE.Vector3().copy(playerPosition));
     const cameraDistance = useRef(15);
     const targetDistance = useRef(15);
 
@@ -98,8 +98,7 @@ export function GyroscopeCamera() {
     }, []);
 
     useFrame((_state, delta) => {
-        const playerPos = new THREE.Vector3(...playerPosition);
-        targetPosition.current.lerp(playerPos, delta * 5);
+        targetPosition.current.lerp(playerPosition, delta * 5);
 
         if (initialOrientation.current) {
             const alphaDelta =

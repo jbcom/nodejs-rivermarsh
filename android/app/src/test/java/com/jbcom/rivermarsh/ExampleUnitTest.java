@@ -1,4 +1,4 @@
-package com.jbcom.otterfall;
+package com.jbcom.rivermarsh;
 
 import static org.junit.Assert.*;
 

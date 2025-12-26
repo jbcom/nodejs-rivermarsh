@@ -1,7 +1,6 @@
 import { world as ecsWorld } from '@/ecs/world';
-import { useEngineStore } from '@/stores/engineStore';
-import { useRPGStore } from '@/stores/rpgStore';
-import { useEffect, useState } from 'react';
+import { useGameStore } from '@/stores/gameStore';
+import { useEffect, useState, useMemo } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 
@@ -106,25 +105,28 @@ function RPGInventory({ slots = [], columns = 5, slotSize = 44, style }: SimpleI
 }
 
 export function HUD() {
-    // All gameplay stats from engineStore (synced with rpgStore)
-    const health = useEngineStore((s) => s.player?.health ?? 0);
-    const maxHealth = useEngineStore((s) => s.player?.maxHealth ?? 100);
-    const stamina = useEngineStore((s) => s.player?.stamina ?? 0);
-    const maxStamina = useEngineStore((s) => s.player?.maxStamina ?? 100);
-    const level = useEngineStore((s) => s.player?.level ?? 1);
-    const experience = useEngineStore((s) => s.player?.experience ?? 0);
-    const expToNext = useEngineStore((s) => s.player?.expToNext ?? 1000);
-    const gold = useEngineStore((s) => s.player?.gold ?? 0);
+    // All gameplay stats from unified gameStore
+    // Primitives are safe
+    const health = useGameStore((s) => s.player?.health ?? 0);
+    const maxHealth = useGameStore((s) => s.player?.maxHealth ?? 100);
+    const stamina = useGameStore((s) => s.player?.stamina ?? 0);
+    const maxStamina = useGameStore((s) => s.player?.maxStamina ?? 100);
+    const level = useGameStore((s) => s.player?.level ?? 1);
+    const experience = useGameStore((s) => s.player?.experience ?? 0);
+    const expToNext = useGameStore((s) => s.player?.expToNext ?? 1000);
+    const gold = useGameStore((s) => s.player?.gold ?? 0);
     
-    const nearbyResource = useEngineStore((s) => s.nearbyResource);
-    const score = useEngineStore((s) => s.score ?? 0);
-    const distance = useEngineStore((s) => s.distance ?? 0);
+    // Stable selectors for objects/arrays
+    const nearbyResource = useGameStore((s) => s.nearbyResource);
+    const score = useGameStore((s) => s.score ?? 0);
+    const distance = useGameStore((s) => s.distance ?? 0);
     
-    // Settings from rpgStore
-    const showHelpSetting = useRPGStore((s) => s.settings?.showHelp ?? true);
-    const inventory = useRPGStore((s) => s.player?.inventory ?? []);
+    // Settings & Inventory
+    const showHelpSetting = useGameStore((s) => s.settings?.showHelp ?? true);
+    const inventory = useGameStore((s) => s.player?.inventory);
+    const safeInventory = useMemo(() => inventory ?? [], [inventory]);
     
-    const { toggleShop } = useRPGStore();
+    const toggleShop = useGameStore((s) => s.toggleShop);
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');
@@ -137,9 +139,11 @@ export function HUD() {
             // Time
             for (const { time } of ecsWorld.with('time')) {
                 if (time) {
-                    setTimeDisplay({
-                        hour: Math.floor(time.hour),
-                        phase: time.phase || 'day'
+                    setTimeDisplay((prev) => {
+                        const nextHour = Math.floor(time.hour);
+                        const nextPhase = time.phase || 'day';
+                        if (prev.hour === nextHour && prev.phase === nextPhase) return prev;
+                        return { hour: nextHour, phase: nextPhase };
                     });
                 }
                 break;
@@ -295,7 +299,7 @@ export function HUD() {
                 <div style={{ marginBottom: '10px' }}>
                     <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Inventory</div>
                     <RPGInventory 
-                        slots={inventory} 
+                        slots={safeInventory} 
                         columns={5}
                         style={{ position: 'relative', width: '250px', background: 'transparent', padding: 0 }}
                     />

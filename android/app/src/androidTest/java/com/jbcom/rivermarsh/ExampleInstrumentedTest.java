@@ -1,4 +1,4 @@
-package com.jbcom.otterfall;
+package com.jbcom.rivermarsh;
 
 import static org.junit.Assert.*;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("com.jbcom.otterfall", appContext.getPackageName());
+        assertEquals("com.jbcom.rivermarsh", appContext.getPackageName());
     }
 }

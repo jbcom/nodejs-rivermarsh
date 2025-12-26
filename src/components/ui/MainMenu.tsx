@@ -1,9 +1,8 @@
-import { useRPGStore } from '@/stores/rpgStore';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { useEffect, useState } from 'react';
 
 export function MainMenu() {
-    const setGameMode = useRPGStore((s) => s.setGameMode);
+    const setGameMode = useGameStore((s) => s.setGameMode);
     const [isVisible, setVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<'main' | 'credits'>('main');
 

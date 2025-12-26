@@ -11,7 +11,7 @@ describe('AISystem', () => {
         }
     });
 
-    // Feature: otterfall-complete, Property 6: Species Health Bounds
+    // Feature: rivermarsh-complete, Property 6: Species Health Bounds
     // For any entity with a species component, the health value should be
     // between 0 and maxHealth inclusive.
     it('Property 6: Species Health Bounds', () => {
@@ -88,7 +88,7 @@ describe('AISystem', () => {
         );
     });
 
-    // Feature: otterfall-complete, Property 7: State Transition Validity
+    // Feature: rivermarsh-complete, Property 7: State Transition Validity
     // For any NPC entity state transition, the new state should be reachable
     // from the current state according to the state machine definition.
     it('Property 7: State Transition Validity', () => {
@@ -162,7 +162,7 @@ describe('AISystem', () => {
         );
     });
 
-    // Feature: otterfall-complete, Property 8: Steering Force Magnitude
+    // Feature: rivermarsh-complete, Property 8: Steering Force Magnitude
     // For any entity with steering behaviors, the combined steering force
     // magnitude should not exceed the entity's maxSpeed.
     it('Property 8: Steering Force Magnitude', () => {

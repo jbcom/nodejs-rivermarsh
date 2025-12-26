@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore, InventoryItem, Quest } from '@/stores/gameStore';
 import { ShopPanel } from './ShopPanel';
+import { useEffect, useState } from 'react';
 
 const MAX_DISPLAYED_SKILLS = 4;
 
@@ -15,7 +15,8 @@ export function GameUI() {
         toggleShop,
         nextDialogue,
         endDialogue,
-    } = useRPGStore();
+        setGameMode,
+    } = useGameStore();
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
@@ -29,7 +30,7 @@ export function GameUI() {
                 toggleShop();
             }
             if (e.key === 'r' || e.key === 'R') {
-                useRPGStore.getState().setGameMode('racing');
+                setGameMode('racing');
             }
             if (e.key === 'Enter' || e.key === ' ') {
                 if (activeDialogue) {
@@ -45,7 +46,7 @@ export function GameUI() {
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [toggleInventory, toggleQuestLog, activeDialogue, nextDialogue, endDialogue, toggleShop]);
+    }, [toggleInventory, toggleQuestLog, activeDialogue, nextDialogue, endDialogue, toggleShop, setGameMode]);
 
     return (
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 100 }}>
@@ -64,7 +65,7 @@ export function GameUI() {
  * Core stats (health, stamina, gold, XP) are shown in the main HUD
  */
 function StatsDisplay() {
-    const { player } = useRPGStore();
+    const { player } = useGameStore();
     const [expanded, setExpanded] = useState(false);
 
     // Only show skills panel when expanded
@@ -133,24 +134,24 @@ function StatsDisplay() {
                     <div style={{
                         background: 'linear-gradient(90deg, #4444ff, #8888ff)',
                         height: '100%',
-                        width: `${player.stats.otterAffinity}%`,
+                        width: `${player.otterAffinity}%`,
                     }} />
                 </div>
             </div>
 
             {/* Equipment Levels */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '13px' }}>
-                <span title="Sword Level">⚔️ {player.stats.swordLevel}</span>
-                <span title="Shield Level">🛡️ {player.stats.shieldLevel}</span>
-                <span title="Boots Level">🥾 {player.stats.bootsLevel}</span>
+                <span title="Sword Level">⚔️ {player.swordLevel}</span>
+                <span title="Shield Level">🛡️ {player.shieldLevel}</span>
+                <span title="Boots Level">🥾 {player.bootsLevel}</span>
             </div>
 
             {/* Core Skills */}
             <div style={{ fontSize: '11px', color: '#ccc' }}>
-                {Object.entries(player.stats.skills).slice(0, MAX_DISPLAYED_SKILLS).map(([key, skill]) => (
+                {Object.entries(player.skills).slice(0, MAX_DISPLAYED_SKILLS).map(([key, skill]) => (
                     <div key={key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                        <span>{skill.name}</span>
-                        <span style={{ color: '#DAA520' }}>Lv.{skill.level}</span>
+                        <span>{(skill as any).name}</span>
+                        <span style={{ color: '#DAA520' }}>Lv.{(skill as any).level}</span>
                     </div>
                 ))}
             </div>
@@ -159,7 +160,7 @@ function StatsDisplay() {
 }
 
 function InventoryPanel() {
-    const { player, toggleInventory } = useRPGStore();
+    const { player, toggleInventory } = useGameStore();
 
     return (
         <div
@@ -196,7 +197,7 @@ function InventoryPanel() {
                 <div style={{ color: '#555', fontStyle: 'italic', textAlign: 'center', padding: '40px', fontSize: '18px' }}>Your pack is empty...</div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
-                    {player.inventory.map((item) => (
+                    {player.inventory.map((item: InventoryItem) => (
                         <div
                             key={item.id}
                             style={{
@@ -264,7 +265,7 @@ function InventoryPanel() {
 }
 
 function QuestLogPanel() {
-    const { player, toggleQuestLog } = useRPGStore();
+    const { player, toggleQuestLog } = useGameStore();
 
     return (
         <div
@@ -303,7 +304,7 @@ function QuestLogPanel() {
                     <div style={{ color: '#444', fontStyle: 'italic', padding: '20px', textAlign: 'center' }}>No active quests...</div>
                 ) : (
                     <div style={{ display: 'grid', gap: '20px' }}>
-                        {player.activeQuests.map((quest) => (
+                        {player.activeQuests.map((quest: Quest) => (
                             <div
                                 key={quest.id}
                                 style={{
@@ -352,7 +353,7 @@ function QuestLogPanel() {
                                     >
                                         Objectives
                                     </div>
-                                    {quest.objectives.map((obj, i) => (
+                                    {quest.objectives.map((obj: string, i: number) => (
                                         <div
                                             key={i}
                                             style={{
@@ -381,7 +382,7 @@ function QuestLogPanel() {
                 <div>
                     <h3 style={{ color: '#22c55e', fontSize: '14px', fontFamily: 'Cinzel, serif', letterSpacing: '2px', marginBottom: '15px' }}>FINISHED TALES</h3>
                     <div style={{ display: 'grid', gap: '10px' }}>
-                        {player.completedQuests.slice(-5).map((quest) => (
+                        {player.completedQuests.slice(-5).map((quest: Quest) => (
                             <div
                                 key={quest.id}
                                 style={{
@@ -436,7 +437,7 @@ function QuestLogPanel() {
 }
 
 function DialogueBox() {
-    const { activeDialogue, nextDialogue, endDialogue } = useRPGStore();
+    const { activeDialogue, nextDialogue, endDialogue } = useGameStore();
     const [currentDialogue, setCurrentDialogue] = useState(activeDialogue);
     const [isVisible, setVisible] = useState(false);
 
@@ -522,7 +523,7 @@ function DialogueBox() {
                     display: 'inline-block',
                 }}
             >
-                {activeDialogue.npcName}
+                {currentDialogue.npcName}
             </div>
             <div style={{ 
                 fontSize: '18px', 

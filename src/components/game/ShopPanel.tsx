@@ -1,38 +1,38 @@
 import { Inventory as RPGInventory } from '@jbcom/strata';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 
 export function ShopPanel() {
-    const { player, spendGold, toggleShop, heal, restoreStamina, updatePlayerStats } =
-        useRPGStore();
+    const { player, spendGold, toggleShop, healPlayer, restoreStamina, addExperience, updatePlayer } =
+        useGameStore();
 
     const items = [
         {
             id: 'sword',
             name: 'Sword',
             cost: 10,
-            description: `+1 attack damage (Level: ${player.stats.swordLevel})`,
-            action: () => updatePlayerStats({ swordLevel: player.stats.swordLevel + 1 }),
+            description: `+1 attack damage (Level: ${player.swordLevel})`,
+            action: () => updatePlayer({ swordLevel: player.swordLevel + 1 }),
         },
         {
             id: 'shield',
             name: 'Shield',
             cost: 8,
-            description: `-1 enemy damage (Level: ${player.stats.shieldLevel})`,
-            action: () => updatePlayerStats({ shieldLevel: player.stats.shieldLevel + 1 }),
+            description: `-1 enemy damage (Level: ${player.shieldLevel})`,
+            action: () => updatePlayer({ shieldLevel: player.shieldLevel + 1 }),
         },
         {
             id: 'boots',
             name: 'Boots',
             cost: 5,
-            description: `Negate confusion, +1 gold bonus (Level: ${player.stats.bootsLevel})`,
-            action: () => updatePlayerStats({ bootsLevel: player.stats.bootsLevel + 1 }),
+            description: `Negate confusion, +1 gold bonus (Level: ${player.bootsLevel})`,
+            action: () => updatePlayer({ bootsLevel: player.bootsLevel + 1 }),
         },
         {
             id: 'health_potion',
             name: 'Health Potion',
             cost: 20,
             description: 'Restores 50 Health',
-            action: () => heal(50),
+            action: () => healPlayer(50),
         },
         {
             id: 'stamina_tonic',
@@ -46,7 +46,7 @@ export function ShopPanel() {
             name: 'Otter Treat',
             cost: 50,
             description: 'A delicious snack. (+50 XP)',
-            action: () => useRPGStore.getState().addExperience(50),
+            action: () => addExperience(50),
         },
     ];
 
@@ -107,14 +107,14 @@ export function ShopPanel() {
                     fontFamily: 'Cinzel, serif',
                     textShadow: '0 0 10px rgba(212, 175, 55, 0.3)'
                 }}>
-                    💰 {player.stats.gold} <span style={{ fontSize: '12px', opacity: 0.6 }}>GOLD</span>
+                    💰 {player.gold} <span style={{ fontSize: '12px', opacity: 0.6 }}>GOLD</span>
                 </div>
             </div>
 
             <div style={{ display: 'flex', gap: '30px' }}>
                 <div style={{ flex: 1, display: 'grid', gap: '12px', maxHeight: '50vh', overflow: 'auto', paddingRight: '10px' }}>
                     {items.map((item) => {
-                        const canAfford = player.stats.gold >= item.cost;
+                        const canAfford = player.gold >= item.cost;
                         return (
                             <div
                                 key={item.id}

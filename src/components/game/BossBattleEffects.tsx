@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { ParticleEmitter } from '@jbcom/strata';
 import { world } from '../../ecs/world';
-import { useEngineStore } from '../../stores/engineStore';
+import { useGameStore } from '../../stores/gameStore';
 
 export const BossBattleEffects: React.FC = () => {
-    const { mode, activeBossId } = useEngineStore();
+    const { gameMode, activeBossId } = useGameStore();
     const [bossPosition, setBossPosition] = useState<[number, number, number]>([0, 0, 0]);
     const [spellActive, setSpellActive] = useState(false);
 
     useFrame(() => {
-        if (mode !== 'boss_battle' || activeBossId === null) return;
+        if (gameMode !== 'boss_battle' || activeBossId === null) return;
 
         // activeBossId is number, e.id is number
         const bossEntity = world.entities.find(e => String(e.id) === String(activeBossId));
@@ -37,7 +37,7 @@ export const BossBattleEffects: React.FC = () => {
         }
     });
 
-    if (mode !== 'boss_battle' || !spellActive) return null;
+    if (gameMode !== 'boss_battle' || !spellActive) return null;
 
     return (
         <group position={bossPosition}>

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 
 export function Loader() {
-    const loaded = useEngineStore((s) => s.loaded);
-    const setLoaded = useEngineStore((s) => s.setLoaded);
+    const loaded = useGameStore((s) => s.loaded);
+    const setLoaded = useGameStore((s) => s.setLoaded);
     const [visible, setVisible] = useState(true);
     const [progress, setProgress] = useState(0);
 

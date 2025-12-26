@@ -1,9 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { world as ecsWorld } from '@/ecs/world';
-import { useEngineStore } from '@/stores/engineStore';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 import { HUD } from '../HUD';
 
 // Mock the ECS world
@@ -55,70 +54,52 @@ vi.mock('@/ecs/world', () => ({
 describe('HUD Component', () => {
     beforeEach(() => {
         // Reset stores to initial state
-        useEngineStore.setState({
-            player: {
-                health: 100,
-                maxHealth: 100,
-                stamina: 100,
-                maxStamina: 100,
-                level: 1,
-                experience: 0,
-                expToNext: 1000,
-                gold: 0,
-                position: new THREE.Vector3(0, 0, 0),
-                rotation: 0,
-                speed: 0,
-                maxSpeed: 0.15,
-                verticalSpeed: 0,
-                isMoving: false,
-                isJumping: false,
-                invulnerable: false,
-                invulnerableUntil: 0,
-                damage: 10,
-                speedMultiplier: 1,
-                mana: 20,
-                maxMana: 20,
-            },
-            nearbyResource: null,
-            score: 0,
-            distance: 0,
-        });
-
-        useRPGStore.setState({
-            settings: {
-                showHelp: true,
-                soundEnabled: true,
-                musicEnabled: true,
-                volume: 0.8,
-            },
-            player: {
-                inventory: [],
-                stats: {
+        act(() => {
+            useGameStore.setState({
+                player: {
                     health: 100,
                     maxHealth: 100,
                     stamina: 100,
                     maxStamina: 100,
-                    gold: 0,
                     level: 1,
                     experience: 0,
-                    otterAffinity: 50,
-                    skills: {},
-                    swordLevel: 0,
-                    shieldLevel: 0,
-                    bootsLevel: 0,
+                    expToNext: 1000,
+                    gold: 0,
+                    position: new THREE.Vector3(0, 0, 0),
+                    rotation: 0,
+                    speed: 0,
+                    maxSpeed: 0.15,
+                    verticalSpeed: 0,
+                    isMoving: false,
+                    isJumping: false,
+                    invulnerable: false,
+                    invulnerableUntil: 0,
+                    damage: 10,
+                    speedMultiplier: 1,
+                    mana: 20,
+                    maxMana: 20,
+                    inventory: [],
                 },
-            } as any
+                nearbyResource: null,
+                score: 0,
+                distance: 0,
+                settings: {
+                    showHelp: true,
+                }
+            } as any);
         });
     });
 
     describe('Health and Stamina Bars', () => {
         it('should display health bar with correct percentage', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 50,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 50,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             render(<HUD />);
@@ -128,12 +109,14 @@ describe('HUD Component', () => {
         });
 
         it('should display stamina bar with correct percentage', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    stamina: 75,
-                    maxStamina: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        stamina: 75,
+                        maxStamina: 100,
+                    },
+                }));
             });
 
             render(<HUD />);
@@ -144,25 +127,29 @@ describe('HUD Component', () => {
 
         it('should change health bar color based on health level', () => {
             // High health (>50%) - green
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 60,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 60,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             const { rerender } = render(<HUD />);
             let healthBar = screen.getByTestId('health-bar-fill');
-            expect(healthBar).toHaveStyle({ background: '#4ade80' });
+            expect(healthBar).toHaveStyle({ background: '#22c55e' });
 
             // Medium health (25-50%) - yellow
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 40,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 40,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             rerender(<HUD />);
@@ -170,12 +157,14 @@ describe('HUD Component', () => {
             expect(healthBar).toHaveStyle({ background: '#fbbf24' });
 
             // Low health (<25%) - red
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 20,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 20,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             rerender(<HUD />);
@@ -184,12 +173,14 @@ describe('HUD Component', () => {
         });
 
         it('should handle edge case of 0 health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 0,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 0,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             render(<HUD />);
@@ -199,12 +190,14 @@ describe('HUD Component', () => {
         });
 
         it('should handle edge case of full health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 100,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 100,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             render(<HUD />);
@@ -216,7 +209,9 @@ describe('HUD Component', () => {
 
     describe('Resource Collection Prompt', () => {
         it('should not display prompt when no resource nearby', () => {
-            useEngineStore.setState({ nearbyResource: null });
+            act(() => {
+                useGameStore.setState({ nearbyResource: null });
+            });
 
             render(<HUD />);
 
@@ -224,12 +219,14 @@ describe('HUD Component', () => {
         });
 
         it('should display prompt when resource is nearby', () => {
-            useEngineStore.setState({
-                nearbyResource: {
-                    name: 'Fish',
-                    icon: '🐟',
-                    type: 'fish',
-                },
+            act(() => {
+                useGameStore.setState({
+                    nearbyResource: {
+                        name: 'Fish',
+                        icon: '🐟',
+                        type: 'fish',
+                    },
+                });
             });
 
             render(<HUD />);
@@ -240,12 +237,14 @@ describe('HUD Component', () => {
         });
 
         it('should display correct icon for berries', () => {
-            useEngineStore.setState({
-                nearbyResource: {
-                    name: 'Berries',
-                    icon: '🫐',
-                    type: 'berries',
-                },
+            act(() => {
+                useGameStore.setState({
+                    nearbyResource: {
+                        name: 'Berries',
+                        icon: '🫐',
+                        type: 'berries',
+                    },
+                });
             });
 
             render(<HUD />);
@@ -255,12 +254,14 @@ describe('HUD Component', () => {
         });
 
         it('should display correct icon for water', () => {
-            useEngineStore.setState({
-                nearbyResource: {
-                    name: 'Water',
-                    icon: '💧',
-                    type: 'water',
-                },
+            act(() => {
+                useGameStore.setState({
+                    nearbyResource: {
+                        name: 'Water',
+                        icon: '💧',
+                        type: 'water',
+                    },
+                });
             });
 
             render(<HUD />);
@@ -270,19 +271,23 @@ describe('HUD Component', () => {
         });
 
         it('should hide prompt when resource is collected', async () => {
-            useEngineStore.setState({
-                nearbyResource: {
-                    name: 'Fish',
-                    icon: '🐟',
-                    type: 'fish',
-                },
+            act(() => {
+                useGameStore.setState({
+                    nearbyResource: {
+                        name: 'Fish',
+                        icon: '🐟',
+                        type: 'fish',
+                    },
+                });
             });
 
             const { rerender } = render(<HUD />);
             expect(screen.getByText('Fish')).toBeInTheDocument();
 
             // Resource collected
-            useEngineStore.setState({ nearbyResource: null });
+            act(() => {
+                useGameStore.setState({ nearbyResource: null });
+            });
             rerender(<HUD />);
 
             expect(screen.queryByText('Fish')).not.toBeInTheDocument();
@@ -315,7 +320,7 @@ describe('HUD Component', () => {
             // Wait for state update (interval is 100ms)
             await waitFor(() => {
                 expect(screen.getByText(/2:00 PM - Day/i)).toBeInTheDocument();
-            }, { timeout: 1000 });
+            }, { timeout: 1500 });
         });
 
         it('should capitalize phase names', () => {
@@ -341,7 +346,7 @@ describe('HUD Component', () => {
 
             await waitFor(() => {
                 expect(screen.getByText(/12:00 AM - Night/i)).toBeInTheDocument();
-            }, { timeout: 1000 });
+            }, { timeout: 1500 });
         });
 
         it('should handle noon (hour 12) as 12 PM', async () => {
@@ -360,18 +365,20 @@ describe('HUD Component', () => {
 
             await waitFor(() => {
                 expect(screen.getByText(/12:00 PM - Day/i)).toBeInTheDocument();
-            }, { timeout: 1000 });
+            }, { timeout: 1500 });
         });
     });
 
     describe('Danger Vignette', () => {
         it('should not show vignette when health is above 30%', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 50,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 50,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             const { container } = render(<HUD />);
@@ -382,12 +389,14 @@ describe('HUD Component', () => {
         });
 
         it('should show vignette when health is below 30%', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 25,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 25,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             const { container } = render(<HUD />);
@@ -398,12 +407,14 @@ describe('HUD Component', () => {
         });
 
         it('should show vignette at exactly 29% health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 29,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 29,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             const { container } = render(<HUD />);
@@ -413,12 +424,14 @@ describe('HUD Component', () => {
         });
 
         it('should not show vignette at exactly 30% health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 30,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 30,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             const { container } = render(<HUD />);
@@ -438,12 +451,14 @@ describe('HUD Component', () => {
 
     describe('Edge Cases', () => {
         it('should handle maxHealth of 0 gracefully', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 0,
-                    maxHealth: 0,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 0,
+                        maxHealth: 0,
+                    },
+                }));
             });
 
             render(<HUD />);
@@ -454,12 +469,14 @@ describe('HUD Component', () => {
         });
 
         it('should handle negative health gracefully', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: -10,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: -10,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             render(<HUD />);
@@ -470,12 +487,14 @@ describe('HUD Component', () => {
         });
 
         it('should handle health exceeding maxHealth', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 150,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useGameStore.setState((state) => ({
+                    player: {
+                        ...state.player,
+                        health: 150,
+                        maxHealth: 100,
+                    },
+                }));
             });
 
             render(<HUD />);

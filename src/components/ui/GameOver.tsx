@@ -1,8 +1,8 @@
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 
 export function GameOver() {
-    const gameOver = useEngineStore((s) => s.gameOver);
-    const respawn = useEngineStore((s) => s.respawn);
+    const gameOver = useGameStore((s) => s.gameOver);
+    const respawn = useGameStore((s) => s.respawn);
 
     if (!gameOver) {
         return null;
@@ -16,13 +16,14 @@ export function GameOver() {
                 left: 0,
                 width: '100%',
                 height: '100%',
-                background: 'rgba(0,0,0,0.8)',
+                background: 'rgba(0,0,0,0.85)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
                 zIndex: 1000,
                 pointerEvents: 'all',
+                backdropFilter: 'blur(5px)'
             }}
         >
             <h1
@@ -49,7 +50,7 @@ export function GameOver() {
                     opacity: 0.8,
                 }}
             >
-                You have fallen in the Riverlands
+                You have fallen in the Rivermarsh
             </p>
 
             <button
@@ -70,16 +71,18 @@ export function GameOver() {
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.background = '#d4af37';
+                    e.currentTarget.style.color = '#000';
                     e.currentTarget.style.transform = 'scale(1.05)';
                     e.currentTarget.style.boxShadow = '0 0 20px rgba(212,175,55,0.4)';
                 }}
                 onMouseLeave={(e) => {
                     e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
+                    e.currentTarget.style.color = '#fff';
                     e.currentTarget.style.transform = 'scale(1)';
                     e.currentTarget.style.boxShadow = 'none';
                 }}
             >
-                Respawn
+                Try Again
             </button>
 
             <style>{`

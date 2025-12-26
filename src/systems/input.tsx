@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { useControlsStore } from '@/stores/controlsStore';
 
 export function useInput() {
-    const setInput = useEngineStore((s) => s.setInput);
+    const setInput = useGameStore((s) => s.setInput);
 
     useEffect(() => {
         // Keyboard state
@@ -19,6 +19,7 @@ export function useInput() {
             ' ': 0,
             f: 0,
             e: 0,
+            shift: 0,
         };
         (window as any).pressedKeys = keys;
 
@@ -31,8 +32,9 @@ export function useInput() {
             const jump = keys[' '] === 1;
             const attack = keys.f === 1;
             const interact = keys.e === 1;
+            const dash = keys.shift === 1;
 
-            if (x !== 0 || y !== 0 || jump) {
+            if (x !== 0 || y !== 0 || jump || dash) {
                 setInput(x, y, true, jump);
             } else {
                 // If no keys, use the controls store (which might have mobile input)
@@ -49,6 +51,7 @@ export function useInput() {
             setAction('jump', jump);
             setAction('attack', attack);
             setAction('interact', interact);
+            setAction('dash', dash);
         };
 
         const handleKeyDown = (e: KeyboardEvent) => {

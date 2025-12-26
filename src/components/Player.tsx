@@ -11,9 +11,8 @@ import {
     type CharacterJoints,
     type CharacterState
 } from '@jbcom/strata';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { useControlsStore } from '@/stores/controlsStore';
-import { useRPGStore } from '@/stores/rpgStore';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
 
@@ -41,12 +40,13 @@ export function Player() {
     const attackCooldownRef = useRef(0);
     const attackAnimTimerRef = useRef(0);
 
-    const input = useEngineStore((s) => s.input);
-    const player = useEngineStore((s) => s.player);
-    const playerStats = useRPGStore((s) => s.player.stats);
+    const input = useGameStore((s) => s.input);
+    const player = useGameStore((s) => s.player);
     const dashAction = useControlsStore((state) => state.actions.dash);
-    const updatePlayer = useEngineStore((s) => s.updatePlayer);
-    const damagePlayer = useEngineStore.getState().damagePlayer;
+    const updatePlayer = useGameStore((s) => s.updatePlayer);
+    const damagePlayer = useGameStore((s) => s.damagePlayer);
+    const consumeStamina = useGameStore((s) => s.consumeStamina);
+    const restoreStamina = useGameStore((s) => s.restoreStamina);
 
     // Create Strata character
     useEffect(() => {
@@ -84,10 +84,10 @@ export function Player() {
                 id: 'player_otter',
                 name: 'Player',
                 type: 'player',
-                health: playerStats.health,
-                maxHealth: playerStats.maxHealth,
-                stamina: playerStats.stamina,
-                maxStamina: playerStats.maxStamina,
+                health: player.health,
+                maxHealth: player.maxHealth,
+                stamina: player.stamina,
+                maxStamina: player.maxStamina,
                 speed: MAX_SPEED,
                 state: 'idle',
             },
@@ -96,16 +96,16 @@ export function Player() {
         return () => {
             world.remove(entity);
         };
-    }, [playerStats.health, playerStats.maxHealth, playerStats.maxStamina, playerStats.stamina]);
+    }, [player.health, player.maxHealth, player.maxStamina, player.stamina]);
 
     const performAttack = useCallback(() => {
         if (attackCooldownRef.current > 0) {
             return;
         }
 
-        const damage = 10 + playerStats.level * 2;
+        const damage = 10 + player.level * 2;
         const range = 2.5;
-        const position = groupRef.current?.position || new THREE.Vector3();
+        const position = groupRef.current?.position.clone() || new THREE.Vector3();
 
         combatEvents.emitPlayerAttack(position, range, damage);
         attackCooldownRef.current = 0.5; // Cooldown in seconds
@@ -115,7 +115,7 @@ export function Player() {
         if (audioManager) {
             audioManager.playSound('collect', 0.5); // Use collect as placeholder for attack
         }
-    }, [playerStats.level]);
+    }, [player.level]);
 
     useFrame((state, delta) => {
         if (!rigidBodyRef.current || !groupRef.current || !characterRef.current) {
@@ -161,7 +161,13 @@ export function Player() {
 
                 const waterMultiplier = isInWater ? 0.7 : 1.0;
                 const dashMultiplier = dashAction ? 2.5 : 1.0;
-                const speedMultiplier = player.speedMultiplier || 1.0;
+                
+                // Consume stamina when sprinting
+                if (dashAction && player.stamina > 0) {
+                    consumeStamina(delta * 30);
+                }
+
+                const speedMultiplier = 1.0; 
                 const force = {
                     x: dirX * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier,
                     y: 0,
@@ -173,6 +179,9 @@ export function Player() {
                     rb.applyImpulse(force, true);
                 }
             }
+        } else {
+            // Regenerate stamina when not sprinting
+            restoreStamina(delta * 15);
         }
 
         // Apply buoyancy
@@ -214,18 +223,26 @@ export function Player() {
         characterRef.current.state.speed = horizontalSpeed;
         characterRef.current.state.maxSpeed = MAX_SPEED;
         
-        // Use Strata's animation system - bypass type check for options for now as released version doesn't have them
+        // Use Strata's animation system
         (animateCharacter as any)(characterRef.current, time);
 
-        // Update game store
-        updatePlayer({
-            position: new THREE.Vector3(position.x, position.y, position.z),
-            rotation: groupRef.current.rotation.y,
-            isMoving: horizontalSpeed > 0.5,
-            speed: horizontalSpeed / MAX_SPEED,
-            verticalSpeed: velocity.y,
-            isJumping: !isGrounded,
-        });
+        // Update game store only if significant change or every few frames to reduce re-renders
+        const pos = new THREE.Vector3(position.x, position.y, position.z);
+        const shouldUpdateStore = 
+            pos.distanceToSquared(player.position) > 0.0001 || 
+            Math.abs(groupRef.current.rotation.y - player.rotation) > 0.01 ||
+            state.clock.elapsedTime % 0.5 < delta; // Update at least every 0.5s
+
+        if (shouldUpdateStore) {
+            updatePlayer({
+                position: pos,
+                rotation: groupRef.current.rotation.y,
+                isMoving: horizontalSpeed > 0.5,
+                speed: horizontalSpeed / MAX_SPEED,
+                verticalSpeed: velocity.y,
+                isJumping: !isGrounded,
+            });
+        }
     });
 
     // Expose player ref

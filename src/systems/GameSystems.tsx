@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { getAdaptiveQualityManager } from '@/utils/adaptiveQuality';
 import { getMemoryMonitor } from '@/utils/memoryMonitor';
 import { AchievementSystem } from '../ecs/systems/AchievementSystem';
@@ -20,7 +20,7 @@ import { world } from '../ecs/world';
 import { AudioSystem } from './AudioSystem';
 
 export function GameSystems() {
-    const playerPos = useEngineStore((s) => s.player.position);
+    const playerPos = useGameStore((s) => s.player.position);
     const qualityManager = useRef(getAdaptiveQualityManager());
     const memoryMonitor = useRef(getMemoryMonitor());
     const lastQualityCheck = useRef(0);
@@ -28,22 +28,23 @@ export function GameSystems() {
 
     useFrame((_, delta) => {
         // Sync difficulty from Zustand to ECS
-        const currentDifficulty = useEngineStore.getState().difficulty;
+        const currentDifficulty = useGameStore.getState().difficulty;
         const worldEntity = world.with('difficulty').entities[0];
         if (worldEntity && worldEntity.difficulty.level !== currentDifficulty) {
             worldEntity.difficulty.level = currentDifficulty;
             // Update multipliers based on level
-            const settings = {
+            const settings: Record<string, any> = {
                 easy: { spawnRate: 0.7, damage: 0.5, health: 0.8, exp: 1.2 },
                 normal: { spawnRate: 1.0, damage: 1.0, health: 1.0, exp: 1.0 },
                 hard: { spawnRate: 1.3, damage: 1.5, health: 1.2, exp: 0.8 },
                 legendary: { spawnRate: 1.6, damage: 2.5, health: 1.5, exp: 0.6 },
-            }[currentDifficulty];
+            };
+            const currentSettings = settings[currentDifficulty] || settings.normal;
 
-            worldEntity.difficulty.spawnRateMultiplier = settings.spawnRate;
-            worldEntity.difficulty.damageMultiplier = settings.damage;
-            worldEntity.difficulty.healthMultiplier = settings.health;
-            worldEntity.difficulty.experienceMultiplier = settings.exp;
+            worldEntity.difficulty.spawnRateMultiplier = currentSettings.spawnRate;
+            worldEntity.difficulty.damageMultiplier = currentSettings.damage;
+            worldEntity.difficulty.healthMultiplier = currentSettings.health;
+            worldEntity.difficulty.experienceMultiplier = currentSettings.exp;
 
             console.log(`Difficulty changed to ${currentDifficulty}`, worldEntity.difficulty);
         }
@@ -76,6 +77,10 @@ export function GameSystems() {
         // Run ECS systems in order
         CombatSystem();
         PlayerSyncSystem();
+        
+        // Update game time in store
+        useGameStore.getState().updateTime(delta);
+        
         TimeSystem(delta);
         WeatherSystem(delta);
         WorldEventSystem();

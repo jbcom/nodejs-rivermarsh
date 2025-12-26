@@ -1,5 +1,5 @@
 import { combatEvents } from '../../events/combatEvents';
-import { useRPGStore } from '../../stores/rpgStore';
+import { useGameStore } from '../../stores/gameStore';
 import { world } from '../world';
 
 /**
@@ -27,19 +27,19 @@ export function CombatSystem() {
                 // Damage NPC
                 const npcId = entity.id?.toString() || '';
                 if (npcId) {
-                    useRPGStore.getState().damageNPC(npcId, damage);
+                    useGameStore.getState().damageNPC(npcId, damage);
 
                     // Emit damage event for visuals (floating numbers, particles)
                     combatEvents.emitDamageEnemy(npcId, damage, entity.transform!.position.clone());
 
                     // Check if NPC died
-                    const updatedNPC = useRPGStore.getState().npcs.find((n: any) => n.id === npcId);
+                    const updatedNPC = useGameStore.getState().npcs.find((n: any) => n.id === npcId);
                     if (updatedNPC && (updatedNPC.health ?? 0) <= 0) {
                         // Dead!
                         entity.species!.state = 'dead';
                         // Add experience - scaled by NPC difficulty/type in future
-                        useRPGStore.getState().addExperience(25);
-                        useRPGStore.getState().addGold(10);
+                        useGameStore.getState().addExperience(25);
+                        useGameStore.getState().addGold(10);
                     }
                 }
             }
