@@ -91,17 +91,18 @@ function SimpleModel({ entity }: { entity: RacingEntity }) {
         const s = Array.isArray(gltf) ? gltf[0].scene.clone() : gltf.scene.clone();
         return s;
     }, [gltf]);
+    const ref = useRef<THREE.Group>(null!);
 
     useFrame(() => {
-        if (entity.position) {
-            scene.position.set(entity.position.x, entity.position.y, entity.position.z);
+        if (entity.position && ref.current) {
+            ref.current.position.set(entity.position.x, entity.position.y, entity.position.z);
             if (entity.collectible) {
-                scene.rotation.y += 0.05;
+                ref.current.rotation.y += 0.05;
             }
         }
     });
 
-    return <primitive object={scene} scale={entity.model!.scale} />;
+    return <primitive ref={ref} object={scene} scale={entity.model!.scale} />;
 }
 
 function RiverBanks() {
