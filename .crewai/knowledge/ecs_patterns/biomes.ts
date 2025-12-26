@@ -1,5 +1,5 @@
 /**
- * Biome System Patterns - Rivermarsh/Otterfall
+ * Biome System Patterns - Rivermarsh
  *
  * Biomes define:
  * - Terrain generation parameters (SDF, noise)

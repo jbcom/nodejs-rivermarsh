@@ -1,8 +1,8 @@
-# Requirements Document: Rivermarsh (Otterfall) - Complete Game
+# Requirements Document: Rivermarsh - Complete Game
 
 ## Introduction
 
-Rivermarsh (Otterfall) is a mobile-first 3D exploration and survival game where players control a river otter (or one of 12 other predator species) navigating diverse biomes in a living ecosystem. This is a GAME - a fun, complex 3D experience with deep systems, not a tech demo. Players hunt 15 prey species with realistic AI behaviors, engage in natural combat using bite/claw/tail attacks with proper damage/stamina/cooldown mechanics, explore procedurally generated terrain with caves and overhangs, and experience dynamic weather and day/night cycles that affect gameplay.
+Rivermarsh is a mobile-first 3D exploration and survival game where players control a river otter (or one of 12 other predator species) navigating diverse biomes in a living ecosystem. This is a GAME - a fun, complex 3D experience with deep systems, not a tech demo. Players hunt 15 prey species with realistic AI behaviors, engage in natural combat using bite/claw/tail attacks with proper damage/stamina/cooldown mechanics, explore procedurally generated terrain with caves and overhangs, and experience dynamic weather and day/night cycles that affect gameplay.
 
 Built with React Native + Expo for cross-platform mobile (iOS/Android), React Three Fiber via expo-three and expo-gl for 3D rendering, Miniplex ECS for entity management, Yuka.js for professional AI steering behaviors and state machines, Zustand for state management, and AsyncStorage for save data. The Meshy API generates unique 3D models for all 28 species from text prompts. Terrain uses Signed Distance Fields (SDF) with Marching Cubes algorithm for organic geometry including caves and overhangs.
 

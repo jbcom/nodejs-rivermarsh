@@ -1,5 +1,5 @@
 /**
- * ECS Systems Pattern - Rivermarsh/Otterfall
+ * ECS Systems Pattern - Rivermarsh
  *
  * Systems are functions that operate on entities with specific components.
  * They run each frame and implement game logic.

@@ -1,8 +1,8 @@
-# Design Document: Otterfall Complete Implementation
+# Design Document: Rivermarsh Complete Implementation
 
 ## Overview
 
-Otterfall is a mobile-first 3D exploration game built with React Three Fiber, Zustand state management, and Miniplex ECS architecture. The design leverages procedural generation, shader-based rendering, and AI steering behaviors to create an immersive ecosystem simulation. The current baseline provides player movement, collision detection, and basic rendering. This design extends the baseline to implement the complete game vision including dynamic weather, time-of-day cycles, NPC behaviors, resource collection, and performance optimization.
+Rivermarsh is a mobile-first 3D exploration game built with React Three Fiber, Zustand state management, and Miniplex ECS architecture. The design leverages procedural generation, shader-based rendering, and AI steering behaviors to create an immersive ecosystem simulation. The current baseline provides player movement, collision detection, and basic rendering. This design extends the baseline to implement the complete game vision including dynamic weather, time-of-day cycles, NPC behaviors, resource collection, and performance optimization.
 
 ## Architecture
 

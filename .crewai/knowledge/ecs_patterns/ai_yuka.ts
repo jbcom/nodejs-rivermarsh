@@ -1,5 +1,5 @@
 /**
- * AI System Patterns with Yuka.js - Rivermarsh/Otterfall
+ * AI System Patterns with Yuka.js - Rivermarsh
  *
  * Yuka.js provides professional game AI including:
  * - Steering behaviors (seek, flee, wander, pursue, evade, separate)

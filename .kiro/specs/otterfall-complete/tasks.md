@@ -1,8 +1,8 @@
-# Implementation Plan: Otterfall Complete
+# Implementation Plan: Rivermarsh Complete
 
 ## Overview
 
-This implementation plan transforms Otterfall from a proof-of-concept into a complete mobile-first 3D survival game with 13 playable predator species, 15 prey species, natural combat, AI-driven NPCs, procedural terrain with caves, and dynamic weather/time systems.
+This implementation plan transforms Rivermarsh from a proof-of-concept into a complete mobile-first 3D survival game with 13 playable predator species, 15 prey species, natural combat, AI-driven NPCs, procedural terrain with caves, and dynamic weather/time systems.
 
 ### Status Summary
 - ✅ **Sections 1-5: COMPLETE** - Core systems, assets, CI/CD, initial property tests (~40% of total work)

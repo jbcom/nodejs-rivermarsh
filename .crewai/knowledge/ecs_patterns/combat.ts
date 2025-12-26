@@ -1,5 +1,5 @@
 /**
- * Combat System Patterns - Rivermarsh/Otterfall
+ * Combat System Patterns - Rivermarsh
  *
  * Combat involves:
  * - Attack execution with stamina/cooldown checks

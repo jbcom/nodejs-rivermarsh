@@ -1,10 +1,10 @@
-# Otterfall CrewAI Configuration
+# Rivermarsh CrewAI Configuration
 #
-# This manifest defines the AI crews available for Otterfall game development.
-# Run crews using: crewai run otterfall <crew_name>
+# This manifest defines the AI crews available for Rivermarsh game development.
+# Run crews using: crewai run rivermarsh <crew_name>
 
-name: otterfall
-description: CrewAI crews for Otterfall game development
+name: rivermarsh
+description: CrewAI crews for Rivermarsh game development
 version: "1.0"
 
 # Default LLM configuration
