@@ -23,6 +23,9 @@ export interface PlayerStats {
   level: number;
   experience: number;
   skills: Record<SkillType, OtterSkill>;
+  swordLevel: number;
+  shieldLevel: number;
+  bootsLevel: number;
 }
 
 export type EquipmentSlot = "weapon" | "shell_armor" | "diving_gear" | "fishing_rod" | "accessory";
@@ -164,6 +167,9 @@ export const useRivermarsh = create<GameState>()(
           foraging: { name: "Foraging", level: 1, experience: 0, experienceToNext: 100 },
           crafting: { name: "Crafting", level: 1, experience: 0, experienceToNext: 100 },
         },
+        swordLevel: 0,
+        shieldLevel: 0,
+        bootsLevel: 0,
       },
       inventory: [
         {
@@ -508,7 +514,7 @@ export const useRivermarsh = create<GameState>()(
 
     improveSkill: (skillType, experienceAmount) =>
       set((state) => {
-        let skill = { ...state.player.stats.skills[skillType] };
+        const skill = { ...state.player.stats.skills[skillType] };
         let remainingExp = experienceAmount;
         
         while (remainingExp > 0) {
@@ -560,16 +566,27 @@ export const useRivermarsh = create<GameState>()(
         npcs: state.npcs.filter((npc) => npc.id !== npcId),
       })),
 
-    damageNPC: (npcId, amount) =>
-      set((state) => ({
-        npcs: state.npcs.map((npc) => {
-          if (npc.id === npcId && npc.health !== undefined) {
-            const newHealth = Math.max(0, npc.health - amount);
-            return { ...npc, health: newHealth };
-          }
-          return npc;
-        }),
-      })),
+    damageNPC: (npcId, amount) => {
+      const state = get();
+      const npc = state.npcs.find((n) => n.id === npcId);
+      if (!npc || npc.health === undefined) return;
+
+      const finalDamage = amount + state.player.stats.swordLevel;
+      const newHealth = Math.max(0, npc.health - finalDamage);
+
+      set((s) => ({
+        npcs: s.npcs.map((n) =>
+          n.id === npcId ? { ...n, health: newHealth } : n
+        ),
+      }));
+
+      if (newHealth <= 0) {
+        // Reward player
+        get().addGold(10);
+        get().addExperience(20);
+        get().removeNPC(npcId);
+      }
+    },
 
     addGold: (amount) =>
       set((state) => ({
@@ -577,7 +594,7 @@ export const useRivermarsh = create<GameState>()(
           ...state.player,
           stats: {
             ...state.player.stats,
-            gold: state.player.stats.gold + amount,
+            gold: state.player.stats.gold + amount + state.player.stats.bootsLevel,
           },
         },
       })),

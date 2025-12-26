@@ -1,22 +1,36 @@
 import { useRivermarsh } from "@/stores/useRivermarsh";
 
 export function ShopPanel() {
-  const { player, spendGold, toggleShop, heal, restoreStamina } = useRivermarsh();
+  const { player, spendGold, toggleShop, heal, updatePlayerStats } = useRivermarsh();
 
   const items = [
     {
-      id: 'health_potion',
-      name: 'Health Potion',
-      cost: 20,
-      description: 'Restores 50 Health',
-      action: () => heal(50)
+      id: 'sword',
+      name: 'Sword',
+      cost: 10,
+      description: `+1 attack damage (Level: ${player.stats.swordLevel})`,
+      action: () => updatePlayerStats({ swordLevel: player.stats.swordLevel + 1 })
     },
     {
-      id: 'stamina_tonic',
-      name: 'Stamina Tonic',
-      cost: 15,
-      description: 'Restores 50 Stamina',
-      action: () => restoreStamina(50)
+      id: 'shield',
+      name: 'Shield',
+      cost: 8,
+      description: `-1 enemy damage (Level: ${player.stats.shieldLevel})`,
+      action: () => updatePlayerStats({ shieldLevel: player.stats.shieldLevel + 1 })
+    },
+    {
+      id: 'boots',
+      name: 'Boots',
+      cost: 5,
+      description: `Negate confusion, +1 gold bonus (Level: ${player.stats.bootsLevel})`,
+      action: () => updatePlayerStats({ bootsLevel: player.stats.bootsLevel + 1 })
+    },
+    {
+      id: 'potion',
+      name: 'Potion',
+      cost: 1,
+      description: 'Heal 3 HP instantly',
+      action: () => heal(3)
     },
     {
       id: 'otter_treat',

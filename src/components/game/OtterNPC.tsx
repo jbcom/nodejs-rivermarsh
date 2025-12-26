@@ -11,9 +11,10 @@ interface OtterNPCProps {
 
 export function OtterNPC({ npc }: OtterNPCProps) {
   const meshRef = useRef<THREE.Group>(null);
-  const { player, startDialogue } = useRivermarsh();
+  const { player, startDialogue, damageNPC } = useRivermarsh();
   const interactAction = useControlsStore((state) => state.actions.interact);
   const isInRange = useRef(false);
+  const currentDistance = useRef(Infinity);
   
   const color = useMemo(() => {
     switch (npc.type) {
@@ -94,6 +95,7 @@ export function OtterNPC({ npc }: OtterNPCProps) {
     }
 
     const distance = playerPos.distanceTo(currentNpcPos);
+    currentDistance.current = distance;
     const canInteract = npc.type === "friendly" || npc.type === "quest_giver" || npc.type === "merchant";
 
     // Update interaction range status
@@ -142,6 +144,21 @@ export function OtterNPC({ npc }: OtterNPCProps) {
   const handleMeshClick = () => {
     if (isInRange.current) {
       handleInteract();
+    } else if (npc.type === "hostile" && currentDistance.current < 3) {
+      // Player attacks hostile NPC
+      const baseDamage = 10;
+      damageNPC(npc.id, baseDamage);
+      
+      // Visual feedback: brief color change to white
+      if (meshRef.current) {
+        const mesh = meshRef.current.children[0] as THREE.Mesh;
+        const material = mesh.material as THREE.MeshStandardMaterial;
+        const originalColor = material.color.clone();
+        material.color.set("#ffffff");
+        setTimeout(() => {
+          if (material) material.color.copy(originalColor);
+        }, 100);
+      }
     }
   };
 

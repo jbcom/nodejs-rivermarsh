@@ -47,10 +47,102 @@ export function GameUI() {
 
   return (
     <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 100 }}>
+      <StatsDisplay />
       {showInventory && <InventoryPanel />}
       {showQuestLog && <QuestLogPanel />}
       {showShop && <ShopPanel />}
       {activeDialogue && <DialogueBox />}
+      <HelpText />
+    </div>
+  );
+}
+
+function StatsDisplay() {
+  const { player } = useRivermarsh();
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 20,
+        left: 20,
+        background: "rgba(0, 0, 0, 0.8)",
+        padding: "15px",
+        borderRadius: "10px",
+        color: "#fff",
+        fontFamily: "Inter, sans-serif",
+        minWidth: "200px",
+        border: "2px solid rgba(139, 105, 20, 0.8)",
+      }}
+    >
+      <div style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "10px", color: "#DAA520" }}>
+        {player.stats.level > 1 ? "Seasoned " : ""}Otter Adventurer
+      </div>
+      
+      <div style={{ marginBottom: "8px" }}>
+        <div style={{ fontSize: "12px", color: "#aaa" }}>Health</div>
+        <div style={{ background: "#333", height: "20px", borderRadius: "5px", overflow: "hidden" }}>
+          <div
+            style={{
+              background: "linear-gradient(90deg, #ff4444, #ff8888)",
+              height: "100%",
+              width: `${(player.stats.health / player.stats.maxHealth) * 100}%`,
+              transition: "width 0.3s",
+            }}
+          />
+        </div>
+        <div style={{ fontSize: "11px", marginTop: "2px" }}>
+          {player.stats.health}/{player.stats.maxHealth}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "8px" }}>
+        <div style={{ fontSize: "12px", color: "#aaa" }}>Stamina</div>
+        <div style={{ background: "#333", height: "20px", borderRadius: "5px", overflow: "hidden" }}>
+          <div
+            style={{
+              background: "linear-gradient(90deg, #44ff44, #88ff88)",
+              height: "100%",
+              width: `${(player.stats.stamina / player.stats.maxStamina) * 100}%`,
+              transition: "width 0.3s",
+            }}
+          />
+        </div>
+        <div style={{ fontSize: "11px", marginTop: "2px" }}>
+          {Math.floor(player.stats.stamina)}/{player.stats.maxStamina}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "8px" }}>
+        <div style={{ fontSize: "12px", color: "#aaa" }}>Otter Affinity</div>
+        <div style={{ background: "#333", height: "20px", borderRadius: "5px", overflow: "hidden" }}>
+          <div
+            style={{
+              background: "linear-gradient(90deg, #4444ff, #8888ff)",
+              height: "100%",
+              width: `${player.stats.otterAffinity}%`,
+              transition: "width 0.3s",
+            }}
+          />
+        </div>
+        <div style={{ fontSize: "11px", marginTop: "2px" }}>{player.stats.otterAffinity}%</div>
+      </div>
+
+      <div style={{ marginBottom: "8px", color: "#FFD700", fontWeight: "bold" }}>
+          Gold: {player.stats.gold}
+      </div>
+
+      <div style={{ marginTop: "10px", fontSize: "12px", borderTop: "1px solid #555", paddingTop: "8px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+          <span>Level: {player.stats.level}</span>
+          <span style={{ color: "#aaa" }}>XP: {player.stats.experience}/{player.stats.level * 100}</span>
+        </div>
+        <div style={{ display: "flex", gap: "10px", color: "#ccc", fontSize: "11px" }}>
+          <span>⚔️ {player.stats.swordLevel}</span>
+          <span>🛡️ {player.stats.shieldLevel}</span>
+          <span>🥾 {player.stats.bootsLevel}</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -264,6 +356,29 @@ function DialogueBox() {
       <div style={{ fontSize: "12px", color: "#aaa", textAlign: "right" }}>
         {isLastMessage ? "Tap to close" : "Tap to continue"}
       </div>
+    </div>
+  );
+}
+
+function HelpText() {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        bottom: 20,
+        left: "50%",
+        transform: "translateX(-50%)",
+        background: "rgba(0, 0, 0, 0.7)",
+        padding: "10px 20px",
+        borderRadius: "8px",
+        color: "#fff",
+        fontFamily: "Inter, sans-serif",
+        fontSize: "12px",
+        textAlign: "center",
+        border: "1px solid rgba(255, 255, 255, 0.3)",
+      }}
+    >
+      <div>WASD: Move | Space: Jump | I: Inv | Q: Quests | B: Shop | R: Race | E: Interact</div>
     </div>
   );
 }

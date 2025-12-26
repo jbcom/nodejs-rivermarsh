@@ -11,16 +11,18 @@ export function HUD() {
     const maxHealth = useGameStore((s) => s.player.maxHealth);
     const stamina = useGameStore((s) => s.player.stamina);
     const maxStamina = useGameStore((s) => s.player.maxStamina);
+    const level = useGameStore((s) => s.player.level);
+    const experience = useGameStore((s) => s.player.experience);
+    const expToNext = useGameStore((s) => s.player.expToNext);
     const nearbyResource = useGameStore((s) => s.nearbyResource);
     const score = useGameStore((s) => s.score);
     const distance = useGameStore((s) => s.distance);
     
-    // RPG stats
-    const level = useRivermarsh((s) => s.player.stats.level);
+    // UI/Meta stats from useRivermarsh
     const gold = useRivermarsh((s) => s.player.stats.gold);
-    const experience = useRivermarsh((s) => s.player.stats.experience);
-    const showHelpSetting = useRivermarsh((s) => s.settings.showHelp);
-    const xpToNext = level * 100;
+    const showHelpSetting = useRivermarsh((s) => s.settings?.showHelp ?? true);
+    
+    const { toggleShop } = useRivermarsh();
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');
@@ -30,7 +32,7 @@ export function HUD() {
     // Clamp percentages
     const healthPercent = Math.min(100, Math.max(0, (health / maxHealth) * 100));
     const staminaPercent = Math.min(100, Math.max(0, (stamina / maxStamina) * 100));
-    const xpPercent = Math.min(100, Math.max(0, (experience / xpToNext) * 100));
+    const xpPercent = expToNext > 0 ? Math.min(100, Math.max(0, (experience / expToNext) * 100)) : 0;
 
     // Update time and weather from ECS
     useEffect(() => {
@@ -115,7 +117,7 @@ export function HUD() {
                 }}>
                     <div style={{ fontSize: '12px', color: '#d4af37', fontWeight: 'bold' }}>LVL {level}</div>
                     <div style={{ width: '120px', height: '4px', background: 'rgba(255,255,255,0.2)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ width: `${xpPercent}%`, height: '100%', background: '#fff', transition: 'width 0.3s' }} />
+                        <div style={{ width: `${xpPercent}%`, height: '100%', background: '#fbbf24', transition: 'width 0.3s' }} />
                     </div>
                 </div>
                 <div style={{
@@ -210,6 +212,47 @@ export function HUD() {
                         />
                     </div>
                 </div>
+
+                {/* XP Bar (Integrated into Bottom Left HUD) */}
+                <div
+                    data-testid="xp-bar"
+                    role="progressbar"
+                    aria-label="Experience"
+                    aria-valuenow={Math.round(experience)}
+                    aria-valuemin={0}
+                    aria-valuemax={expToNext}
+                >
+                    <div style={{
+                        fontSize: '10px',
+                        color: '#d4af37',
+                        marginBottom: '4px',
+                        textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                        fontFamily: 'sans-serif',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        fontWeight: 'bold',
+                    }}>
+                        XP Progress
+                    </div>
+                    <div style={{
+                        width: '250px',
+                        height: '6px',
+                        background: 'rgba(0,0,0,0.5)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '1px',
+                        overflow: 'hidden',
+                    }}>
+                        <div
+                            data-testid="xp-bar-fill"
+                            style={{
+                                width: `${xpPercent}%`,
+                                height: '100%',
+                                background: '#fbbf24',
+                                transition: 'width 0.3s ease',
+                            }}
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* Bottom Right: Score & Distance */}
@@ -278,6 +321,10 @@ export function HUD() {
                 <PauseMenu 
                     onResume={() => setIsPaused(false)}
                     onSettings={() => setShowSettings(true)}
+                    onShop={() => {
+                        setIsPaused(false);
+                        toggleShop();
+                    }}
                     onQuit={() => window.location.reload()} // Simple quit for now
                 />
             )}

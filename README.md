@@ -23,7 +23,7 @@ This repository unifies **three game projects** into one best-in-class experienc
 | Rivers of Reckoning | 🧊 Archived | Combat, quests, leveling, spells |
 | Otter River Rush | 🧊 Frozen | Racing, leaderboards, mobile controls |
 
-See [Epic Issue #26](https://github.com/jbcom/nodejs-rivermarsh/issues/26) for the full integration roadmap.
+See [Epic Issue #26](https://github.com/arcade-cabinet/rivermarsh/issues/26) for the full integration roadmap.
 
 ## 🛠️ Tech Stack
 
