@@ -1,36 +1,36 @@
 /**
  * AISystem - Production-quality AI using Yuka library
- * 
+ *
  * This system provides:
  * - Battle-tested steering behaviors (Wander, Seek, Flee, Separation, ObstacleAvoidance)
  * - State machine with proper enter/execute/exit lifecycle
  * - CellSpacePartitioning for efficient neighbor queries
  * - Proper integration with Miniplex ECS
- * 
+ *
  * @see https://github.com/Mugen87/yuka
  */
 
-import { StateMachine } from 'yuka';
 import * as THREE from 'three';
+import { StateMachine } from 'yuka';
 import { world } from '../world';
 import {
-    getYukaManager,
-    initYukaManager,
-    disposeYukaManager,
-    NPCVehicle,
-} from './ai/YukaManager';
-import {
-    IdleState,
-    WanderState,
-    FleeState,
-    ChaseState,
     AttackState,
+    ChaseState,
+    FleeState,
+    IdleState,
+    STATE_ATTACK,
+    STATE_CHASE,
+    STATE_FLEE,
     STATE_IDLE,
     STATE_WANDER,
-    STATE_FLEE,
-    STATE_CHASE,
-    STATE_ATTACK,
+    WanderState,
 } from './ai/states';
+import {
+    disposeYukaManager,
+    getYukaManager,
+    initYukaManager,
+    type NPCVehicle,
+} from './ai/YukaManager';
 
 // Rate limiting - AI doesn't need to run every frame
 const AI_UPDATE_RATE = 20; // Hz
@@ -43,17 +43,17 @@ let initialized = false;
  */
 function setupStateMachine(vehicle: NPCVehicle): void {
     const stateMachine = new StateMachine(vehicle);
-    
+
     // Register all states
     stateMachine.add(STATE_IDLE, new IdleState());
     stateMachine.add(STATE_WANDER, new WanderState());
     stateMachine.add(STATE_FLEE, new FleeState());
     stateMachine.add(STATE_CHASE, new ChaseState());
     stateMachine.add(STATE_ATTACK, new AttackState());
-    
+
     // Start in idle state
     stateMachine.changeTo(STATE_IDLE);
-    
+
     vehicle.stateMachine = stateMachine;
 }
 
@@ -73,7 +73,7 @@ function addObstacleAvoidance(_vehicle: NPCVehicle): void {
  */
 function registerExistingEntities(): void {
     const manager = getYukaManager();
-    
+
     // Register NPCs
     for (const entity of world.with('isNPC', 'transform', 'movement', 'species', 'steering')) {
         const vehicle = manager.registerNPC(entity, setupStateMachine);
@@ -93,7 +93,7 @@ function registerExistingEntities(): void {
  */
 function registerNewEntities(): void {
     const manager = getYukaManager();
-    
+
     // Register NPCs
     for (const entity of world.with('isNPC', 'transform', 'movement', 'species', 'steering')) {
         if (entity.id && !manager.getVehicle(entity.id)) {
@@ -119,25 +119,25 @@ function registerNewEntities(): void {
 export function AISystem(delta: number): void {
     // Rate limiting - accumulate time
     aiAccumulator += delta;
-    
+
     if (aiAccumulator < AI_UPDATE_INTERVAL) {
         return; // Skip this frame
     }
-    
+
     // Initialize on first run
     if (!initialized) {
         initYukaManager();
         registerExistingEntities();
         initialized = true;
     }
-    
+
     // Register any new NPCs or player added since last frame
     registerNewEntities();
-    
+
     // Update Yuka (handles all steering behaviors and state machines)
     const manager = getYukaManager();
     manager.update(AI_UPDATE_INTERVAL);
-    
+
     // Sync Yuka positions back to Miniplex entities
     manager.syncToMiniplex();
 
@@ -152,7 +152,7 @@ export function AISystem(delta: number): void {
             );
         }
     }
-    
+
     // Reset accumulator (consume one interval)
     aiAccumulator -= AI_UPDATE_INTERVAL;
 }

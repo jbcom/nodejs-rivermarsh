@@ -1,6 +1,6 @@
-import { WeatherType } from '../components';
-import { world } from '../world';
 import { WEATHER } from '@/constants/game';
+import type { WeatherType } from '../components';
+import { world } from '../world';
 
 const WEATHER_CONFIG = {
     clear: {
@@ -64,7 +64,9 @@ function getRandomWeather(): WeatherType {
 
     for (const [weather, weight] of choices) {
         cumulative += weight;
-        if (r <= cumulative) return weather;
+        if (r <= cumulative) {
+            return weather;
+        }
     }
 
     return 'clear';
@@ -91,8 +93,9 @@ export function WeatherSystem(delta: number) {
                 weather.nextWeather = null;
                 weather.transitionProgress = 0;
                 weather.startTime = now;
-                weather.durationMinutes = WEATHER.MIN_DURATION + Math.random() * WEATHER.MAX_ADDITIONAL_DURATION;
-                
+                weather.durationMinutes =
+                    WEATHER.MIN_DURATION + Math.random() * WEATHER.MAX_ADDITIONAL_DURATION;
+
                 // Apply new weather properties immediately
                 const config = WEATHER_CONFIG[weather.current];
                 weather.intensity = config.intensity;
@@ -106,8 +109,10 @@ export function WeatherSystem(delta: number) {
                 const t = weather.transitionProgress;
 
                 weather.intensity = currentConfig.intensity * (1 - t) + nextConfig.intensity * t;
-                weather.visibilityMod = currentConfig.visibilityMod * (1 - t) + nextConfig.visibilityMod * t;
-                weather.windSpeed = 2 * (currentConfig.windSpeedMult * (1 - t) + nextConfig.windSpeedMult * t);
+                weather.visibilityMod =
+                    currentConfig.visibilityMod * (1 - t) + nextConfig.visibilityMod * t;
+                weather.windSpeed =
+                    2 * (currentConfig.windSpeedMult * (1 - t) + nextConfig.windSpeedMult * t);
                 weather.fogDensity = currentConfig.fogDensity * (1 - t) + nextConfig.fogDensity * t;
             }
         } else {

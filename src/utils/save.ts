@@ -10,6 +10,8 @@ export interface SaveData {
         stamina: number;
         level: number;
         experience: number;
+        mana?: number;
+        gold?: number;
     };
     world: {
         time: number;
@@ -31,6 +33,8 @@ export function saveGame(playerState: {
     stamina: number;
     level: number;
     experience: number;
+    mana: number;
+    gold: number;
 }): void {
     try {
         // Get world state from ECS
@@ -44,8 +48,8 @@ export function saveGame(playerState: {
 
         // Get resource states
         const resources = Array.from(world.with('isResource', 'resource').entities)
-            .filter(entity => entity.id !== undefined)
-            .map(entity => ({
+            .filter((entity) => entity.id !== undefined)
+            .map((entity) => ({
                 id: entity.id!,
                 collected: entity.resource?.collected || false,
                 collectedAt: entity.resource?.collectedAt || 0,
@@ -60,6 +64,8 @@ export function saveGame(playerState: {
                 stamina: playerState.stamina,
                 level: playerState.level,
                 experience: playerState.experience,
+                mana: playerState.mana,
+                gold: playerState.gold,
             },
             world: {
                 time: timeHour,
@@ -76,37 +82,83 @@ export function saveGame(playerState: {
 }
 
 function isValidSaveData(data: any): data is SaveData {
-    if (!data || typeof data !== 'object') return false;
+    if (!data || typeof data !== 'object') {
+        return false;
+    }
 
     // Check version and timestamp
-    if (typeof data.version !== 'string' || typeof data.timestamp !== 'number') return false;
+    if (typeof data.version !== 'string' || typeof data.timestamp !== 'number') {
+        return false;
+    }
 
     // Check player
-    if (!data.player || typeof data.player !== 'object') return false;
-    if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
-    if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
-    
+    if (!data.player || typeof data.player !== 'object') {
+        return false;
+    }
+    if (!Array.isArray(data.player.position) || data.player.position.length !== 3) {
+        return false;
+    }
+    if (data.player.position.some((n: any) => typeof n !== 'number')) {
+        return false;
+    }
+
     // Type validation for optional fields (backward compatibility)
-    if (data.player.health !== undefined && typeof data.player.health !== 'number') return false;
-    if (data.player.stamina !== undefined && typeof data.player.stamina !== 'number') return false;
-    if (data.player.level !== undefined && typeof data.player.level !== 'number') return false;
-    if (data.player.experience !== undefined && typeof data.player.experience !== 'number') return false;
+    if (data.player.health !== undefined && typeof data.player.health !== 'number') {
+        return false;
+    }
+    if (data.player.stamina !== undefined && typeof data.player.stamina !== 'number') {
+        return false;
+    }
+    if (data.player.level !== undefined && typeof data.player.level !== 'number') {
+        return false;
+    }
+    if (data.player.experience !== undefined && typeof data.player.experience !== 'number') {
+        return false;
+    }
+    if (data.player.mana !== undefined && typeof data.player.mana !== 'number') {
+        return false;
+    }
+    if (data.player.gold !== undefined && typeof data.player.gold !== 'number') {
+        return false;
+    }
 
     // Range validation to prevent corrupted save data
-    if ((data.player.health ?? 0) < 0) return false;
-    if ((data.player.stamina ?? 0) < 0) return false;
-    if ((data.player.level ?? 1) < 1) return false;
-    if ((data.player.experience ?? 0) < 0) return false;
+    if ((data.player.health ?? 0) < 0) {
+        return false;
+    }
+    if ((data.player.stamina ?? 0) < 0) {
+        return false;
+    }
+    if ((data.player.level ?? 1) < 1) {
+        return false;
+    }
+    if ((data.player.experience ?? 0) < 0) {
+        return false;
+    }
 
     // Check world
-    if (!data.world || typeof data.world !== 'object') return false;
-    if (typeof data.world.time !== 'number' || typeof data.world.weather !== 'string') return false;
+    if (!data.world || typeof data.world !== 'object') {
+        return false;
+    }
+    if (typeof data.world.time !== 'number' || typeof data.world.weather !== 'string') {
+        return false;
+    }
 
     // Check resources
-    if (!Array.isArray(data.resources)) return false;
+    if (!Array.isArray(data.resources)) {
+        return false;
+    }
     for (const res of data.resources) {
-        if (!res || typeof res !== 'object') return false;
-        if (typeof res.id !== 'number' || typeof res.collected !== 'boolean' || typeof res.collectedAt !== 'number') return false;
+        if (!res || typeof res !== 'object') {
+            return false;
+        }
+        if (
+            typeof res.id !== 'number' ||
+            typeof res.collected !== 'boolean' ||
+            typeof res.collectedAt !== 'number'
+        ) {
+            return false;
+        }
     }
 
     return true;
@@ -115,7 +167,9 @@ function isValidSaveData(data: any): data is SaveData {
 export function loadGame(): SaveData | null {
     try {
         const savedData = localStorage.getItem(SAVE_KEY);
-        if (!savedData) return null;
+        if (!savedData) {
+            return null;
+        }
 
         const data = JSON.parse(savedData);
 

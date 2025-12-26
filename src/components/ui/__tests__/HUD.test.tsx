@@ -1,8 +1,8 @@
-import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
 import { render, screen, waitFor } from '@testing-library/react';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { world as ecsWorld } from '@/ecs/world';
+import { useEngineStore } from '@/stores/engineStore';
 import { HUD } from '../HUD';
 
 // Mock the ECS world
@@ -33,7 +33,7 @@ vi.mock('@/ecs/world', () => ({
                 };
             }
             return {
-                *[Symbol.iterator]() { },
+                *[Symbol.iterator]() {},
             };
         }),
     },
@@ -42,7 +42,7 @@ vi.mock('@/ecs/world', () => ({
 describe('HUD Component', () => {
     beforeEach(() => {
         // Reset store to initial state
-        useGameStore.setState({
+        useEngineStore.setState({
             player: {
                 health: 100,
                 maxHealth: 100,
@@ -64,9 +64,9 @@ describe('HUD Component', () => {
 
     describe('Health and Stamina Bars', () => {
         it('should display health bar with correct percentage', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 50,
                     maxHealth: 100,
                 },
@@ -79,9 +79,9 @@ describe('HUD Component', () => {
         });
 
         it('should display stamina bar with correct percentage', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     stamina: 75,
                     maxStamina: 100,
                 },
@@ -95,9 +95,9 @@ describe('HUD Component', () => {
 
         it('should change health bar color based on health level', () => {
             // High health (>50%) - green
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 60,
                     maxHealth: 100,
                 },
@@ -108,9 +108,9 @@ describe('HUD Component', () => {
             expect(healthBar).toHaveStyle({ background: '#4ade80' });
 
             // Medium health (25-50%) - yellow
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 40,
                     maxHealth: 100,
                 },
@@ -121,9 +121,9 @@ describe('HUD Component', () => {
             expect(healthBar).toHaveStyle({ background: '#fbbf24' });
 
             // Low health (<25%) - red
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 20,
                     maxHealth: 100,
                 },
@@ -135,9 +135,9 @@ describe('HUD Component', () => {
         });
 
         it('should handle edge case of 0 health', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 0,
                     maxHealth: 100,
                 },
@@ -150,9 +150,9 @@ describe('HUD Component', () => {
         });
 
         it('should handle edge case of full health', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 100,
                     maxHealth: 100,
                 },
@@ -167,7 +167,7 @@ describe('HUD Component', () => {
 
     describe('Resource Collection Prompt', () => {
         it('should not display prompt when no resource nearby', () => {
-            useGameStore.setState({ nearbyResource: null });
+            useEngineStore.setState({ nearbyResource: null });
 
             render(<HUD />);
 
@@ -175,7 +175,7 @@ describe('HUD Component', () => {
         });
 
         it('should display prompt when resource is nearby', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 nearbyResource: {
                     name: 'Fish',
                     icon: '🐟',
@@ -191,7 +191,7 @@ describe('HUD Component', () => {
         });
 
         it('should display correct icon for berries', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 nearbyResource: {
                     name: 'Berries',
                     icon: '🫐',
@@ -206,7 +206,7 @@ describe('HUD Component', () => {
         });
 
         it('should display correct icon for water', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 nearbyResource: {
                     name: 'Water',
                     icon: '💧',
@@ -221,7 +221,7 @@ describe('HUD Component', () => {
         });
 
         it('should hide prompt when resource is collected', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 nearbyResource: {
                     name: 'Fish',
                     icon: '🐟',
@@ -233,7 +233,7 @@ describe('HUD Component', () => {
             expect(screen.getByText('Fish')).toBeInTheDocument();
 
             // Resource collected
-            useGameStore.setState({ nearbyResource: null });
+            useEngineStore.setState({ nearbyResource: null });
             rerender(<HUD />);
 
             expect(screen.queryByText('Fish')).not.toBeInTheDocument();
@@ -317,9 +317,9 @@ describe('HUD Component', () => {
 
     describe('Danger Vignette', () => {
         it('should not show vignette when health is above 30%', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 50,
                     maxHealth: 100,
                 },
@@ -333,9 +333,9 @@ describe('HUD Component', () => {
         });
 
         it('should show vignette when health is below 30%', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 25,
                     maxHealth: 100,
                 },
@@ -349,9 +349,9 @@ describe('HUD Component', () => {
         });
 
         it('should show vignette at exactly 29% health', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 29,
                     maxHealth: 100,
                 },
@@ -364,9 +364,9 @@ describe('HUD Component', () => {
         });
 
         it('should not show vignette at exactly 30% health', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 30,
                     maxHealth: 100,
                 },
@@ -393,9 +393,9 @@ describe('HUD Component', () => {
 
     describe('Edge Cases', () => {
         it('should handle maxHealth of 0 gracefully', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 0,
                     maxHealth: 0,
                 },
@@ -409,9 +409,9 @@ describe('HUD Component', () => {
         });
 
         it('should handle negative health gracefully', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: -10,
                     maxHealth: 100,
                 },
@@ -424,9 +424,9 @@ describe('HUD Component', () => {
         });
 
         it('should handle health exceeding maxHealth', () => {
-            useGameStore.setState({
+            useEngineStore.setState({
                 player: {
-                    ...useGameStore.getState().player,
+                    ...useEngineStore.getState().player,
                     health: 150,
                     maxHealth: 100,
                 },

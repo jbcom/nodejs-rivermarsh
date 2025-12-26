@@ -1,11 +1,11 @@
 /**
  * Water Component - Using @jbcom/strata
- * 
+ *
  * Replaces custom shader implementation with Strata's AdvancedWater
  * which provides caustics, foam, and depth-based coloring.
  */
 
-import { AdvancedWater } from '@jbcom/strata'
+import { AdvancedWater } from '@jbcom/strata';
 
 interface WaterProps {
     position?: [number, number, number];

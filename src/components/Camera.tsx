@@ -1,7 +1,8 @@
-import { useGameStore } from '@/stores/gameStore';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { useEngineStore } from '@/stores/engineStore';
+import { world } from '@/ecs/world';
 
 const BASE_CAMERA_OFFSET = new THREE.Vector3(0, 3.5, -5);
 const LOOK_OFFSET = new THREE.Vector3(0, 0.5, 0);
@@ -12,14 +13,30 @@ const DEFAULT_ZOOM = 1.0;
 const ZOOM_SENSITIVITY = 0.01;
 
 export function FollowCamera() {
-    const player = useGameStore((s) => s.player);
+    const player = useEngineStore((s) => s.player);
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
     const lastPinchDistanceRef = useRef<number | null>(null);
-    
+
     // Reusable vectors to avoid GC pressure in render loop
     const cameraOffsetRef = useRef(new THREE.Vector3());
     const idealPosRef = useRef(new THREE.Vector3());
     const lookTargetRef = useRef(new THREE.Vector3());
+
+    // Register camera in ECS
+    useEffect(() => {
+        const entity = world.add({
+            isCamera: true,
+            audioListener: true,
+            transform: {
+                position: new THREE.Vector3(),
+                rotation: new THREE.Quaternion(),
+                scale: new THREE.Vector3(1, 1, 1),
+            },
+        });
+        return () => {
+            world.remove(entity);
+        };
+    }, []);
 
     // Pinch-to-zoom gesture handling (mobile-first)
     useEffect(() => {
@@ -41,7 +58,9 @@ export function FollowCamera() {
                     const delta = distance - lastPinchDistanceRef.current;
                     const zoomDelta = delta * ZOOM_SENSITIVITY;
 
-                    setZoomLevel(prev => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev - zoomDelta)));
+                    setZoomLevel((prev) =>
+                        Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev - zoomDelta))
+                    );
                 }
 
                 lastPinchDistanceRef.current = distance;
@@ -60,7 +79,7 @@ export function FollowCamera() {
             if (!('ontouchstart' in window)) {
                 e.preventDefault();
                 const delta = e.deltaY * -0.001;
-                setZoomLevel(prev => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev + delta)));
+                setZoomLevel((prev) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev + delta)));
             }
         };
 
@@ -96,6 +115,12 @@ export function FollowCamera() {
             player.position.z + LOOK_OFFSET.z
         );
         camera.lookAt(lookTargetRef.current);
+
+        // Update ECS camera state
+        for (const entity of world.with('isCamera', 'transform')) {
+            entity.transform.position.copy(camera.position);
+            entity.transform.rotation.copy(camera.quaternion);
+        }
     });
 
     return null;

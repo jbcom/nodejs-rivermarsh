@@ -12,8 +12,8 @@ describe('TimeSystem', () => {
     });
 
     // Feature: otterfall-complete, Property 1: Time Progression Monotonicity
-    // For any game frame with positive deltaTime, advancing time should increase 
-    // the hour value, and when hour reaches 24.0, it should wrap to 0.0 while 
+    // For any game frame with positive deltaTime, advancing time should increase
+    // the hour value, and when hour reaches 24.0, it should wrap to 0.0 while
     // maintaining continuity.
     it('Property 1: Time Progression Monotonicity', () => {
         fc.assert(
@@ -31,15 +31,16 @@ describe('TimeSystem', () => {
                             sunIntensity: 1,
                             ambientLight: 0.8,
                             fogDensity: 0.025,
+                            dayCount: 1,
                         },
                     });
 
-                    const hourBefore = timeEntity.time.hour;
+                    const hourBefore = timeEntity.time!.hour;
 
                     // Execute: Run time system
                     TimeSystem(deltaTime);
 
-                    const hourAfter = timeEntity.time.hour;
+                    const hourAfter = timeEntity.time!.hour;
 
                     // Verify: Hour should increase (with wrap-around)
                     const expectedIncrease = (deltaTime * 1) / 3600; // timeScale = 1, using RoR /3600
@@ -61,7 +62,7 @@ describe('TimeSystem', () => {
     });
 
     // Feature: otterfall-complete, Property 2: Phase Transition Consistency
-    // For any hour value, the calculated time phase should match exactly one of 
+    // For any hour value, the calculated time phase should match exactly one of
     // the four defined phases (dawn, day, dusk, night) based on the hour ranges.
     it('Property 2: Phase Transition Consistency', () => {
         fc.assert(
@@ -76,13 +77,14 @@ describe('TimeSystem', () => {
                         sunIntensity: 1,
                         ambientLight: 0.8,
                         fogDensity: 0.025,
+                        dayCount: 1,
                     },
                 });
 
                 // Execute: Run time system (with zero delta to just update phase)
                 TimeSystem(0);
 
-                const phase = timeEntity.time.phase;
+                const phase = timeEntity.time!.phase;
 
                 // Verify: Phase should be one of the four valid phases
                 expect(['dawn', 'day', 'dusk', 'night']).toContain(phase);
@@ -107,7 +109,9 @@ describe('TimeSystem', () => {
     });
 
     it('should handle boundary hours correctly', () => {
-        const boundaryHours = [4.99, 5.0, 5.01, 6.99, 7.0, 7.01, 17.99, 18.0, 18.01, 19.99, 20.0, 20.01];
+        const boundaryHours = [
+            4.99, 5.0, 5.01, 6.99, 7.0, 7.01, 17.99, 18.0, 18.01, 19.99, 20.0, 20.01,
+        ];
 
         boundaryHours.forEach((hour) => {
             const timeEntity = world.add({
@@ -119,12 +123,13 @@ describe('TimeSystem', () => {
                     sunIntensity: 1,
                     ambientLight: 0.8,
                     fogDensity: 0.025,
+                    dayCount: 1,
                 },
             });
 
             TimeSystem(0);
 
-            const phase = timeEntity.time.phase;
+            const phase = timeEntity.time!.phase;
             expect(['dawn', 'day', 'dusk', 'night']).toContain(phase);
 
             world.remove(timeEntity);

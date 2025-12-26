@@ -1,5 +1,5 @@
-import { world } from '../world';
 import { useAchievementStore } from '../../stores/useAchievementStore';
+import { world } from '../world';
 
 const visitedBiomes = new Set<string>();
 
@@ -9,7 +9,7 @@ export function AchievementSystem() {
     // Survivor: Survive for a full day cycle
     for (const { time } of world.with('time')) {
         unlockAchievement('first-steps');
-        
+
         if (time.dayCount > 1) {
             unlockAchievement('survivor');
         }

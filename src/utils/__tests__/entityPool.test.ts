@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EntityPool, createObjectPool } from '../entityPool';
+import { createObjectPool, EntityPool } from '../entityPool';
 
 describe('EntityPool', () => {
     interface TestEntity {
@@ -14,7 +14,9 @@ describe('EntityPool', () => {
         idCounter = 0;
         pool = new EntityPool<TestEntity>(
             () => ({ id: idCounter++, active: false }),
-            (entity) => { entity.active = false; },
+            (entity) => {
+                entity.active = false;
+            },
             10 // maxSize
         );
     });
@@ -22,7 +24,7 @@ describe('EntityPool', () => {
     describe('acquire', () => {
         it('should create new entity when pool is empty', () => {
             const entity = pool.acquire();
-            
+
             expect(entity).toBeDefined();
             expect(entity.id).toBe(0);
             expect(pool.getActiveCount()).toBe(1);
@@ -63,9 +65,9 @@ describe('EntityPool', () => {
         it('should reset entity when released', () => {
             const entity = pool.acquire();
             entity.active = true;
-            
+
             pool.release(entity);
-            
+
             expect(entity.active).toBe(false);
         });
 
@@ -77,7 +79,7 @@ describe('EntityPool', () => {
             }
 
             // Release all
-            entities.forEach(e => pool.release(e));
+            entities.forEach((e) => pool.release(e));
 
             // Pool should be capped at maxSize (10)
             expect(pool.getPooledCount()).toBe(10);
@@ -86,10 +88,12 @@ describe('EntityPool', () => {
         it('should warn when releasing non-active entity', () => {
             const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
             const entity = { id: 999, active: false };
-            
+
             pool.release(entity);
-            
-            expect(consoleSpy).toHaveBeenCalledWith('Attempting to release entity not in active set');
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'Attempting to release entity not in active set'
+            );
             consoleSpy.mockRestore();
         });
     });
@@ -97,23 +101,23 @@ describe('EntityPool', () => {
     describe('counts', () => {
         it('should track active count correctly', () => {
             expect(pool.getActiveCount()).toBe(0);
-            
+
             const e1 = pool.acquire();
             expect(pool.getActiveCount()).toBe(1);
-            
+
             pool.acquire();
             expect(pool.getActiveCount()).toBe(2);
-            
+
             pool.release(e1);
             expect(pool.getActiveCount()).toBe(1);
         });
 
         it('should track pooled count correctly', () => {
             expect(pool.getPooledCount()).toBe(0);
-            
+
             const entity = pool.acquire();
             expect(pool.getPooledCount()).toBe(0);
-            
+
             pool.release(entity);
             expect(pool.getPooledCount()).toBe(1);
         });
@@ -157,7 +161,7 @@ describe('EntityPool', () => {
 
         it('should allow acquiring prewarmed entities', () => {
             pool.prewarm(3);
-            
+
             pool.acquire();
             pool.acquire();
 

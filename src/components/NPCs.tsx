@@ -1,11 +1,11 @@
+import { Billboard, Detailed } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import type { RapierRigidBody } from '@react-three/rapier';
+import { CapsuleCollider, RigidBody } from '@react-three/rapier';
+import { useMemo, useRef } from 'react';
+import * as THREE from 'three';
 import { PREDATOR_SPECIES, PREY_SPECIES } from '@/ecs/data/species';
 import { world } from '@/ecs/world';
-import { useFrame } from '@react-three/fiber';
-import { Detailed, Billboard } from '@react-three/drei';
-import { RigidBody, CapsuleCollider } from '@react-three/rapier';
-import { useRef, useMemo } from 'react';
-import * as THREE from 'three';
-import type { RapierRigidBody } from '@react-three/rapier';
 
 export function NPCs() {
     useFrame(() => {
@@ -15,7 +15,7 @@ export function NPCs() {
     return (
         <group>
             {Array.from(world.with('isNPC', 'transform', 'species').entities)
-                .filter(entity => entity.id !== undefined)
+                .filter((entity) => entity.id !== undefined)
                 .map((entity) => (
                     <NPC key={entity.id} entityId={entity.id!} />
                 ))}
@@ -32,26 +32,36 @@ function NPC({ entityId }: NPCProps) {
     const meshRef = useRef<THREE.Group>(null!);
 
     const entity = world.entity(entityId);
-    
+
     const speciesData = useMemo(() => {
-        if (!entity?.species) return null;
+        if (!entity?.species) {
+            return null;
+        }
         return entity.species.type === 'predator'
             ? PREDATOR_SPECIES[entity.species.id as keyof typeof PREDATOR_SPECIES]
             : PREY_SPECIES[entity.species.id as keyof typeof PREY_SPECIES];
-    }, [entity?.species?.id, entity?.species?.type]);
+    }, [entity?.species?.id, entity?.species?.type, entity?.species]);
 
     const sizeScale = useMemo(() => {
-        if (!speciesData) return 1;
-        return speciesData.size === 'huge' ? 2.0
-            : speciesData.size === 'large' ? 1.5
-            : speciesData.size === 'medium' ? 1.0
-            : speciesData.size === 'small' ? 0.7
-            : 0.4; // tiny
+        if (!speciesData) {
+            return 1;
+        }
+        return speciesData.size === 'huge'
+            ? 2.0
+            : speciesData.size === 'large'
+              ? 1.5
+              : speciesData.size === 'medium'
+                ? 1.0
+                : speciesData.size === 'small'
+                  ? 0.7
+                  : 0.4; // tiny
     }, [speciesData]);
 
     useFrame(() => {
         const currentEntity = world.entity(entityId);
-        if (!currentEntity?.transform || !rigidBodyRef.current) return;
+        if (!currentEntity?.transform || !rigidBodyRef.current) {
+            return;
+        }
 
         // Sync Rapier body position with Yuka AI position
         const pos = currentEntity.transform.position;
@@ -66,7 +76,9 @@ function NPC({ entityId }: NPCProps) {
         }
     });
 
-    if (!entity || !entity.species || !speciesData) return null;
+    if (!entity || !entity.species || !speciesData) {
+        return null;
+    }
 
     const color = speciesData.primaryColor;
     const initialPos = entity.transform?.position || new THREE.Vector3(0, 0, 0);
@@ -80,19 +92,19 @@ function NPC({ entityId }: NPCProps) {
             colliders={false}
         >
             <CapsuleCollider args={[0.2 * sizeScale, 0.15 * sizeScale]} />
-            
+
             <group ref={meshRef}>
                 {/* LOD using drei's Detailed component */}
                 <Detailed distances={[0, 30, 60, 100]}>
                     {/* FULL detail - closest */}
                     <NPCFullDetail sizeScale={sizeScale} color={color} />
-                    
+
                     {/* MEDIUM detail */}
                     <NPCMediumDetail sizeScale={sizeScale} color={color} />
-                    
+
                     {/* LOW detail - farthest visible */}
                     <NPCLowDetail sizeScale={sizeScale} color={color} />
-                    
+
                     {/* CULLED - beyond 100 units */}
                     <group />
                 </Detailed>
@@ -107,7 +119,15 @@ function NPC({ entityId }: NPCProps) {
                     </mesh>
                     <mesh position={[(healthPercent - 1) * 0.4 * sizeScale, 0, 0.01]}>
                         <planeGeometry args={[0.8 * sizeScale * healthPercent, 0.08 * sizeScale]} />
-                        <meshBasicMaterial color={healthPercent > 0.5 ? "#44ff44" : healthPercent > 0.25 ? "#ffff44" : "#ff4444"} />
+                        <meshBasicMaterial
+                            color={
+                                healthPercent > 0.5
+                                    ? '#44ff44'
+                                    : healthPercent > 0.25
+                                      ? '#ffff44'
+                                      : '#ff4444'
+                            }
+                        />
                     </mesh>
                 </Billboard>
             )}

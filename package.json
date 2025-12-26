@@ -1,5 +1,5 @@
 {
-    "name": "@jbcom/rivermarsh",
+    "name": "@arcade-cabinet/rivermarsh",
     "version": "0.1.0",
     "private": true,
     "type": "module",

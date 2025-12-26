@@ -23,8 +23,17 @@ test.describe('Game Initialization', () => {
 
         // Check for health and stamina bars (these should be visible in the DOM)
         // Note: Actual selectors depend on your HUD implementation
-        const healthBar = page.locator('[data-testid="health-bar"]').or(page.locator('text=/health/i')).first();
-        const staminaBar = page.locator('[data-testid="stamina-bar"]').or(page.locator('text=/stamina/i')).first();
+        const healthBar = page
+            .locator('[data-testid="health-bar"]')
+            .or(page.locator('text=/health/i'))
+            .first();
+        const staminaBar = page
+            .locator('[data-testid="stamina-bar"]')
+            .or(page.locator('text=/stamina/i'))
+            .first();
+
+        // Ensure HUD elements are visible
+        await expect(healthBar.or(staminaBar)).toBeVisible();
 
         // At least one should be visible or the canvas should be rendering
         const canvas = page.locator('canvas');

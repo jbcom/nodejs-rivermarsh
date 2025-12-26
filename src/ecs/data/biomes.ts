@@ -1,6 +1,13 @@
 import * as THREE from 'three';
 
-export type BiomeType = 'marsh' | 'forest' | 'desert' | 'tundra' | 'savanna' | 'mountain' | 'scrubland';
+export type BiomeType =
+    | 'marsh'
+    | 'forest'
+    | 'desert'
+    | 'tundra'
+    | 'savanna'
+    | 'mountain'
+    | 'scrubland';
 
 export interface SpawnEntry {
     species: string;
@@ -202,7 +209,15 @@ export interface BiomeBounds {
 
 export function generateBiomeLayout(): BiomeBounds[] {
     const biomes: BiomeBounds[] = [];
-    const biomeTypes: BiomeType[] = ['marsh', 'forest', 'desert', 'tundra', 'savanna', 'mountain', 'scrubland'];
+    const biomeTypes: BiomeType[] = [
+        'marsh',
+        'forest',
+        'desert',
+        'tundra',
+        'savanna',
+        'mountain',
+        'scrubland',
+    ];
 
     // Center biome (marsh - home)
     biomes.push({
@@ -217,10 +232,7 @@ export function generateBiomeLayout(): BiomeBounds[] {
 
     for (let i = 1; i < biomeTypes.length; i++) {
         const distance = 50;
-        const center = new THREE.Vector2(
-            Math.cos(angle) * distance,
-            Math.sin(angle) * distance
-        );
+        const center = new THREE.Vector2(Math.cos(angle) * distance, Math.sin(angle) * distance);
 
         biomes.push({
             type: biomeTypes[i],

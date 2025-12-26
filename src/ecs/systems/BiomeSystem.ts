@@ -1,4 +1,10 @@
-import { BiomeBounds, BIOMES, BiomeType, generateBiomeLayout, getBiomeAtPosition } from '../data/biomes';
+import {
+    BIOMES,
+    type BiomeBounds,
+    type BiomeType,
+    generateBiomeLayout,
+    getBiomeAtPosition,
+} from '../data/biomes';
 import { world } from '../world';
 
 let biomeLayout: BiomeBounds[] | null = null;

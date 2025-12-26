@@ -3,7 +3,7 @@ import { BIOMES } from '../data/biomes';
 import { PREDATOR_SPECIES, PREY_SPECIES } from '../data/species';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores/engineStore';
 import { LEVELING } from '@/constants/game';
 
 const MAX_NPCS = 30;
@@ -14,17 +14,21 @@ let initialized = false;
 
 function getDifficulty() {
     const worldEntity = world.with('difficulty').entities[0];
-    return worldEntity?.difficulty || {
-        level: 'normal',
-        spawnRateMultiplier: 1.0,
-        damageMultiplier: 1.0,
-        healthMultiplier: 1.0,
-        experienceMultiplier: 1.0
-    };
+    return (
+        worldEntity?.difficulty || {
+            level: 'normal',
+            spawnRateMultiplier: 1.0,
+            damageMultiplier: 1.0,
+            healthMultiplier: 1.0,
+            experienceMultiplier: 1.0,
+        }
+    );
 }
 
 export function initializeSpawns(playerPos: THREE.Vector3) {
-    if (initialized) return;
+    if (initialized) {
+        return;
+    }
 
     const biome = getCurrentBiome();
     const biomeData = BIOMES[biome];
@@ -65,11 +69,14 @@ function selectSpecies(spawnTable: { species: string; weight: number }[]): strin
 }
 
 function spawnNPC(speciesId: string, type: 'predator' | 'prey', playerPos: THREE.Vector3) {
-    const speciesData = type === 'predator'
-        ? PREDATOR_SPECIES[speciesId as keyof typeof PREDATOR_SPECIES]
-        : PREY_SPECIES[speciesId as keyof typeof PREY_SPECIES];
+    const speciesData =
+        type === 'predator'
+            ? PREDATOR_SPECIES[speciesId as keyof typeof PREDATOR_SPECIES]
+            : PREY_SPECIES[speciesId as keyof typeof PREY_SPECIES];
 
-    if (!speciesData) return;
+    if (!speciesData) {
+        return;
+    }
 
     // Find spawn position away from player
     let spawnPos: THREE.Vector3;
@@ -86,7 +93,8 @@ function spawnNPC(speciesId: string, type: 'predator' | 'prey', playerPos: THREE
     } while (spawnPos.distanceTo(playerPos) < MIN_SPAWN_DISTANCE && attempts < 10);
 
     // Create entity
-    const baseHealth = speciesData.baseHealth + (speciesId === 'orc' ? 2 : speciesId === 'slime' ? -2 : 0);
+    const baseHealth =
+        speciesData.baseHealth + (speciesId === 'orc' ? 2 : speciesId === 'slime' ? -2 : 0);
     const baseDamage = (speciesData as any).damage || 0;
     const damage = baseDamage + (speciesId === 'orc' ? 1 : speciesId === 'slime' ? -1 : 0);
 
@@ -180,7 +188,7 @@ export function SpawnSystem(playerPos: THREE.Vector3) {
                 if (distance < 20) { // Within 20 meters
                     const baseXP = entity.species.type === 'predator' ? LEVELING.PREDATOR_XP : LEVELING.PREY_XP;
                     const finalXP = baseXP * difficulty.experienceMultiplier;
-                    useGameStore.getState().addExperience(finalXP);
+                    useEngineStore.getState().addExperience(finalXP);
                 }
             }
             world.remove(entity);

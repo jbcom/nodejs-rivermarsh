@@ -1,6 +1,6 @@
 import * as fc from 'fast-check';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { WeatherType } from '../../components';
+import type { WeatherType } from '../../components';
 import { world } from '../../world';
 import { WeatherSystem } from '../WeatherSystem';
 
@@ -13,7 +13,7 @@ describe('WeatherSystem', () => {
     });
 
     // Feature: otterfall-complete, Property 3: Weather Transition Completeness
-    // For any weather transition, when transitionProgress reaches 1.0, the current 
+    // For any weather transition, when transitionProgress reaches 1.0, the current
     // weather should equal nextWeather and nextWeather should be null.
     it('Property 3: Weather Transition Completeness', () => {
         fc.assert(
@@ -23,7 +23,9 @@ describe('WeatherSystem', () => {
                 fc.float({ min: Math.fround(0.9), max: Math.fround(0.99), noNaN: true }),
                 (currentWeather, nextWeather, initialProgress) => {
                     // Skip if current and next are the same (no transition needed)
-                    if (currentWeather === nextWeather) return;
+                    if (currentWeather === nextWeather) {
+                        return;
+                    }
 
                     // Setup: Create weather entity in transition
                     const weatherEntity = world.add({
@@ -42,10 +44,10 @@ describe('WeatherSystem', () => {
                     // Execute: Run weather system with enough delta to complete transition
                     const remainingProgress = 1.0 - initialProgress;
                     const deltaNeeded = remainingProgress * 30 + 0.2; // 30s transition + buffer
-                    
+
                     // Verify entity still exists before running system
                     expect(weatherEntity.weather).toBeDefined();
-                    
+
                     WeatherSystem(deltaNeeded);
 
                     // Verify: Transition should be complete
@@ -65,7 +67,7 @@ describe('WeatherSystem', () => {
     });
 
     // Feature: otterfall-complete, Property 4: Visibility Bounds
-    // For any weather condition, the calculated visibility modifier should be 
+    // For any weather condition, the calculated visibility modifier should be
     // between 0.0 and 1.0 inclusive.
     it('Property 4: Visibility Bounds', () => {
         fc.assert(
@@ -119,7 +121,7 @@ describe('WeatherSystem', () => {
         // Run multiple frames to simulate transition (31 seconds total to ensure completion)
         for (let i = 0; i < 31; i++) {
             WeatherSystem(1.0); // 1 second per frame
-            
+
             // Visibility should always be valid during transition
             if (weatherEntity.weather) {
                 expect(weatherEntity.weather.visibilityMod).toBeGreaterThanOrEqual(0);

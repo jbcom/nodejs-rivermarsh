@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadGame, SaveData } from '../save';
+import { loadGame, type SaveData } from '../save';
 
 const SAVE_KEY = 'otterfall_save';
 const SAVE_VERSION = '1.0.0';
@@ -39,7 +39,7 @@ describe('save utils', () => {
         });
 
         it('should return null for malformed data', () => {
-             const malformedData = {
+            const malformedData = {
                 version: SAVE_VERSION,
                 // Missing player, world, resources
             };

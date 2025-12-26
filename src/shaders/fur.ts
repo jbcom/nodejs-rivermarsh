@@ -1,6 +1,6 @@
 /**
  * Fur Shader - Shell-based fur rendering
- * 
+ *
  * Uses multiple shell layers to create a fur effect.
  * Each layer is slightly displaced along the normal.
  */
@@ -27,7 +27,7 @@ void main() {
     
     gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
 }
-`
+`;
 
 export const furFragmentShader = /* glsl */ `
 uniform vec3 colorBase;
@@ -70,7 +70,7 @@ void main() {
     
     gl_FragColor = vec4(furColor, alpha);
 }
-`
+`;
 
 // Shader configuration defaults
 export const FUR_DEFAULTS = {
@@ -78,4 +78,4 @@ export const FUR_DEFAULTS = {
     spacing: 0.02,
     skinColor: 0x3e2723,
     tipColor: 0x795548,
-}
+};

@@ -9,7 +9,7 @@ describe('BiomeSystem', () => {
     });
 
     // Feature: otterfall-complete, Property 5: Biome Boundary Exclusivity
-    // For any position in the world, the position should be contained within 
+    // For any position in the world, the position should be contained within
     // exactly one biome's bounds (determined by closest biome center).
     it('Property 5: Biome Boundary Exclusivity', () => {
         fc.assert(
@@ -22,9 +22,15 @@ describe('BiomeSystem', () => {
 
                     // Verify: Should get exactly one biome
                     expect(biome).toBeDefined();
-                    expect(['marsh', 'forest', 'desert', 'tundra', 'savanna', 'mountain', 'scrubland']).toContain(
-                        biome
-                    );
+                    expect([
+                        'marsh',
+                        'forest',
+                        'desert',
+                        'tundra',
+                        'savanna',
+                        'mountain',
+                        'scrubland',
+                    ]).toContain(biome);
 
                     // Verify: The returned biome should be the closest one
                     const biomeBounds = biomeLayout.find((b) => b.type === biome);
@@ -32,15 +38,17 @@ describe('BiomeSystem', () => {
 
                     // Verify: No other biome should be closer
                     if (biomeBounds) {
-                        const pos = { x, z };
+                        const _pos = { x, z };
                         const distToAssignedBiome = Math.sqrt(
-                            Math.pow(x - biomeBounds.center.x, 2) + Math.pow(z - biomeBounds.center.y, 2)
+                            (x - biomeBounds.center.x) ** 2 + (z - biomeBounds.center.y) ** 2
                         );
 
                         for (const otherBiome of biomeLayout) {
-                            if (otherBiome.type === biome) continue;
+                            if (otherBiome.type === biome) {
+                                continue;
+                            }
                             const distToOther = Math.sqrt(
-                                Math.pow(x - otherBiome.center.x, 2) + Math.pow(z - otherBiome.center.y, 2)
+                                (x - otherBiome.center.x) ** 2 + (z - otherBiome.center.y) ** 2
                             );
                             expect(distToAssignedBiome).toBeLessThanOrEqual(distToOther + 0.0001); // Small epsilon for floating point
                         }
@@ -62,8 +70,7 @@ describe('BiomeSystem', () => {
 
                 // Centers should be different
                 const sameCenter =
-                    biome1.center.x === biome2.center.x &&
-                    biome1.center.y === biome2.center.y;
+                    biome1.center.x === biome2.center.x && biome1.center.y === biome2.center.y;
 
                 expect(sameCenter).toBe(false);
             }
@@ -78,7 +85,15 @@ describe('BiomeSystem', () => {
             for (let z = -100; z <= 100; z += 10) {
                 const biome = getBiomeAtPosition(x, z, biomeLayout);
                 expect(biome).toBeDefined();
-                expect(['marsh', 'forest', 'desert', 'tundra', 'savanna', 'mountain', 'scrubland']).toContain(biome);
+                expect([
+                    'marsh',
+                    'forest',
+                    'desert',
+                    'tundra',
+                    'savanna',
+                    'mountain',
+                    'scrubland',
+                ]).toContain(biome);
             }
         }
     });

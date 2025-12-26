@@ -14,45 +14,58 @@ export function EventOverlay() {
         return () => clearInterval(interval);
     }, []);
 
-    if (activeEvents.length === 0) return null;
+    if (activeEvents.length === 0) {
+        return null;
+    }
 
-    const eventData: Record<string, { title: string, color: string, icon: string }> = {
-        'blood_moon': { title: 'BLOOD MOON', color: '#ff4444', icon: '🔴' },
-        'golden_hour': { title: 'GOLDEN HOUR', color: '#ffcc00', icon: '✨' },
-        'meteor_shower': { title: 'METEOR SHOWER', color: '#00ccff', icon: '🌠' },
-        'foggy_morning': { title: 'THICK FOG', color: '#cccccc', icon: '🌫️' },
+    const eventData: Record<string, { title: string; color: string; icon: string }> = {
+        blood_moon: { title: 'BLOOD MOON', color: '#ff4444', icon: '🔴' },
+        golden_hour: { title: 'GOLDEN HOUR', color: '#ffcc00', icon: '✨' },
+        meteor_shower: { title: 'METEOR SHOWER', color: '#00ccff', icon: '🌠' },
+        foggy_morning: { title: 'THICK FOG', color: '#cccccc', icon: '🌫️' },
     };
 
     return (
-        <div style={{
-            position: 'absolute',
-            bottom: '100px',
-            right: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            zIndex: 90,
-            pointerEvents: 'none',
-        }}>
-            {activeEvents.map(eventId => {
-                const data = eventData[eventId] || { title: eventId.replace('_', ' ').toUpperCase(), color: '#fff', icon: '⚠️' };
+        <div
+            style={{
+                position: 'absolute',
+                bottom: '100px',
+                right: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                zIndex: 90,
+                pointerEvents: 'none',
+            }}
+        >
+            {activeEvents.map((eventId) => {
+                const data = eventData[eventId] || {
+                    title: eventId.replace('_', ' ').toUpperCase(),
+                    color: '#fff',
+                    icon: '⚠️',
+                };
                 return (
-                    <div key={eventId} style={{
-                        background: 'rgba(0,0,0,0.6)',
-                        borderLeft: `4px solid ${data.color}`,
-                        padding: '8px 15px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        animation: 'fadeInRight 0.5s ease-out',
-                    }}>
+                    <div
+                        key={eventId}
+                        style={{
+                            background: 'rgba(0,0,0,0.6)',
+                            borderLeft: `4px solid ${data.color}`,
+                            padding: '8px 15px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            animation: 'fadeInRight 0.5s ease-out',
+                        }}
+                    >
                         <span style={{ fontSize: '18px' }}>{data.icon}</span>
-                        <span style={{ 
-                            color: data.color, 
-                            fontWeight: 'bold', 
-                            fontSize: '14px',
-                            letterSpacing: '1px'
-                        }}>
+                        <span
+                            style={{
+                                color: data.color,
+                                fontWeight: 'bold',
+                                fontSize: '14px',
+                                letterSpacing: '1px',
+                            }}
+                        >
                             {data.title}
                         </span>
                     </div>

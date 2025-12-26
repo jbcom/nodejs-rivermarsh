@@ -20,7 +20,9 @@ export function Tooltip({ text, position, visible, icon }: TooltipProps) {
         }
     }, [visible]);
 
-    if (!show) return null;
+    if (!show) {
+        return null;
+    }
 
     return (
         <div

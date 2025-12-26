@@ -1,21 +1,21 @@
 /**
  * AI States using Yuka's State class
- * 
+ *
  * These states implement the proper enter/execute/exit lifecycle pattern
  * and dynamically manage steering behaviors based on the current state.
  */
 
 import {
+    ArriveBehavior,
+    FleeBehavior,
+    SeekBehavior,
+    SeparationBehavior,
     State,
     WanderBehavior,
-    SeekBehavior,
-    FleeBehavior,
-    SeparationBehavior,
-    ArriveBehavior,
     Vector3 as YukaVector3,
 } from 'yuka';
 import { world } from '../../world';
-import { NPCVehicle, getYukaManager } from './YukaManager';
+import { getYukaManager, type NPCVehicle } from './YukaManager';
 
 // State IDs
 export const STATE_IDLE = 'IDLE';
@@ -61,7 +61,14 @@ abstract class NPCState extends State {
      */
     protected syncState(vehicle: NPCVehicle, state: string): void {
         if (vehicle.miniplexEntity?.species) {
-            vehicle.miniplexEntity.species.state = state as 'idle' | 'walk' | 'run' | 'flee' | 'chase' | 'attack' | 'dead';
+            vehicle.miniplexEntity.species.state = state as
+                | 'idle'
+                | 'walk'
+                | 'run'
+                | 'flee'
+                | 'chase'
+                | 'attack'
+                | 'dead';
         }
     }
 }
@@ -76,23 +83,25 @@ export class IdleState extends NPCState {
     enter(vehicle: NPCVehicle): void {
         this.idleTimer = 0;
         this.idleDuration = 1 + Math.random() * 3; // 1-4 seconds
-        
+
         // Clear all steering behaviors
         vehicle.steering.clear();
-        
+
         // Add separation to avoid crowding
         this.addSeparation(vehicle);
-        
+
         this.syncState(vehicle, 'idle');
     }
 
     execute(vehicle: NPCVehicle): void {
         const entity = vehicle.miniplexEntity;
-        if (!entity?.species || !entity?.steering) return;
+        if (!entity?.species || !entity?.steering) {
+            return;
+        }
 
         // Check for threats/targets
         const manager = getYukaManager();
-        
+
         if (entity.species.type === 'prey') {
             // Prey checks for predators
             const predator = manager.findNearestVehicle(vehicle.position, 'predator');
@@ -140,31 +149,33 @@ export class WanderState extends NPCState {
     enter(vehicle: NPCVehicle): void {
         this.wanderTimer = 0;
         this.wanderDuration = 3 + Math.random() * 4; // 3-7 seconds
-        
+
         // Clear steering and add wander
         vehicle.steering.clear();
-        
+
         // Add wander behavior
         this.wanderBehavior = new WanderBehavior(
-            1.5,  // radius - size of wander circle
-            3,    // distance - how far ahead the circle is projected
-            2     // jitter - randomness per frame
+            1.5, // radius - size of wander circle
+            3, // distance - how far ahead the circle is projected
+            2 // jitter - randomness per frame
         );
         this.wanderBehavior.weight = WANDER_WEIGHT;
         vehicle.steering.add(this.wanderBehavior);
-        
+
         // Add separation
         this.addSeparation(vehicle);
-        
+
         this.syncState(vehicle, 'walk');
     }
 
     execute(vehicle: NPCVehicle): void {
         const entity = vehicle.miniplexEntity;
-        if (!entity?.species || !entity?.steering) return;
+        if (!entity?.species || !entity?.steering) {
+            return;
+        }
 
         const manager = getYukaManager();
-        
+
         // Check for threats/targets
         if (entity.species.type === 'prey') {
             const predator = manager.findNearestVehicle(vehicle.position, 'predator');
@@ -215,7 +226,7 @@ export class FleeState extends NPCState {
 
     enter(vehicle: NPCVehicle): void {
         this.fleeTimer = 0;
-        
+
         // Get threat position
         const entity = vehicle.miniplexEntity;
         const targetId = entity?.steering?.target;
@@ -225,10 +236,10 @@ export class FleeState extends NPCState {
                 this.threatPosition.copy(targetVehicle.position);
             }
         }
-        
+
         // Clear steering and add flee
         vehicle.steering.clear();
-        
+
         // Add flee behavior
         this.fleeBehavior = new FleeBehavior(
             this.threatPosition,
@@ -236,27 +247,29 @@ export class FleeState extends NPCState {
         );
         this.fleeBehavior.weight = FLEE_WEIGHT;
         vehicle.steering.add(this.fleeBehavior);
-        
+
         // Increase speed while fleeing
         vehicle.maxSpeed = (entity?.species?.speed ?? 4) * 1.5;
-        
+
         this.syncState(vehicle, 'flee');
     }
 
     execute(vehicle: NPCVehicle): void {
         const entity = vehicle.miniplexEntity;
-        if (!entity?.steering) return;
+        if (!entity?.steering) {
+            return;
+        }
 
         // Update threat position if target still exists
         if (entity.steering.target !== null) {
             const targetVehicle = getYukaManager().getVehicle(entity.steering.target);
             if (targetVehicle) {
                 this.threatPosition.copy(targetVehicle.position);
-                
+
                 // Check if we're far enough away
                 const distSq = vehicle.position.squaredDistanceTo(targetVehicle.position);
                 const safeDistance = (entity.steering.awarenessRadius ?? 15) * 2;
-                
+
                 if (distSq > safeDistance * safeDistance) {
                     // We've escaped!
                     entity.steering.target = null;
@@ -284,7 +297,7 @@ export class FleeState extends NPCState {
             vehicle.steering.remove(this.fleeBehavior);
             this.fleeBehavior = null;
         }
-        
+
         // Restore normal speed
         const entity = vehicle.miniplexEntity;
         vehicle.maxSpeed = entity?.species?.speed ?? 4;
@@ -302,7 +315,7 @@ export class ChaseState extends NPCState {
 
     enter(vehicle: NPCVehicle): void {
         this.chaseTimer = 0;
-        
+
         // Get target position
         const entity = vehicle.miniplexEntity;
         const targetId = entity?.steering?.target;
@@ -312,40 +325,43 @@ export class ChaseState extends NPCState {
                 this.targetPosition.copy(targetVehicle.position);
             }
         }
-        
+
         // Clear steering and add seek
         vehicle.steering.clear();
-        
+
         // Add seek behavior
         this.seekBehavior = new SeekBehavior(this.targetPosition);
         this.seekBehavior.weight = SEEK_WEIGHT;
         vehicle.steering.add(this.seekBehavior);
-        
+
         // Increase speed while chasing
         vehicle.maxSpeed = (entity?.species?.speed ?? 4) * 1.5;
-        
+
         this.syncState(vehicle, 'chase');
     }
 
     execute(vehicle: NPCVehicle): void {
         const entity = vehicle.miniplexEntity;
-        if (!entity?.steering) return;
+        if (!entity?.steering) {
+            return;
+        }
 
         // Update target position
         if (entity.steering.target !== null) {
             const targetVehicle = getYukaManager().getVehicle(entity.steering.target);
             if (targetVehicle && targetVehicle.miniplexEntity?.species?.state !== 'dead') {
                 this.targetPosition.copy(targetVehicle.position);
-                
+
                 // Check distance
                 const distSq = vehicle.position.squaredDistanceTo(targetVehicle.position);
-                
+
                 // Attack range
-                if (distSq < 2.25) { // 1.5^2
+                if (distSq < 2.25) {
+                    // 1.5^2
                     vehicle.stateMachine?.changeTo(STATE_ATTACK);
                     return;
                 }
-                
+
                 // Lost target (too far)
                 const lostDistance = (entity.steering.awarenessRadius ?? 15) * 2;
                 if (distSq > lostDistance * lostDistance) {
@@ -374,7 +390,7 @@ export class ChaseState extends NPCState {
             vehicle.steering.remove(this.seekBehavior);
             this.seekBehavior = null;
         }
-        
+
         // Restore normal speed
         const entity = vehicle.miniplexEntity;
         vehicle.maxSpeed = entity?.species?.speed ?? 4;
@@ -393,7 +409,7 @@ export class AttackState extends NPCState {
 
     enter(vehicle: NPCVehicle): void {
         this.attackCooldown = 0;
-        
+
         // Get target position
         const entity = vehicle.miniplexEntity;
         const targetId = entity?.steering?.target;
@@ -403,54 +419,60 @@ export class AttackState extends NPCState {
                 this.targetPosition.copy(targetVehicle.position);
             }
         }
-        
+
         // Use arrive behavior to stop at target
         vehicle.steering.clear();
-        
+
         this.arriveBehavior = new ArriveBehavior(this.targetPosition, 1.5, 0.5);
         this.arriveBehavior.weight = ARRIVE_WEIGHT;
         vehicle.steering.add(this.arriveBehavior);
-        
+
         // Slow down during attack
         vehicle.maxSpeed = (entity?.species?.speed ?? 4) * 0.5;
-        
+
         this.syncState(vehicle, 'attack');
     }
 
     execute(vehicle: NPCVehicle): void {
         const entity = vehicle.miniplexEntity;
-        if (!entity?.steering || !entity?.species) return;
+        if (!entity?.steering || !entity?.species) {
+            return;
+        }
 
         // Update target position and deal damage
         if (entity.steering.target !== null) {
             const targetVehicle = getYukaManager().getVehicle(entity.steering.target);
-            if (targetVehicle && targetVehicle.miniplexEntity?.species) {
+            if (targetVehicle?.miniplexEntity?.species) {
                 const targetEntity = targetVehicle.miniplexEntity;
                 this.targetPosition.copy(targetVehicle.position);
-                
+
                 const distSq = vehicle.position.squaredDistanceTo(targetVehicle.position);
-                
+
                 // Still in attack range
                 if (distSq < 2.25) {
                     this.attackCooldown += 1 / 60;
-                    
-                        if (this.attackCooldown >= this.ATTACK_INTERVAL) {
-                            this.attackCooldown = 0;
-                            
-                            // Deal damage with difficulty and event multipliers
-                            const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
-                            const difficultyMultiplier = worldEntity?.difficulty?.damageMultiplier ?? 1.0;
-                            const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
-                            const bloodMoonMultiplier = isBloodMoon && entity.species.type === 'predator' ? 2.0 : 1.0;
-                            
-                            const finalDamage = this.ATTACK_DAMAGE * difficultyMultiplier * bloodMoonMultiplier;
 
-                            if (targetEntity.species) {
-                                targetEntity.species.health = Math.max(
-                                    0,
-                                    targetEntity.species.health - finalDamage
-                                );
-                            
+                    if (this.attackCooldown >= this.ATTACK_INTERVAL) {
+                        this.attackCooldown = 0;
+
+                        // Deal damage with difficulty and event multipliers
+                        const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
+                        const difficultyMultiplier =
+                            worldEntity?.difficulty?.damageMultiplier ?? 1.0;
+                        const isBloodMoon =
+                            worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
+                        const bloodMoonMultiplier =
+                            isBloodMoon && entity.species.type === 'predator' ? 2.0 : 1.0;
+
+                        const finalDamage =
+                            this.ATTACK_DAMAGE * difficultyMultiplier * bloodMoonMultiplier;
+
+                        if (targetEntity.species) {
+                            targetEntity.species.health = Math.max(
+                                0,
+                                targetEntity.species.health - finalDamage
+                            );
+
                             // Target died
                             if (targetEntity.species.health <= 0) {
                                 targetEntity.species.state = 'dead';
@@ -481,7 +503,7 @@ export class AttackState extends NPCState {
             vehicle.steering.remove(this.arriveBehavior);
             this.arriveBehavior = null;
         }
-        
+
         // Restore normal speed
         const entity = vehicle.miniplexEntity;
         vehicle.maxSpeed = entity?.species?.speed ?? 4;

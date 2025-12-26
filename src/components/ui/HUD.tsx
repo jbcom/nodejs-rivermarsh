@@ -1,38 +1,34 @@
 import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { useEffect, useState } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
+import { HealthBar, Inventory as RPGInventory } from '@jbcom/strata';
 
 export function HUD() {
     // Game loop stats
-    const health = useGameStore((s) => s.player.health);
-    const maxHealth = useGameStore((s) => s.player.maxHealth);
-    const stamina = useGameStore((s) => s.player.stamina);
-    const maxStamina = useGameStore((s) => s.player.maxStamina);
-    const level = useGameStore((s) => s.player.level);
-    const experience = useGameStore((s) => s.player.experience);
-    const expToNext = useGameStore((s) => s.player.expToNext);
-    const nearbyResource = useGameStore((s) => s.nearbyResource);
-    const score = useGameStore((s) => s.score);
-    const distance = useGameStore((s) => s.distance);
+    const health = useEngineStore((s) => s.player.health);
+    const maxHealth = useEngineStore((s) => s.player.maxHealth);
+    const stamina = useEngineStore((s) => s.player.stamina);
+    const maxStamina = useEngineStore((s) => s.player.maxStamina);
+    const level = useEngineStore((s) => s.player.level);
+    const experience = useEngineStore((s) => s.player.experience);
+    const expToNext = useEngineStore((s) => s.player.expToNext);
+    const nearbyResource = useEngineStore((s) => s.nearbyResource);
+    const score = useEngineStore((s) => s.score);
+    const distance = useEngineStore((s) => s.distance);
     
-    // UI/Meta stats from useRivermarsh
-    const gold = useRivermarsh((s) => s.player.stats.gold);
-    const showHelpSetting = useRivermarsh((s) => s.settings?.showHelp ?? true);
+    // UI/Meta stats from useRPGStore
+    const gold = useRPGStore((s) => s.player.stats.gold);
+    const showHelpSetting = useRPGStore((s) => s.settings?.showHelp ?? true);
     
-    const { toggleShop } = useRivermarsh();
+    const { toggleShop } = useRPGStore();
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');
     const [isPaused, setIsPaused] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
-
-    // Clamp percentages
-    const healthPercent = Math.min(100, Math.max(0, (health / maxHealth) * 100));
-    const staminaPercent = Math.min(100, Math.max(0, (stamina / maxStamina) * 100));
-    const xpPercent = expToNext > 0 ? Math.min(100, Math.max(0, (experience / expToNext) * 100)) : 0;
 
     // Update time and weather from ECS
     useEffect(() => {
@@ -116,9 +112,14 @@ export function HUD() {
                     color: '#fff',
                 }}>
                     <div style={{ fontSize: '12px', color: '#d4af37', fontWeight: 'bold' }}>LVL {level}</div>
-                    <div style={{ width: '120px', height: '4px', background: 'rgba(255,255,255,0.2)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ width: `${xpPercent}%`, height: '100%', background: '#fbbf24', transition: 'width 0.3s' }} />
-                    </div>
+                    <HealthBar 
+                        value={experience} 
+                        maxValue={expToNext} 
+                        width={120} 
+                        height={4} 
+                        fillColor="#fbbf24"
+                        style={{ marginTop: '4px' }}
+                    />
                 </div>
                 <div style={{
                     background: 'rgba(0,0,0,0.6)',
@@ -186,18 +187,31 @@ export function HUD() {
                 flexDirection: 'column',
                 gap: '12px',
             }}>
+                {/* Inventory */}
+                <div style={{ marginBottom: '10px' }}>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Inventory</div>
+                    <RPGInventory 
+                        slots={useRPGStore.getState().player.inventory as any} 
+                        columns={5}
+                        rows={1}
+                        slotSize={44}
+                        style={{ position: 'relative', width: '250px', background: 'transparent', padding: 0 }}
+                    />
+                </div>
+
                 {/* Health */}
                 <div>
                     <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
                         <span>Health</span>
                         <span>{Math.round(health)} / {maxHealth}</span>
                     </div>
-                    <div style={{ width: '250px', height: '12px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div 
-                            data-testid="health-bar-fill"
-                            style={{ width: `${healthPercent}%`, height: '100%', background: healthPercent > 50 ? '#4ade80' : healthPercent > 25 ? '#fbbf24' : '#ef4444', transition: 'width 0.3s' }} 
-                        />
-                    </div>
+                    <HealthBar 
+                        value={health} 
+                        maxValue={maxHealth} 
+                        width={250} 
+                        height={12} 
+                        fillColor={health / maxHealth > 0.5 ? '#4ade80' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
+                    />
                 </div>
                 {/* Stamina */}
                 <div>
@@ -205,12 +219,13 @@ export function HUD() {
                         <span>Stamina</span>
                         <span>{Math.round(stamina)} / {maxStamina}</span>
                     </div>
-                    <div style={{ width: '250px', height: '8px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div 
-                            data-testid="stamina-bar-fill"
-                            style={{ width: `${staminaPercent}%`, height: '100%', background: '#60a5fa', transition: 'width 0.3s' }} 
-                        />
-                    </div>
+                    <HealthBar 
+                        value={stamina} 
+                        maxValue={maxStamina} 
+                        width={250} 
+                        height={8} 
+                        fillColor="#60a5fa"
+                    />
                 </div>
 
                 {/* XP Bar (Integrated into Bottom Left HUD) */}
@@ -234,24 +249,13 @@ export function HUD() {
                     }}>
                         XP Progress
                     </div>
-                    <div style={{
-                        width: '250px',
-                        height: '6px',
-                        background: 'rgba(0,0,0,0.5)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '1px',
-                        overflow: 'hidden',
-                    }}>
-                        <div
-                            data-testid="xp-bar-fill"
-                            style={{
-                                width: `${xpPercent}%`,
-                                height: '100%',
-                                background: '#fbbf24',
-                                transition: 'width 0.3s ease',
-                            }}
-                        />
-                    </div>
+                    <HealthBar 
+                        value={experience} 
+                        maxValue={expToNext} 
+                        width={250} 
+                        height={6} 
+                        fillColor="#fbbf24"
+                    />
                 </div>
             </div>
 
@@ -303,7 +307,7 @@ export function HUD() {
             </div>
 
             {/* Danger Vignette */}
-            {healthPercent < 30 && (
+            {health / maxHealth < 0.3 && (
                 <div style={{
                     position: 'absolute',
                     top: 0,

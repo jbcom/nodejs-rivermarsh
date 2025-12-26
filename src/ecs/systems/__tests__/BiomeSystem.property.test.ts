@@ -1,6 +1,6 @@
 import * as fc from 'fast-check';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { BiomeType } from '../../data/biomes';
+import type { BiomeType } from '../../data/biomes';
 import { world } from '../../world';
 import { BiomeSystem, getBiomeLayout, initializeBiomes } from '../BiomeSystem';
 
@@ -23,17 +23,25 @@ describe('BiomeSystem - Property-Based Tests', () => {
                         const entity = world.add({
                             biome: {
                                 current: 'marsh' as BiomeType,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute
                         BiomeSystem(x, z);
 
-                        const biome = entity.biome!.current;
+                        const biome = entity.biome?.current;
 
                         // Verify: Should return a valid biome type
-                        const validBiomes: BiomeType[] = ['marsh', 'forest', 'desert', 'tundra', 'savanna', 'mountain', 'scrubland'];
+                        const validBiomes: BiomeType[] = [
+                            'marsh',
+                            'forest',
+                            'desert',
+                            'tundra',
+                            'savanna',
+                            'mountain',
+                            'scrubland',
+                        ];
                         expect(validBiomes).toContain(biome);
 
                         // Cleanup
@@ -54,25 +62,25 @@ describe('BiomeSystem - Property-Based Tests', () => {
                         const entity1 = world.add({
                             biome: {
                                 current: 'marsh' as BiomeType,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute first time
                         BiomeSystem(x, z);
-                        const biome1 = entity1.biome!.current;
+                        const biome1 = entity1.biome?.current;
 
                         // Clear and execute second time
                         world.remove(entity1);
                         const entity2 = world.add({
                             biome: {
                                 current: 'marsh' as BiomeType,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         BiomeSystem(x, z);
-                        const biome2 = entity2.biome!.current;
+                        const biome2 = entity2.biome?.current;
 
                         // Verify: Same position should return same biome
                         expect(biome2).toBe(biome1);
@@ -95,14 +103,14 @@ describe('BiomeSystem - Property-Based Tests', () => {
                         const entity = world.add({
                             biome: {
                                 current: 'forest' as BiomeType,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute: Check position near origin (within marsh radius of 25)
                         BiomeSystem(x, z);
 
-                        const biome = entity.biome!.current;
+                        const biome = entity.biome?.current;
 
                         // Verify: Should be marsh biome
                         expect(biome).toBe('marsh');
@@ -118,35 +126,53 @@ describe('BiomeSystem - Property-Based Tests', () => {
         it('should transition biome when crossing boundaries', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<BiomeType>('marsh', 'forest', 'desert', 'tundra', 'savanna', 'mountain', 'scrubland'),
-                    fc.constantFrom<BiomeType>('marsh', 'forest', 'desert', 'tundra', 'savanna', 'mountain', 'scrubland'),
+                    fc.constantFrom<BiomeType>(
+                        'marsh',
+                        'forest',
+                        'desert',
+                        'tundra',
+                        'savanna',
+                        'mountain',
+                        'scrubland'
+                    ),
+                    fc.constantFrom<BiomeType>(
+                        'marsh',
+                        'forest',
+                        'desert',
+                        'tundra',
+                        'savanna',
+                        'mountain',
+                        'scrubland'
+                    ),
                     (startBiome, endBiome) => {
                         // Skip if same biome
                         fc.pre(startBiome !== endBiome);
 
                         // Setup: Find positions for each biome
                         const layout = getBiomeLayout();
-                        const startBounds = layout.find(b => b.type === startBiome);
-                        const endBounds = layout.find(b => b.type === endBiome);
+                        const startBounds = layout.find((b) => b.type === startBiome);
+                        const endBounds = layout.find((b) => b.type === endBiome);
 
-                        if (!startBounds || !endBounds) return;
+                        if (!startBounds || !endBounds) {
+                            return;
+                        }
 
                         const entity = world.add({
                             biome: {
                                 current: startBiome,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute: Move to start biome center
                         BiomeSystem(startBounds.center.x, startBounds.center.y);
-                        expect(entity.biome!.current).toBe(startBiome);
+                        expect(entity.biome?.current).toBe(startBiome);
 
                         // Execute: Move to end biome center
                         BiomeSystem(endBounds.center.x, endBounds.center.y);
 
                         // Verify: Should have transitioned
-                        expect(entity.biome!.current).toBe(endBiome);
+                        expect(entity.biome?.current).toBe(endBiome);
 
                         // Cleanup
                         world.remove(entity);
@@ -167,17 +193,17 @@ describe('BiomeSystem - Property-Based Tests', () => {
                         const entity = world.add({
                             biome: {
                                 current: 'forest' as BiomeType,
-                                transitionProgress: initialProgress
-                            }
+                                transitionProgress: initialProgress,
+                            },
                         });
 
                         // Execute: Move to a position
                         BiomeSystem(x, z);
-                        const newBiome = entity.biome!.current;
+                        const newBiome = entity.biome?.current;
 
                         // If biome changed, transition progress should reset
                         if (newBiome !== 'forest') {
-                            expect(entity.biome!.transitionProgress).toBe(0);
+                            expect(entity.biome?.transitionProgress).toBe(0);
                         }
 
                         // Cleanup
@@ -191,7 +217,7 @@ describe('BiomeSystem - Property-Based Tests', () => {
         it('should have all 7 biomes accessible', () => {
             // This test verifies that all biome types can be reached
             const layout = getBiomeLayout();
-            const biomeTypes = layout.map(b => b.type);
+            const biomeTypes = layout.map((b) => b.type);
 
             // Verify: All 7 biomes should be in the layout
             expect(biomeTypes).toContain('marsh');
@@ -214,27 +240,23 @@ describe('BiomeSystem - Property-Based Tests', () => {
                         const entity = world.add({
                             biome: {
                                 current: 'marsh' as BiomeType,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute
                         BiomeSystem(x, z);
-                        const biome = entity.biome!.current;
+                        const biome = entity.biome?.current;
 
                         // Verify: Find closest biome manually and compare
                         const layout = getBiomeLayout();
                         let closestBiome = layout[0];
                         let closestDist = Math.sqrt(
-                            Math.pow(x - closestBiome.center.x, 2) +
-                            Math.pow(z - closestBiome.center.y, 2)
+                            (x - closestBiome.center.x) ** 2 + (z - closestBiome.center.y) ** 2
                         );
 
                         for (const b of layout) {
-                            const dist = Math.sqrt(
-                                Math.pow(x - b.center.x, 2) +
-                                Math.pow(z - b.center.y, 2)
-                            );
+                            const dist = Math.sqrt((x - b.center.x) ** 2 + (z - b.center.y) ** 2);
                             if (dist < closestDist) {
                                 closestDist = dist;
                                 closestBiome = b;

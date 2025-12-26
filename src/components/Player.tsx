@@ -1,16 +1,16 @@
-import { furFragmentShader, furVertexShader } from '@/shaders/fur';
-import { useGameStore } from '@/stores/gameStore';
-import { useRivermarsh } from '@/stores/useRivermarsh';
-import { useControlsStore } from '@/stores/useControlsStore';
-import { combatEvents } from '@/events/combatEvents';
+import { useFrame } from '@react-three/fiber';
+import type { RapierRigidBody } from '@react-three/rapier';
+import { CapsuleCollider, RigidBody } from '@react-three/rapier';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import * as THREE from 'three';
 import { world } from '@/ecs/world';
+import { combatEvents } from '@/events/combatEvents';
+import { furFragmentShader, furVertexShader } from '@/shaders/fur';
+import { useEngineStore } from '@/stores/engineStore';
+import { useControlsStore } from '@/stores/controlsStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
-import { useFrame } from '@react-three/fiber';
-import { RigidBody, CapsuleCollider } from '@react-three/rapier';
-import { useMemo, useRef, useEffect, useCallback } from 'react';
-import * as THREE from 'three';
-import type { RapierRigidBody } from '@react-three/rapier';
 
 const FUR_LAYERS = 6;
 const SKIN_COLOR = 0x3e2723;
@@ -44,12 +44,12 @@ export function Player() {
     const attackCooldownRef = useRef(0);
     const attackAnimTimerRef = useRef(0);
 
-    const input = useGameStore((s) => s.input);
-    const player = useGameStore((s) => s.player);
-    const playerStats = useRivermarsh((s) => s.player.stats);
+    const input = useEngineStore((s) => s.input);
+    const player = useEngineStore((s) => s.player);
+    const playerStats = useRPGStore((s) => s.player.stats);
     const dashAction = useControlsStore((state) => state.actions.dash);
-    const updatePlayer = useGameStore((s) => s.updatePlayer);
-    const damagePlayer = useGameStore.getState().damagePlayer;
+    const updatePlayer = useEngineStore((s) => s.updatePlayer);
+    const damagePlayer = useEngineStore.getState().damagePlayer;
 
     // Register player in ECS world
     useEffect(() => {
@@ -82,10 +82,12 @@ export function Player() {
         return () => {
             world.remove(entity);
         };
-    }, []);
+    }, [playerStats.health, playerStats.maxHealth, playerStats.maxStamina, playerStats.stamina]);
 
     const performAttack = useCallback(() => {
-        if (attackCooldownRef.current > 0) return;
+        if (attackCooldownRef.current > 0) {
+            return;
+        }
 
         const damage = 10 + playerStats.level * 2;
         const range = 2.5;
@@ -104,16 +106,21 @@ export function Player() {
     }, [playerStats.level]);
 
     // Fur uniforms (shared, updated each frame)
-    const furUniforms = useMemo(() => ({
-        layerOffset: { value: 0 },
-        spacing: { value: 0.02 },
-        colorBase: { value: new THREE.Color(SKIN_COLOR) },
-        colorTip: { value: new THREE.Color(TIP_COLOR) },
-        time: { value: 0 },
-    }), []);
+    const furUniforms = useMemo(
+        () => ({
+            layerOffset: { value: 0 },
+            spacing: { value: 0.02 },
+            colorBase: { value: new THREE.Color(SKIN_COLOR) },
+            colorTip: { value: new THREE.Color(TIP_COLOR) },
+            time: { value: 0 },
+        }),
+        []
+    );
 
     useFrame((_, delta) => {
-        if (!rigidBodyRef.current || !meshRef.current) return;
+        if (!rigidBodyRef.current || !meshRef.current) {
+            return;
+        }
 
         // Update cooldowns
         if (attackCooldownRef.current > 0) {
@@ -151,11 +158,15 @@ export function Player() {
             if (Math.abs(dirX) > 0.1 || Math.abs(dirZ) > 0.1) {
                 // Calculate target rotation
                 const targetAngle = Math.atan2(dirX, dirZ);
-                
+
                 // Smooth rotation on mesh (visual only)
                 let angleDiff = targetAngle - meshRef.current.rotation.y;
-                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                while (angleDiff > Math.PI) {
+                    angleDiff -= Math.PI * 2;
+                }
+                while (angleDiff < -Math.PI) {
+                    angleDiff += Math.PI * 2;
+                }
                 meshRef.current.rotation.y += angleDiff * 0.15;
 
                 // Apply movement force
@@ -165,9 +176,9 @@ export function Player() {
                 const force = {
                     x: dirX * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier,
                     y: 0,
-                    z: dirZ * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier
+                    z: dirZ * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier,
                 };
-                
+
                 // Clamp horizontal velocity
                 const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
                 if (speed < MAX_SPEED * waterMultiplier * dashMultiplier * speedMultiplier) {
@@ -188,7 +199,7 @@ export function Player() {
         if (input.jump && isGrounded && now - lastJumpTime.current > 300) {
             lastJumpTime.current = now;
             rb.applyImpulse({ x: 0, y: JUMP_IMPULSE, z: 0 }, true);
-            
+
             const audioManager = getAudioManager();
             if (audioManager) {
                 audioManager.playSound('jump', 0.4);
@@ -197,10 +208,7 @@ export function Player() {
 
         // Apply drag to prevent sliding
         if (isGrounded && !input.active) {
-            rb.setLinvel(
-                { x: velocity.x * 0.9, y: velocity.y, z: velocity.z * 0.9 },
-                true
-            );
+            rb.setLinvel({ x: velocity.x * 0.9, y: velocity.y, z: velocity.z * 0.9 }, true);
         }
 
         // Fall damage check
@@ -216,8 +224,8 @@ export function Player() {
         meshRef.current.position.set(position.x, position.y, position.z);
 
         // Stamina management
-        const consumeStamina = useGameStore.getState().consumeStamina;
-        const restoreStamina = useGameStore.getState().restoreStamina;
+        const consumeStamina = useEngineStore.getState().consumeStamina;
+        const restoreStamina = useEngineStore.getState().restoreStamina;
 
         const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
         if (input.active && speed > 0.5) {
@@ -240,11 +248,11 @@ export function Player() {
         // Procedural Animation
         if (jointsRef.current) {
             animateOtter(
-                jointsRef.current, 
-                speed, 
-                velocity.y, 
-                isGrounded, 
-                timeRef.current, 
+                jointsRef.current,
+                speed,
+                velocity.y,
+                isGrounded,
+                timeRef.current,
                 player.stamina,
                 attackAnimTimerRef.current > 0
             );
@@ -296,7 +304,7 @@ function animateOtter(
     const normalizedSpeed = Math.min(speed / MAX_SPEED, 1);
     const isRunning = stamina > 10 && normalizedSpeed > 0.7;
     const isJumping = !isGrounded;
-    
+
     const cycleSpeed = isRunning ? 15 : 10;
     const walkCycle = time * cycleSpeed;
 
@@ -310,7 +318,7 @@ function animateOtter(
     } else if (isJumping) {
         // Jump animation
         const jumpPhase = verticalSpeed > 0 ? 'ascending' : 'descending';
-        
+
         if (jumpPhase === 'ascending') {
             joints.legL.rotation.x = -0.8;
             joints.legR.rotation.x = -0.8;
@@ -332,7 +340,7 @@ function animateOtter(
         // Walk/Run cycle
         const limbSwing = isRunning ? 1.2 : 0.8;
         const armSwing = isRunning ? 0.9 : 0.6;
-        
+
         joints.legL.rotation.x = Math.sin(walkCycle) * limbSwing * normalizedSpeed;
         joints.legR.rotation.x = Math.sin(walkCycle + Math.PI) * limbSwing * normalizedSpeed;
         joints.armL.rotation.x = Math.sin(walkCycle + Math.PI) * armSwing * normalizedSpeed;
@@ -402,15 +410,26 @@ function OtterBody({ jointsRef, furUniforms }: OtterBodyProps) {
     return (
         <group ref={hipsRef} position={[0, 0.5, 0]}>
             {/* Hips */}
-            <FurryMesh geometry={<sphereGeometry args={[0.35, 16, 16]} />} scale={[1, 1.1, 1]} furUniforms={furUniforms} />
+            <FurryMesh
+                geometry={<sphereGeometry args={[0.35, 16, 16]} />}
+                scale={[1, 1.1, 1]}
+                furUniforms={furUniforms}
+            />
 
             {/* Torso */}
             <group ref={torsoRef} position={[0, 0.3, 0]}>
-                <FurryMesh geometry={<capsuleGeometry args={[0.32, 0.6, 4, 8]} />} position={[0, 0.3, 0]} furUniforms={furUniforms} />
+                <FurryMesh
+                    geometry={<capsuleGeometry args={[0.32, 0.6, 4, 8]} />}
+                    position={[0, 0.3, 0]}
+                    furUniforms={furUniforms}
+                />
 
                 {/* Head */}
                 <group ref={headRef} position={[0, 0.7, 0]}>
-                    <FurryMesh geometry={<sphereGeometry args={[0.25, 16, 16]} />} furUniforms={furUniforms} />
+                    <FurryMesh
+                        geometry={<sphereGeometry args={[0.25, 16, 16]} />}
+                        furUniforms={furUniforms}
+                    />
 
                     {/* Muzzle */}
                     <mesh position={[0, -0.05, 0.2]} scale={[1, 0.8, 1.2]}>
@@ -446,10 +465,18 @@ function OtterBody({ jointsRef, furUniforms }: OtterBodyProps) {
 
             {/* Legs */}
             <group ref={legLRef} position={[0.2, 0, 0]}>
-                <FurryMesh geometry={<capsuleGeometry args={[0.12, 0.4, 4, 8]} />} position={[0, -0.25, 0]} furUniforms={furUniforms} />
+                <FurryMesh
+                    geometry={<capsuleGeometry args={[0.12, 0.4, 4, 8]} />}
+                    position={[0, -0.25, 0]}
+                    furUniforms={furUniforms}
+                />
             </group>
             <group ref={legRRef} position={[-0.2, 0, 0]}>
-                <FurryMesh geometry={<capsuleGeometry args={[0.12, 0.4, 4, 8]} />} position={[0, -0.25, 0]} furUniforms={furUniforms} />
+                <FurryMesh
+                    geometry={<capsuleGeometry args={[0.12, 0.4, 4, 8]} />}
+                    position={[0, -0.25, 0]}
+                    furUniforms={furUniforms}
+                />
             </group>
 
             {/* Tail */}

@@ -74,7 +74,7 @@ export interface OtterNPC {
   maxHealth?: number;
 }
 
-export type GameMode = 'exploration' | 'racing';
+export type GameMode = 'exploration' | 'racing' | 'boss_battle' | 'examples';
 
 export interface GameState {
   gameMode: GameMode;
@@ -140,7 +140,7 @@ export interface GameState {
   spendGold: (amount: number) => boolean;
 }
 
-export const useRivermarsh = create<GameState>()(
+export const useRPGStore = create<GameState>()(
   persist(
     subscribeWithSelector((set, get) => ({
     gameMode: 'exploration',

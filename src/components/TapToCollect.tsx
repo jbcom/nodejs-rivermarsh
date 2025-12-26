@@ -1,16 +1,17 @@
-import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
 import { world } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { getAudioManager } from '@/utils/audioManager';
+import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
 
 const COLLECTION_DISTANCE = 1.5;
 
 export function TapToCollect() {
     const { camera, scene } = useThree();
-    const playerPos = useGameStore((s) => s.player.position);
+    const playerPos = useEngineStore((s) => s.player.position);
 
     useEffect(() => {
         const raycaster = new THREE.Raycaster();
@@ -50,11 +51,20 @@ export function TapToCollect() {
 
                     // Apply effects
                     if (entity.resource.healthRestore > 0) {
-                        useGameStore.getState().healPlayer(entity.resource.healthRestore);
+                        useEngineStore.getState().healPlayer(entity.resource.healthRestore);
                     }
                     if (entity.resource.staminaRestore > 0) {
-                        useGameStore.getState().restoreStamina(entity.resource.staminaRestore);
+                        useEngineStore.getState().restoreStamina(entity.resource.staminaRestore);
                     }
+
+                    // Add to RPG inventory
+                    useRPGStore.getState().addInventoryItem({
+                        id: `resource_${entity.resource.type}_${Date.now()}`,
+                        name: entity.resource.type.charAt(0).toUpperCase() + entity.resource.type.slice(1),
+                        type: 'consumable',
+                        quantity: 1,
+                        description: `A fresh ${entity.resource.type} collected from the wild.`
+                    });
 
                     // Play collection sound
                     const audioManager = getAudioManager();

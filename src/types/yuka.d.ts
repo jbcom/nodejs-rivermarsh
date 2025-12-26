@@ -102,7 +102,10 @@ declare module 'yuka' {
         getDirection(result: Vector3): Vector3;
         lookAt(target: Vector3): this;
         getWorldPosition(result: Vector3): Vector3;
-        setRenderComponent(renderComponent: any, callback: (entity: GameEntity, renderComponent: any) => void): this;
+        setRenderComponent(
+            renderComponent: any,
+            callback: (entity: GameEntity, renderComponent: any) => void
+        ): this;
         sendMessage(receiver: GameEntity, message: string, delay?: number, data?: any): this;
         handleMessage(telegram: Telegram): boolean;
         lineOfSightTest(target: Vector3, obstacles: GameEntity[]): GameEntity | null;
@@ -125,7 +128,7 @@ declare module 'yuka' {
     export class Time {
         _previousTime: number;
         _currentTime: number;
-        
+
         constructor();
         update(): this;
         getDelta(): number;
@@ -142,7 +145,13 @@ declare module 'yuka' {
 
     export class MessageDispatcher {
         constructor();
-        dispatch(sender: GameEntity, receiver: GameEntity, message: string, delay: number, data: any): this;
+        dispatch(
+            sender: GameEntity,
+            receiver: GameEntity,
+            message: string,
+            delay: number,
+            data: any
+        ): this;
         dispatchDelayedMessages(delta: number): this;
         clear(): this;
         toJSON(): object;
@@ -176,10 +185,16 @@ declare module 'yuka' {
         updateEntity(entity: GameEntity, delta: number): this;
         updateNeighborhood(entity: GameEntity): this;
         processTrigger(trigger: Trigger): this;
-        sendMessage(sender: GameEntity, receiver: GameEntity, message: string, delay: number, data: any): this;
+        sendMessage(
+            sender: GameEntity,
+            receiver: GameEntity,
+            message: string,
+            delay: number,
+            data: any
+        ): this;
         toJSON(): object;
         fromJSON(json: object): this;
-        registerType(type: string, constructor: new () => GameEntity): this;
+        registerType(type: string, ctor: new () => GameEntity): this;
     }
 
     // FSM
@@ -212,7 +227,7 @@ declare module 'yuka' {
         toJSON(): object;
         fromJSON(json: object): this;
         resolveReferences(entities: Map<string, GameEntity>): this;
-        registerType(type: string, constructor: new () => State): this;
+        registerType(type: string, ctor: new () => State): this;
     }
 
     // Steering
@@ -236,7 +251,7 @@ declare module 'yuka' {
         calculate(delta: number, result: Vector3): Vector3;
         toJSON(): object;
         fromJSON(json: object): this;
-        registerType(type: string, constructor: new () => SteeringBehavior): this;
+        registerType(type: string, ctor: new () => SteeringBehavior): this;
         resolveReferences(entities: Map<string, GameEntity>): this;
     }
 
@@ -378,7 +393,14 @@ declare module 'yuka' {
         cellsY: number;
         cellsZ: number;
 
-        constructor(width: number, height: number, depth: number, cellsX: number, cellsY: number, cellsZ: number);
+        constructor(
+            width: number,
+            height: number,
+            depth: number,
+            cellsX: number,
+            cellsY: number,
+            cellsZ: number
+        );
         updateEntity(entity: GameEntity, currentIndex?: number): number;
         addEntityToPartition(entity: GameEntity, index: number): this;
         removeEntityFromPartition(entity: GameEntity, index: number): this;

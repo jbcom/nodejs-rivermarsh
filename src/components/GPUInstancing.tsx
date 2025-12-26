@@ -1,20 +1,20 @@
 /**
  * GPU-Driven Vegetation System - Using @jbcom/strata
- * 
+ *
  * Replaces custom CPU-based instancing with Strata's GPU-optimized
  * vegetation components with built-in wind animation and LOD.
  */
 
+import type { BiomeData } from '@jbcom/strata';
 import {
     GrassInstances as StrataGrass,
-    TreeInstances as StrataTrees,
     RockInstances as StrataRocks,
-} from '@jbcom/strata'
-import type { BiomeData } from '@jbcom/strata'
-import * as THREE from 'three'
+    TreeInstances as StrataTrees,
+} from '@jbcom/strata';
+import * as THREE from 'three';
 
 // Re-export BiomeData type for consumers
-export type { BiomeData }
+export type { BiomeData };
 
 // =============================================================================
 // DEFAULT BIOMES (Rivermarsh-specific)
@@ -28,17 +28,17 @@ export const DEFAULT_BIOMES: BiomeData[] = [
     { type: 'tundra', center: new THREE.Vector2(-60, -30), radius: 45 },
     { type: 'desert', center: new THREE.Vector2(70, -50), radius: 40 },
     { type: 'scrubland', center: new THREE.Vector2(-30, -60), radius: 35 },
-]
+];
 
 // =============================================================================
 // GRASS INSTANCES
 // =============================================================================
 
 interface GrassInstancesProps {
-    count?: number
-    areaSize?: number
-    biomes?: BiomeData[]
-    heightFunc?: (x: number, z: number) => number
+    count?: number;
+    areaSize?: number;
+    biomes?: BiomeData[];
+    heightFunc?: (x: number, z: number) => number;
 }
 
 export function GrassInstances({
@@ -56,7 +56,7 @@ export function GrassInstances({
             height={0.4}
             color="#4a7c23"
         />
-    )
+    );
 }
 
 // =============================================================================
@@ -64,10 +64,10 @@ export function GrassInstances({
 // =============================================================================
 
 interface TreeInstancesProps {
-    count?: number
-    areaSize?: number
-    biomes?: BiomeData[]
-    heightFunc?: (x: number, z: number) => number
+    count?: number;
+    areaSize?: number;
+    biomes?: BiomeData[];
+    heightFunc?: (x: number, z: number) => number;
 }
 
 export function TreeInstances({
@@ -77,13 +77,8 @@ export function TreeInstances({
     heightFunc,
 }: TreeInstancesProps) {
     return (
-        <StrataTrees
-            count={count}
-            areaSize={areaSize}
-            biomes={biomes}
-            heightFunc={heightFunc}
-        />
-    )
+        <StrataTrees count={count} areaSize={areaSize} biomes={biomes} heightFunc={heightFunc} />
+    );
 }
 
 // =============================================================================
@@ -91,10 +86,10 @@ export function TreeInstances({
 // =============================================================================
 
 interface RockInstancesProps {
-    count?: number
-    areaSize?: number
-    biomes?: BiomeData[]
-    heightFunc?: (x: number, z: number) => number
+    count?: number;
+    areaSize?: number;
+    biomes?: BiomeData[];
+    heightFunc?: (x: number, z: number) => number;
 }
 
 export function RockInstances({
@@ -104,11 +99,6 @@ export function RockInstances({
     heightFunc,
 }: RockInstancesProps) {
     return (
-        <StrataRocks
-            count={count}
-            areaSize={areaSize}
-            biomes={biomes}
-            heightFunc={heightFunc}
-        />
-    )
+        <StrataRocks count={count} areaSize={areaSize} biomes={biomes} heightFunc={heightFunc} />
+    );
 }

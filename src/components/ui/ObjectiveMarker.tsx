@@ -14,7 +14,6 @@ const OBJECTIVE_STORAGE_KEY = 'otterfall_first_resource_collected';
 export function ObjectiveMarker({
     targetPosition,
     playerPosition,
-    cameraPosition,
     visible,
     label = 'Collect Resource',
 }: ObjectiveMarkerProps) {
@@ -36,7 +35,9 @@ export function ObjectiveMarker({
 
     // Update screen position based on target and camera
     useEffect(() => {
-        if (!show) return;
+        if (!show) {
+            return;
+        }
 
         const updatePosition = () => {
             // Calculate direction from player to target
@@ -59,9 +60,11 @@ export function ObjectiveMarker({
         updatePosition();
         const interval = setInterval(updatePosition, 100);
         return () => clearInterval(interval);
-    }, [show, targetPosition, playerPosition, cameraPosition]);
+    }, [show, targetPosition, playerPosition]);
 
-    if (!show) return null;
+    if (!show) {
+        return null;
+    }
 
     return (
         <div

@@ -1,12 +1,12 @@
-import React from 'react';
-import { useRivermarsh } from '@/stores/useRivermarsh';
+import type React from 'react';
+import { useRPGStore } from '@/stores/rpgStore';
 
 interface SettingsPanelProps {
     onClose: () => void;
 }
 
 export function SettingsPanel({ onClose }: SettingsPanelProps) {
-    const { settings, updateSettings } = useRivermarsh();
+    const { settings, updateSettings } = useRPGStore();
 
     const panelStyle: React.CSSProperties = {
         position: 'fixed',
@@ -68,12 +68,21 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
     return (
         <div style={panelStyle}>
-            <h2 style={{ color: '#d4af37', fontSize: '2.5em', marginBottom: '40px', letterSpacing: '4px' }}>SETTINGS</h2>
-            
+            <h2
+                style={{
+                    color: '#d4af37',
+                    fontSize: '2.5em',
+                    marginBottom: '40px',
+                    letterSpacing: '4px',
+                }}
+            >
+                SETTINGS
+            </h2>
+
             <div style={sectionStyle}>
                 <div style={rowStyle}>
                     <span style={{ color: '#fff', fontSize: '1.1em' }}>SOUND EFFECTS</span>
-                    <button 
+                    <button
                         style={toggleButtonStyle(settings.soundEnabled)}
                         onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
                     >
@@ -83,7 +92,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div style={rowStyle}>
                     <span style={{ color: '#fff', fontSize: '1.1em' }}>MUSIC</span>
-                    <button 
+                    <button
                         style={toggleButtonStyle(settings.musicEnabled)}
                         onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
                     >
@@ -91,13 +100,22 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                     </button>
                 </div>
 
-                <div style={{ ...rowStyle, flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                    <span style={{ color: '#fff', fontSize: '1.1em' }}>VOLUME: {Math.round(settings.volume * 100)}%</span>
-                    <input 
-                        type="range" 
-                        min="0" 
-                        max="1" 
-                        step="0.01" 
+                <div
+                    style={{
+                        ...rowStyle,
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '10px',
+                    }}
+                >
+                    <span style={{ color: '#fff', fontSize: '1.1em' }}>
+                        VOLUME: {Math.round(settings.volume * 100)}%
+                    </span>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
                         value={settings.volume}
                         onChange={(e) => updateSettings({ volume: parseFloat(e.target.value) })}
                         style={{ width: '100%', accentColor: '#d4af37', cursor: 'pointer' }}
@@ -106,7 +124,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
                 <div style={rowStyle}>
                     <span style={{ color: '#fff', fontSize: '1.1em' }}>SHOW HELP TEXT</span>
-                    <button 
+                    <button
                         style={toggleButtonStyle(settings.showHelp)}
                         onClick={() => updateSettings({ showHelp: !settings.showHelp })}
                     >
@@ -115,7 +133,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 </div>
             </div>
 
-            <button 
+            <button
                 onClick={onClose}
                 style={{
                     marginTop: '40px',
@@ -131,8 +149,12 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                     letterSpacing: '2px',
                     transition: 'all 0.2s ease',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                }}
             >
                 DONE
             </button>

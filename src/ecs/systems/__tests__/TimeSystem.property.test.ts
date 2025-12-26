@@ -1,12 +1,12 @@
 import * as fc from 'fast-check';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { TimePhase } from '../../components';
+import { LIGHTING, TIME } from '@/constants/game';
+import type { TimePhase } from '../../components';
 import { world } from '../../world';
 import { TimeSystem } from '../TimeSystem';
-import { LIGHTING, TIME } from '@/constants/game';
 
 // Helper to create a time entity with proper typing
-function createTimeEntity(hour: number, phase: TimePhase, timeScale: number = 1) {
+function createTimeEntity(hour: number, phase: TimePhase, timeScale = 1) {
     return world.add({
         time: {
             hour,
@@ -15,8 +15,9 @@ function createTimeEntity(hour: number, phase: TimePhase, timeScale: number = 1)
             sunAngle: 0,
             sunIntensity: 1,
             ambientLight: 1,
-            fogDensity: 0.025
-        }
+            fogDensity: 0.025,
+            dayCount: 1,
+        },
     });
 }
 
@@ -197,14 +198,26 @@ describe('TimeSystem - Property-Based Tests', () => {
                         const { sunIntensity, ambientLight, fogDensity } = entity.time!;
 
                         // Verify: Lighting properties are within expected ranges defined in constants
-                        expect(sunIntensity).toBeGreaterThanOrEqual(Math.min(...Object.values(LIGHTING.SUN_INTENSITY)));
-                        expect(sunIntensity).toBeLessThanOrEqual(Math.max(...Object.values(LIGHTING.SUN_INTENSITY)));
-                        
-                        expect(ambientLight).toBeGreaterThanOrEqual(Math.min(...Object.values(LIGHTING.AMBIENT_INTENSITY)));
-                        expect(ambientLight).toBeLessThanOrEqual(Math.max(...Object.values(LIGHTING.AMBIENT_INTENSITY)));
-                        
-                        expect(fogDensity).toBeGreaterThanOrEqual(Math.min(...Object.values(LIGHTING.FOG_DENSITY)));
-                        expect(fogDensity).toBeLessThanOrEqual(Math.max(...Object.values(LIGHTING.FOG_DENSITY)));
+                        expect(sunIntensity).toBeGreaterThanOrEqual(
+                            Math.min(...Object.values(LIGHTING.SUN_INTENSITY))
+                        );
+                        expect(sunIntensity).toBeLessThanOrEqual(
+                            Math.max(...Object.values(LIGHTING.SUN_INTENSITY))
+                        );
+
+                        expect(ambientLight).toBeGreaterThanOrEqual(
+                            Math.min(...Object.values(LIGHTING.AMBIENT_INTENSITY))
+                        );
+                        expect(ambientLight).toBeLessThanOrEqual(
+                            Math.max(...Object.values(LIGHTING.AMBIENT_INTENSITY))
+                        );
+
+                        expect(fogDensity).toBeGreaterThanOrEqual(
+                            Math.min(...Object.values(LIGHTING.FOG_DENSITY))
+                        );
+                        expect(fogDensity).toBeLessThanOrEqual(
+                            Math.max(...Object.values(LIGHTING.FOG_DENSITY))
+                        );
                     }
                 ),
                 { numRuns: 100 }

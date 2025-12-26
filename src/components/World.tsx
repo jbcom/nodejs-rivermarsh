@@ -2,36 +2,31 @@
  * World Component - Using @jbcom/strata
  */
 
-import { useEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
-import { useFrame } from '@react-three/fiber'
 import {
+    AdvancedWater,
+    createTimeOfDay,
+    ParticleEmitter,
     ProceduralSky,
     Rain,
     Snow,
     VolumetricFogMesh,
-    AdvancedWater,
-    ParticleEmitter,
-    createTimeOfDay,
-} from '@jbcom/strata'
-import { SDFTerrain, DEFAULT_BIOMES, useTerrainHeight } from './SDFTerrain'
-import { GrassInstances, TreeInstances, RockInstances } from './GPUInstancing'
-import { world as ecsWorld } from '@/ecs/world'
+} from '@jbcom/strata';
+import { useFrame } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { world as ecsWorld } from '@/ecs/world';
+import { GrassInstances, RockInstances, TreeInstances } from './GPUInstancing';
+import { DEFAULT_BIOMES, SDFTerrain, useTerrainHeight } from './SDFTerrain';
 
 export function World() {
-    const getHeight = useTerrainHeight(DEFAULT_BIOMES)
+    const getHeight = useTerrainHeight(DEFAULT_BIOMES);
 
     return (
         <group>
             <MarshWaterFeatures />
 
             {/* SDF-based terrain with caves and overhangs */}
-            <SDFTerrain
-                chunkSize={32}
-                resolution={24}
-                viewDistance={3}
-                biomes={DEFAULT_BIOMES}
-            />
+            <SDFTerrain chunkSize={32} resolution={24} viewDistance={3} biomes={DEFAULT_BIOMES} />
 
             {/* GPU-driven vegetation via Strata */}
             <GrassInstances
@@ -58,80 +53,79 @@ export function World() {
             <Lighting />
             <Atmosphere />
         </group>
-    )
+    );
 }
 
 /**
  * Weather effects using Strata's Rain and Snow
  */
 function WeatherEffects() {
-    const [weather, setWeather] = useState<'clear' | 'rain' | 'snow'>('clear')
-    const [intensity, setIntensity] = useState(0)
-    const windRef = useRef(new THREE.Vector3(0.3, 0, 0.1))
+    const [weather, setWeather] = useState<'clear' | 'rain' | 'snow'>('clear');
+    const [intensity, setIntensity] = useState(0);
+    const windRef = useRef(new THREE.Vector3(0.3, 0, 0.1));
 
     useFrame(() => {
         // Read weather from ECS
         for (const entity of ecsWorld.with('weather')) {
-            const w = entity.weather
+            const w = entity.weather;
             // Map ECS weather types to visual effects
             // WeatherType = 'clear' | 'rain' | 'fog' | 'snow' | 'storm' | 'sandstorm'
-            let mappedWeather: 'clear' | 'rain' | 'snow' = 'clear'
+            let mappedWeather: 'clear' | 'rain' | 'snow';
             switch (w.current) {
                 case 'rain':
                 case 'storm':
-                    mappedWeather = 'rain'
-                    break
+                    mappedWeather = 'rain';
+                    break;
                 case 'snow':
-                    mappedWeather = 'snow'
-                    break
-                case 'fog':
-                case 'sandstorm':
-                case 'clear':
+                    mappedWeather = 'snow';
+                    break;
                 default:
                     // fog and sandstorm are handled by VolumetricFogMesh, not particle effects
-                    mappedWeather = 'clear'
-                    break
+                    mappedWeather = 'clear';
+                    break;
             }
             if (mappedWeather !== weather) {
-                setWeather(mappedWeather)
+                setWeather(mappedWeather);
             }
             if (w.intensity !== intensity) {
-                setIntensity(w.intensity)
+                setIntensity(w.intensity);
             }
         }
-    })
+    });
 
     if (weather === 'clear' || intensity === 0) {
-        return null
+        return null;
     }
 
     if (weather === 'rain') {
-        return <Rain intensity={intensity} wind={windRef.current} color="#88aacc" />
+        return <Rain intensity={intensity} wind={windRef.current} color="#88aacc" />;
     }
 
     if (weather === 'snow') {
-        return <Snow intensity={intensity} wind={windRef.current} color="#ffffff" />
+        return <Snow intensity={intensity} wind={windRef.current} color="#ffffff" />;
     }
 
-    return null
+    return null;
 }
 
 /**
  * Fireflies using Strata's ParticleEmitter - only visible at night
  */
 function NightFireflies({ count = 80, radius = 25 }: { count?: number; radius?: number }) {
-    const [visible, setVisible] = useState(false)
+    const [visible, setVisible] = useState(false);
 
     useFrame(() => {
         for (const { time } of ecsWorld.with('time')) {
-            const shouldBeVisible = time.phase === 'night'
+            const shouldBeVisible = time.phase === 'night';
             if (shouldBeVisible !== visible) {
-                setVisible(shouldBeVisible)
+                setVisible(shouldBeVisible);
             }
         }
-    })
+    });
 
-    if (!visible) return null
+    if (!visible) {
+        return null;
+    }
 
     return (
         <ParticleEmitter
@@ -151,47 +145,49 @@ function NightFireflies({ count = 80, radius = 25 }: { count?: number; radius?: 
             blending={THREE.AdditiveBlending}
             position={[0, 1, 0]}
         />
-    )
+    );
 }
 
 function MarshWaterFeatures() {
     const [waterPools, setWaterPools] = useState<
         Array<{ position: [number, number, number]; size: number }>
-    >([])
+    >([]);
 
     useEffect(() => {
-        const { getBiomeLayout } = require('@/ecs/systems/BiomeSystem')
-        const layout = getBiomeLayout()
+        const { getBiomeLayout } = require('@/ecs/systems/BiomeSystem');
+        const layout = getBiomeLayout();
 
         // Find marsh biome
-        const marshBiome = layout.find((b: { type: string }) => b.type === 'marsh')
-        if (!marshBiome) return
+        const marshBiome = layout.find((b: { type: string }) => b.type === 'marsh');
+        if (!marshBiome) {
+            return;
+        }
 
         // Generate water pools in marsh area
-        const pools: typeof waterPools = []
-        const poolCount = 8
+        const pools: typeof waterPools = [];
+        const poolCount = 8;
 
         for (let i = 0; i < poolCount; i++) {
-            const angle = (i / poolCount) * Math.PI * 2
-            const radius = 5 + Math.random() * 15
-            const x = marshBiome.center.x + Math.cos(angle) * radius
-            const z = marshBiome.center.y + Math.sin(angle) * radius
-            const size = 8 + Math.random() * 12
+            const angle = (i / poolCount) * Math.PI * 2;
+            const radius = 5 + Math.random() * 15;
+            const x = marshBiome.center.x + Math.cos(angle) * radius;
+            const z = marshBiome.center.y + Math.sin(angle) * radius;
+            const size = 8 + Math.random() * 12;
 
             pools.push({
                 position: [x, -0.2, z],
                 size,
-            })
+            });
         }
 
         // Add central pond
         pools.push({
             position: [marshBiome.center.x, -0.2, marshBiome.center.y],
             size: 20,
-        })
+        });
 
-        setWaterPools(pools)
-    }, [])
+        setWaterPools(pools);
+    }, []);
 
     return (
         <>
@@ -207,63 +203,63 @@ function MarshWaterFeatures() {
                 </group>
             ))}
         </>
-    )
+    );
 }
 
 function Lighting() {
-    const sunRef = useRef<THREE.DirectionalLight>(null!)
-    const ambientRef = useRef<THREE.AmbientLight>(null!)
-    const currentAmbientColor = useRef(new THREE.Color('#333344'))
-    const targetAmbientColor = useRef(new THREE.Color('#333344'))
-    const currentSunColor = useRef(new THREE.Color('#ffaa77'))
-    const targetSunColor = useRef(new THREE.Color('#ffaa77'))
+    const sunRef = useRef<THREE.DirectionalLight>(null!);
+    const ambientRef = useRef<THREE.AmbientLight>(null!);
+    const currentAmbientColor = useRef(new THREE.Color('#333344'));
+    const targetAmbientColor = useRef(new THREE.Color('#333344'));
+    const currentSunColor = useRef(new THREE.Color('#ffaa77'));
+    const targetSunColor = useRef(new THREE.Color('#ffaa77'));
 
     useFrame(() => {
         // Read time data from ECS
         for (const { time } of ecsWorld.with('time')) {
             if (sunRef.current) {
-                sunRef.current.intensity = time.sunIntensity * 1.5
+                sunRef.current.intensity = time.sunIntensity * 1.5;
 
-                const angleRad = (time.sunAngle * Math.PI) / 180
-                const sunDistance = 50
+                const angleRad = (time.sunAngle * Math.PI) / 180;
+                const sunDistance = 50;
                 sunRef.current.position.set(
                     Math.sin(angleRad) * sunDistance,
                     Math.cos(angleRad) * sunDistance,
                     sunDistance
-                )
+                );
 
                 if (time.phase === 'dawn') {
-                    targetSunColor.current.setHex(0xff8844)
+                    targetSunColor.current.setHex(0xff8844);
                 } else if (time.phase === 'dusk') {
-                    targetSunColor.current.setHex(0xff5522)
+                    targetSunColor.current.setHex(0xff5522);
                 } else if (time.phase === 'day') {
-                    targetSunColor.current.setHex(0xffccaa)
+                    targetSunColor.current.setHex(0xffccaa);
                 } else {
-                    targetSunColor.current.setHex(0x4466aa)
+                    targetSunColor.current.setHex(0x4466aa);
                 }
-                
-                currentSunColor.current.lerp(targetSunColor.current, 0.01)
-                sunRef.current.color.copy(currentSunColor.current)
+
+                currentSunColor.current.lerp(targetSunColor.current, 0.01);
+                sunRef.current.color.copy(currentSunColor.current);
             }
 
             if (ambientRef.current) {
-                ambientRef.current.intensity = time.ambientLight * 0.6
+                ambientRef.current.intensity = time.ambientLight * 0.6;
 
                 if (time.phase === 'dawn') {
-                    targetAmbientColor.current.setHex(0x6688aa)
+                    targetAmbientColor.current.setHex(0x6688aa);
                 } else if (time.phase === 'day') {
-                    targetAmbientColor.current.setHex(0x8899aa)
+                    targetAmbientColor.current.setHex(0x8899aa);
                 } else if (time.phase === 'dusk') {
-                    targetAmbientColor.current.setHex(0x664433)
+                    targetAmbientColor.current.setHex(0x664433);
                 } else {
-                    targetAmbientColor.current.setHex(0x222244)
+                    targetAmbientColor.current.setHex(0x222244);
                 }
 
-                currentAmbientColor.current.lerp(targetAmbientColor.current, 0.01)
-                ambientRef.current.color.copy(currentAmbientColor.current)
+                currentAmbientColor.current.lerp(targetAmbientColor.current, 0.01);
+                ambientRef.current.color.copy(currentAmbientColor.current);
             }
         }
-    })
+    });
 
     return (
         <>
@@ -282,44 +278,44 @@ function Lighting() {
             <ambientLight ref={ambientRef} intensity={0.6} color="#333344" />
             <directionalLight position={[-20, 10, -20]} intensity={0.8} color="#4488ff" />
         </>
-    )
+    );
 }
 
 function Atmosphere() {
-    const [timePhase, setTimePhase] = useState<'dawn' | 'day' | 'dusk' | 'night'>('day')
-    const [fogDensity, setFogDensity] = useState(0.025)
-    const [hour, setHour] = useState(12)
-    const currentFogColor = useRef(new THREE.Color('#aabbcc'))
-    const targetFogColor = useRef(new THREE.Color('#aabbcc'))
+    const [timePhase, setTimePhase] = useState<'dawn' | 'day' | 'dusk' | 'night'>('day');
+    const [fogDensity, setFogDensity] = useState(0.025);
+    const [hour, setHour] = useState(12);
+    const currentFogColor = useRef(new THREE.Color('#aabbcc'));
+    const targetFogColor = useRef(new THREE.Color('#aabbcc'));
 
     useFrame(() => {
         let combinedFogDensity = 0;
         for (const entity of ecsWorld.with('time')) {
             const time = entity.time;
             if (time.phase !== timePhase) {
-                setTimePhase(time.phase)
+                setTimePhase(time.phase);
             }
             if (time.hour !== hour) {
-                setHour(time.hour)
+                setHour(time.hour);
             }
 
             combinedFogDensity += time.fogDensity;
 
             if (time.phase === 'night') {
-                targetFogColor.current.setHex(0x1a1a2a)
+                targetFogColor.current.setHex(0x1a1a2a);
             } else if (time.phase === 'dawn') {
-                targetFogColor.current.setHex(0x99aabb)
+                targetFogColor.current.setHex(0x99aabb);
             } else if (time.phase === 'dusk') {
-                targetFogColor.current.setHex(0xaa8866)
+                targetFogColor.current.setHex(0xaa8866);
             } else {
-                targetFogColor.current.setHex(0xaabbcc)
+                targetFogColor.current.setHex(0xaabbcc);
             }
-            currentFogColor.current.lerp(targetFogColor.current, 0.01)
+            currentFogColor.current.lerp(targetFogColor.current, 0.01);
         }
 
         for (const entity of ecsWorld.with('weather')) {
             combinedFogDensity += entity.weather.fogDensity;
-            
+
             // Influence fog color based on weather
             if (entity.weather.current === 'storm') {
                 targetFogColor.current.lerp(new THREE.Color('#444455'), 0.5);
@@ -331,26 +327,20 @@ function Atmosphere() {
         }
 
         if (combinedFogDensity !== fogDensity) {
-            setFogDensity(combinedFogDensity)
+            setFogDensity(combinedFogDensity);
         }
-    })
+    });
 
     // Create time of day state for ProceduralSky
-    const timeOfDay = createTimeOfDay(hour)
+    const timeOfDay = createTimeOfDay(hour);
 
     return (
         <>
             {/* Strata's procedural sky with dynamic sun */}
-            <ProceduralSky
-                timeOfDay={timeOfDay}
-            />
+            <ProceduralSky timeOfDay={timeOfDay} />
 
             {/* Strata's volumetric fog */}
-            <VolumetricFogMesh
-                density={fogDensity}
-                color={currentFogColor.current}
-                height={20}
-            />
+            <VolumetricFogMesh density={fogDensity} color={currentFogColor.current} height={20} />
         </>
-    )
+    );
 }

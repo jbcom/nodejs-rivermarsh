@@ -1,35 +1,48 @@
-import { useGameStore } from '@/stores/gameStore';
-import { useControlsStore } from '@/stores/useControlsStore';
 import { useEffect } from 'react';
+import { useEngineStore } from '@/stores/engineStore';
+import { useControlsStore } from '@/stores/controlsStore';
 
 export function useInput() {
-    const setInput = useGameStore((s) => s.setInput);
+    const setInput = useEngineStore((s) => s.setInput);
 
     useEffect(() => {
         // Keyboard state
         const keys: Record<string, number> = {
-            arrowup: 0, arrowdown: 0, arrowleft: 0, arrowright: 0,
-            w: 0, a: 0, s: 0, d: 0,
-            " ": 0, f: 0, e: 0
+            arrowup: 0,
+            arrowdown: 0,
+            arrowleft: 0,
+            arrowright: 0,
+            w: 0,
+            a: 0,
+            s: 0,
+            d: 0,
+            ' ': 0,
+            f: 0,
+            e: 0,
         };
         (window as any).pressedKeys = keys;
 
         const updateInput = () => {
             const setAction = useControlsStore.getState().setAction;
-            
+
             // Support both WASD and Arrow keys
             const x = (keys.arrowright || keys.d) - (keys.arrowleft || keys.a);
             const y = (keys.arrowup || keys.w) - (keys.arrowdown || keys.s);
-            const jump = keys[" "] === 1;
-            const attack = keys["f"] === 1;
-            const interact = keys["e"] === 1;
+            const jump = keys[' '] === 1;
+            const attack = keys.f === 1;
+            const interact = keys.e === 1;
 
             if (x !== 0 || y !== 0 || jump) {
                 setInput(x, y, true, jump);
             } else {
                 // If no keys, use the controls store (which might have mobile input)
                 const { movement, actions } = useControlsStore.getState();
-                setInput(movement.x, movement.y, movement.x !== 0 || movement.y !== 0, actions.jump);
+                setInput(
+                    movement.x,
+                    movement.y,
+                    movement.x !== 0 || movement.y !== 0,
+                    actions.jump
+                );
             }
 
             // Sync to controls store for systems that use it
@@ -68,13 +81,16 @@ export function useInput() {
         const unsubscribe = useControlsStore.subscribe((state) => {
             // Check if any movement keys are pressed
             const keys = (window as any).pressedKeys || {};
-            const hasKeyboardInput = Object.values(keys).some(v => v);
+            const hasKeyboardInput = Object.values(keys).some((v) => v);
 
             // Only sync mobile input if no keyboard input is active
             if (!hasKeyboardInput) {
-                setInput(state.movement.x, state.movement.y, 
-                         state.movement.x !== 0 || state.movement.y !== 0, 
-                         state.actions.jump);
+                setInput(
+                    state.movement.x,
+                    state.movement.y,
+                    state.movement.x !== 0 || state.movement.y !== 0,
+                    state.actions.jump
+                );
             }
         });
         return unsubscribe;

@@ -1,8 +1,8 @@
 import * as fc from 'fast-check';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { WeatherType } from '../../components';
+import type { WeatherType } from '../../components';
 import { world } from '../../world';
-import { WeatherSystem, getWeatherMovementMultiplier } from '../WeatherSystem';
+import { getWeatherMovementMultiplier, WeatherSystem } from '../WeatherSystem';
 
 describe('WeatherSystem - Property-Based Tests', () => {
     beforeEach(() => {
@@ -16,8 +16,22 @@ describe('WeatherSystem - Property-Based Tests', () => {
         it('should complete transition within expected duration', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
                     fc.float({ min: Math.fround(0.1), max: Math.fround(2), noNaN: true }), // Delta per frame
                     (currentWeather, nextWeather, delta) => {
                         // Skip if same weather (no meaningful transition)
@@ -35,8 +49,8 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 windDirection: [0, 0],
                                 startTime,
                                 durationMinutes: 10,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute: Run system until transition completes
@@ -47,18 +61,18 @@ describe('WeatherSystem - Property-Based Tests', () => {
                         const maxIterations = Math.ceil(TRANSITION_DURATION / delta) + 10;
 
                         // Run until nextWeather becomes null (transition complete)
-                        while (entity.weather!.nextWeather !== null && iterations < maxIterations) {
+                        while (entity.weather?.nextWeather !== null && iterations < maxIterations) {
                             WeatherSystem(delta);
                             totalTime += delta;
                             iterations++;
                         }
 
                         // Verify: Transition should complete
-                        expect(entity.weather!.nextWeather).toBeNull();
-                        expect(entity.weather!.transitionProgress).toBe(0); // Reset after completion
+                        expect(entity.weather?.nextWeather).toBeNull();
+                        expect(entity.weather?.transitionProgress).toBe(0); // Reset after completion
                         expect(totalTime).toBeGreaterThanOrEqual(TRANSITION_DURATION - 0.1); // Allow small error
                         expect(totalTime).toBeLessThanOrEqual(TRANSITION_DURATION + delta); // Should not overshoot
-                        expect(entity.weather!.current).toBe(nextWeather);
+                        expect(entity.weather?.current).toBe(nextWeather);
 
                         // Cleanup
                         world.remove(entity);
@@ -71,8 +85,22 @@ describe('WeatherSystem - Property-Based Tests', () => {
         it('should interpolate properties smoothly during transition', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
                     fc.float({ min: Math.fround(0), max: Math.fround(1), noNaN: true }), // Progress
                     (currentWeather, nextWeather, progress) => {
                         // Setup
@@ -86,8 +114,8 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 windDirection: [0, 0],
                                 startTime: Date.now(),
                                 durationMinutes: 10,
-                                transitionProgress: progress
-                            }
+                                transitionProgress: progress,
+                            },
                         });
 
                         // Execute
@@ -113,7 +141,14 @@ describe('WeatherSystem - Property-Based Tests', () => {
         it('should trigger new transition after duration expires', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
                     fc.float({ min: Math.fround(5), max: Math.fround(20), noNaN: true }), // Duration in minutes
                     (currentWeather, durationMinutes) => {
                         // Setup: Weather that has expired
@@ -128,16 +163,16 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 windDirection: [0, 0],
                                 startTime,
                                 durationMinutes,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute
                         WeatherSystem(0.1);
 
                         // Verify: Should have selected next weather
-                        expect(entity.weather!.nextWeather).not.toBeNull();
-                        expect(entity.weather!.transitionProgress).toBeGreaterThan(0);
+                        expect(entity.weather?.nextWeather).not.toBeNull();
+                        expect(entity.weather?.transitionProgress).toBeGreaterThan(0);
 
                         // Cleanup
                         world.remove(entity);
@@ -152,8 +187,25 @@ describe('WeatherSystem - Property-Based Tests', () => {
         it('should always keep visibility within [0, 1] range', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
-                    fc.option(fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'), { nil: null }),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
+                    fc.option(
+                        fc.constantFrom<WeatherType>(
+                            'clear',
+                            'rain',
+                            'fog',
+                            'snow',
+                            'storm',
+                            'sandstorm'
+                        ),
+                        { nil: null }
+                    ),
                     fc.float({ min: Math.fround(0), max: Math.fround(1), noNaN: true }),
                     (currentWeather, nextWeather, transitionProgress) => {
                         // Setup
@@ -167,8 +219,8 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 windDirection: [0, 0],
                                 startTime: Date.now(),
                                 durationMinutes: 10,
-                                transitionProgress
-                            }
+                                transitionProgress,
+                            },
                         });
 
                         // Execute
@@ -191,7 +243,14 @@ describe('WeatherSystem - Property-Based Tests', () => {
         it('should apply correct visibility reduction for each weather type', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
                     (weatherType) => {
                         // Setup
                         const entity = world.add({
@@ -204,8 +263,8 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 windDirection: [0, 0],
                                 startTime: Date.now(),
                                 durationMinutes: 10,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute
@@ -220,10 +279,12 @@ describe('WeatherSystem - Property-Based Tests', () => {
                             fog: 0.5,
                             snow: 0.7,
                             storm: 0.5,
-                            sandstorm: 0.3
+                            sandstorm: 0.3,
                         };
 
-                        expect(Math.abs(visibilityMod - expectedVisibility[weatherType])).toBeLessThan(0.01);
+                        expect(
+                            Math.abs(visibilityMod - expectedVisibility[weatherType])
+                        ).toBeLessThan(0.01);
 
                         // Cleanup
                         world.remove(entity);
@@ -236,8 +297,25 @@ describe('WeatherSystem - Property-Based Tests', () => {
         it('should maintain intensity bounds [0, 1]', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
-                    fc.option(fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'), { nil: null }),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
+                    fc.option(
+                        fc.constantFrom<WeatherType>(
+                            'clear',
+                            'rain',
+                            'fog',
+                            'snow',
+                            'storm',
+                            'sandstorm'
+                        ),
+                        { nil: null }
+                    ),
                     fc.float({ min: Math.fround(0), max: Math.fround(1), noNaN: true }),
                     (currentWeather, nextWeather, transitionProgress) => {
                         // Setup
@@ -251,8 +329,8 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 windDirection: [0, 0],
                                 startTime: Date.now(),
                                 durationMinutes: 10,
-                                transitionProgress
-                            }
+                                transitionProgress,
+                            },
                         });
 
                         // Execute
@@ -275,7 +353,14 @@ describe('WeatherSystem - Property-Based Tests', () => {
         it('should return valid movement multiplier', () => {
             fc.assert(
                 fc.property(
-                    fc.constantFrom<WeatherType>('clear', 'rain', 'fog', 'snow', 'storm', 'sandstorm'),
+                    fc.constantFrom<WeatherType>(
+                        'clear',
+                        'rain',
+                        'fog',
+                        'snow',
+                        'storm',
+                        'sandstorm'
+                    ),
                     (weatherType) => {
                         // Setup
                         world.add({
@@ -288,8 +373,8 @@ describe('WeatherSystem - Property-Based Tests', () => {
                                 windDirection: [0, 0],
                                 startTime: Date.now(),
                                 durationMinutes: 10,
-                                transitionProgress: 0
-                            }
+                                transitionProgress: 0,
+                            },
                         });
 
                         // Execute

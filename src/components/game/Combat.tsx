@@ -1,9 +1,8 @@
-import { useRef, useState, useEffect } from 'react';
+import { DamageNumber, ParticleEmitter } from '@jbcom/strata';
 import { useFrame } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { combatEvents } from '../../events/combatEvents';
-import { Text } from '@react-three/drei';
-import { ParticleEmitter } from '@jbcom/strata';
 
 interface DamageIndicator {
     id: number;
@@ -27,16 +26,22 @@ export function Combat() {
     // Subscribe to damage events
     useEffect(() => {
         return combatEvents.onDamageEnemy((_enemyId, damage, position) => {
-            if (!position) return;
+            if (!position) {
+                return;
+            }
 
             const id = idCounterRef.current++;
             const newIndicator: DamageIndicator = {
                 id,
-                position: position.clone().add(new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.5,
-                    1.5,
-                    (Math.random() - 0.5) * 0.5
-                )),
+                position: position
+                    .clone()
+                    .add(
+                        new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.5,
+                            1.5,
+                            (Math.random() - 0.5) * 0.5
+                        )
+                    ),
                 damage,
                 time: 0,
             };
@@ -52,14 +57,18 @@ export function Combat() {
     // Update indicators and effects
     useFrame((_, delta) => {
         setIndicators((prev) => {
-            if (prev.length === 0) return prev;
+            if (prev.length === 0) {
+                return prev;
+            }
             return prev
                 .map((ind) => ({ ...ind, time: ind.time + delta }))
                 .filter((ind) => ind.time < 1.5);
         });
 
         setEffects((prev) => {
-            if (prev.length === 0) return prev;
+            if (prev.length === 0) {
+                return prev;
+            }
             return prev
                 .map((eff) => ({ ...eff, time: eff.time + delta }))
                 .filter((eff) => eff.time < 0.5); // Short burst
@@ -69,31 +78,19 @@ export function Combat() {
     return (
         <group>
             {indicators.map((ind) => (
-                <group
+                <DamageNumber
                     key={ind.id}
-                    position={[
-                        ind.position.x,
-                        ind.position.y + ind.time * 1.5,
-                        ind.position.z,
-                    ]}
-                >
-                    <Text
-                        fontSize={0.4}
-                        color={ind.damage > 20 ? "#ff4444" : "#ffcc00"}
-                        anchorX="center"
-                        anchorY="middle"
-                        outlineWidth={0.05}
-                        outlineColor="#000000"
-                        fillOpacity={1 - ind.time / 1.5}
-                        outlineOpacity={1 - ind.time / 1.5}
-                    >
-                        {Math.floor(ind.damage)}
-                    </Text>
-                </group>
+                    position={[ind.position.x, ind.position.y + ind.time * 1.5, ind.position.z]}
+                    value={Math.floor(ind.damage)}
+                    type={ind.damage > 20 ? 'critical' : 'normal'}
+                />
             ))}
 
             {effects.map((eff) => (
-                <group key={eff.id} position={[eff.position.x, eff.position.y + 0.5, eff.position.z]}>
+                <group
+                    key={eff.id}
+                    position={[eff.position.x, eff.position.y + 0.5, eff.position.z]}
+                >
                     <ParticleEmitter
                         maxParticles={20}
                         emissionRate={100}

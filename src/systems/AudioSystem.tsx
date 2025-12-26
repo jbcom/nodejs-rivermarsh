@@ -1,181 +1,94 @@
+import { useFrame } from '@react-three/fiber';
+import { useEffect, useRef } from 'react';
 import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
-import { disposeAudioManager, getAudioManager, initAudioManager } from '@/utils/audioManager';
-import { disposeBiomeAmbience, getBiomeAmbience, initBiomeAmbience } from '@/utils/biomeAmbience';
-import { disposeEnvironmentalAudio, getEnvironmentalAudio, initEnvironmentalAudio } from '@/utils/environmentalAudio';
-import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
-
-type InitState = 'idle' | 'initializing' | 'initialized';
+import { useEngineStore } from '@/stores/engineStore';
+import { AmbientAudio, FootstepAudio, WeatherAudio } from '@jbcom/strata';
 
 /**
  * AudioSystem - Manages game audio including footsteps and biome ambient sounds
  */
 export function AudioSystem() {
-    const { camera } = useThree();
     const currentBiome = useRef<string>('marsh');
     const currentWeather = useRef<string>('clear');
-    const lastFootstepTime = useRef<number>(0);
-    const lastThunderTime = useRef<number>(0);
-    const initState = useRef<InitState>('idle');
+    const footstepRef = useRef<any>(null);
 
-    // Initialize audio manager, environmental audio, and biome ambience once
+    // Update current biome and weather from ECS
     useEffect(() => {
-        // Atomic check-and-set to prevent race conditions
-        if (initState.current !== 'idle') {
-            return;
-        }
-        initState.current = 'initializing';
-
-        let mounted = true;
-
-        const initializeAudio = async () => {
-            try {
-                // Initialize synchronous audio manager first
-                initAudioManager(camera);
-
-                // Initialize async audio systems
-                await Promise.all([
-                    initEnvironmentalAudio(),
-                    initBiomeAmbience(),
-                ]);
-
-                // Only mark as initialized if component is still mounted
-                if (mounted) {
-                    initState.current = 'initialized';
-                }
-            } catch (error) {
-                console.error('Failed to initialize audio systems:', error);
-                // Reset state to allow retry on remount
-                if (mounted) {
-                    initState.current = 'idle';
-                }
+        const interval = setInterval(() => {
+            const weatherEntity = ecsWorld.with('weather').entities[0];
+            if (weatherEntity?.weather) {
+                currentWeather.current = weatherEntity.weather.current;
             }
-        };
-
-        initializeAudio();
-
-        // Cleanup function to dispose audio resources on unmount
-        return () => {
-            mounted = false;
-            // Only dispose if we were fully initialized
-            if (initState.current === 'initialized') {
-                disposeAudioManager();
-                disposeEnvironmentalAudio();
-                disposeBiomeAmbience();
+            const biomeEntity = ecsWorld.with('biome').entities[0];
+            if (biomeEntity?.biome) {
+                currentBiome.current = biomeEntity.biome.current;
             }
-            initState.current = 'idle';
-        };
-    }, [camera]);
+        }, 100);
+        return () => clearInterval(interval);
+    }, []);
 
-    useFrame((_, delta) => {
-        const audioManager = getAudioManager();
-        if (!audioManager) return;
+    const playerPos = useEngineStore((s) => s.player.position);
+    const isMoving = useEngineStore((s) => s.player.isMoving);
+    const isJumping = useEngineStore((s) => s.player.isJumping);
+    const playerSpeed = useEngineStore((s) => s.player.speed);
+    const playerMaxSpeed = useEngineStore((s) => s.player.maxSpeed);
 
-        const player = useGameStore.getState().player;
-        const isMoving = player.isMoving;
-        const isRunning = player.stamina > 10 && player.speed / player.maxSpeed > 0.7;
-
-        // Read current biome from ECS and handle biome ambient soundscapes
-        const biomeAmbience = getBiomeAmbience();
-        for (const { biome } of ecsWorld.with('biome')) {
-            if (biome.current !== currentBiome.current) {
-                // Biome changed - crossfade ambient soundscapes
-                const prevBiome = currentBiome.current;
-                currentBiome.current = biome.current;
-                
-                // Crossfade: fade out previous biome, fade in new biome
-                if (biomeAmbience) {
-                    biomeAmbience.setVolume(prevBiome as any, 0);
-                    biomeAmbience.setVolume(biome.current as any, 1);
-                }
-                
-                // Also play ambient from audio manager (for loaded audio files)
-                audioManager.playAmbient(biome.current);
+    // Play footsteps via ref based on animation cycle or simple interval for now
+    const lastStepRef = useRef(0);
+    useFrame((state) => {
+        if (isMoving && !isJumping) {
+            const now = state.clock.elapsedTime;
+            const stepInterval = playerSpeed / playerMaxSpeed > 0.7 ? 0.3 : 0.5;
+            if (now - lastStepRef.current > stepInterval) {
+                const terrainType = playerPos.y < 0.2
+                    ? 'water'
+                    : getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout()) === 'tundra'
+                      ? 'snow'
+                      : ['mountain', 'desert'].includes(
+                              getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout())
+                          )
+                        ? 'rock'
+                        : 'grass';
+                footstepRef.current?.playFootstep(terrainType);
+                lastStepRef.current = now;
             }
         }
-
-        // Read current weather from ECS and play synthesized environmental audio
-        const envAudio = getEnvironmentalAudio();
-        for (const { weather } of ecsWorld.with('weather')) {
-            if (weather.current !== currentWeather.current) {
-                // Weather changed - update environmental sounds
-                const prevWeather = currentWeather.current;
-                currentWeather.current = weather.current;
-
-                // Stop previous weather sounds
-                if (envAudio) {
-                    if (prevWeather === 'rain' || prevWeather === 'storm') {
-                        envAudio.stopRain();
-                    }
-                    if (prevWeather === 'storm') {
-                        envAudio.stopWind();
-                    }
-                }
-            }
-
-            // Play synthesized weather sounds based on current weather and intensity
-            if (envAudio) {
-                if (weather.current === 'rain') {
-                    envAudio.startRain(weather.intensity);
-                } else if (weather.current === 'storm') {
-                    envAudio.startRain(weather.intensity);
-                    envAudio.startWind(weather.intensity);
-                    
-                    // Random thunder at intervals
-                    const currentTime = Date.now() / 1000;
-                    const thunderInterval = 5 + Math.random() * 10; // 5-15 seconds
-                    if (currentTime - lastThunderTime.current >= thunderInterval) {
-                        lastThunderTime.current = currentTime;
-                        envAudio.playThunder();
-                    }
-                } else {
-                    // Clear weather - ensure sounds are stopped
-                    if (currentWeather.current === 'clear') {
-                        envAudio.stopRain();
-                        envAudio.stopWind();
-                    }
-                }
-            }
-        }
-
-        // Update ambient crossfade
-        audioManager.updateAmbientCrossfade(delta);
-
-        // Play footstep sounds at animation cycle intervals
-        if (isMoving && !player.isJumping) {
-            const cycleSpeed = isRunning ? 15 : 10;
-            const stepInterval = (Math.PI * 2) / cycleSpeed; // Time between steps
-            const currentTime = Date.now() / 1000;
-
-            if (currentTime - lastFootstepTime.current >= stepInterval) {
-                lastFootstepTime.current = currentTime;
-
-                // Determine terrain type at player position
-                const biomeLayout = getBiomeLayout();
-                const biomeType = getBiomeAtPosition(player.position.x, player.position.z, biomeLayout);
-                
-                let terrainType: 'grass' | 'rock' | 'water' | 'snow' = 'grass';
-                
-                // Determine terrain type based on biome and player height
-                if (player.position.y < 0.2) {
-                    terrainType = 'water';
-                } else if (biomeType === 'tundra') {
-                    terrainType = 'snow';
-                } else if (biomeType === 'mountain' || biomeType === 'desert') {
-                    terrainType = 'rock';
-                }
-
-                audioManager.playFootstep(player.position, terrainType);
-            }
-        }
-
-        // NPC sounds are triggered by AI system state changes via events
-        // This avoids iterating all NPCs every frame for better performance
-        // The AI system should trigger NPC sounds via the audio manager on state transitions
     });
 
-    return null;
+    const biomeToUrl: Record<string, string> = {
+        marsh: '/audio/ambient/marsh.ogg',
+        forest: '/audio/ambient/forest.ogg',
+        desert: '/audio/ambient/desert.ogg',
+        tundra: '/audio/ambient/tundra.ogg',
+    };
+
+    return (
+        <>
+            <FootstepAudio
+                ref={footstepRef}
+                surfaces={{
+                    grass: '/audio/footsteps/footstep_grass_000.ogg',
+                    rock: '/audio/footsteps/footstep_rock_000.ogg',
+                    water: '/audio/footsteps/footstep_water_000.ogg',
+                    snow: '/audio/footsteps/footstep_snow_000.ogg',
+                }}
+                volume={0.3}
+            />
+            <AmbientAudio 
+                url={biomeToUrl[currentBiome.current] || biomeToUrl.marsh} 
+                autoplay 
+                fadeTime={2} 
+            />
+            <WeatherAudio
+                rainUrl="/audio/ambient/rain_loop.ogg"
+                windUrl="/audio/ambient/wind_loop.ogg"
+                thunderUrl="/audio/sfx/thunder.ogg"
+                rainIntensity={currentWeather.current === 'rain' || currentWeather.current === 'storm' ? 0.5 : 0}
+                windIntensity={currentWeather.current === 'storm' ? 0.4 : 0}
+                thunderActive={currentWeather.current === 'storm'}
+            />
+        </>
+    );
 }

@@ -1,46 +1,54 @@
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores/engineStore';
 
 export function GameOver() {
-    const gameOver = useGameStore((s) => s.gameOver);
-    const respawn = useGameStore((s) => s.respawn);
+    const gameOver = useEngineStore((s) => s.gameOver);
+    const respawn = useEngineStore((s) => s.respawn);
 
-    if (!gameOver) return null;
+    if (!gameOver) {
+        return null;
+    }
 
     return (
-        <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0,0.8)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-            pointerEvents: 'all',
-        }}>
-            <h1 style={{
-                color: '#ef4444',
-                fontSize: '4em',
-                margin: 0,
-                fontFamily: 'Cinzel, serif',
-                textShadow: '0 0 30px rgba(239,68,68,0.6)',
-                letterSpacing: '8px',
-                animation: 'fadeIn 0.5s ease',
-            }}>
+        <div
+            style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: 'rgba(0,0,0,0.8)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 1000,
+                pointerEvents: 'all',
+            }}
+        >
+            <h1
+                style={{
+                    color: '#ef4444',
+                    fontSize: '4em',
+                    margin: 0,
+                    fontFamily: 'Cinzel, serif',
+                    textShadow: '0 0 30px rgba(239,68,68,0.6)',
+                    letterSpacing: '8px',
+                    animation: 'fadeIn 0.5s ease',
+                }}
+            >
                 GAME OVER
             </h1>
 
-            <p style={{
-                color: '#ccc',
-                fontSize: '1.4em',
-                margin: '20px 0 40px 0',
-                fontFamily: 'Cinzel, serif',
-                letterSpacing: '2px',
-                opacity: 0.8,
-            }}>
+            <p
+                style={{
+                    color: '#ccc',
+                    fontSize: '1.4em',
+                    margin: '20px 0 40px 0',
+                    fontFamily: 'Cinzel, serif',
+                    letterSpacing: '2px',
+                    opacity: 0.8,
+                }}
+            >
                 You have fallen in the Riverlands
             </p>
 

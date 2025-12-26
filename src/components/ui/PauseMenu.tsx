@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 
 interface PauseMenuProps {
     onResume: () => void;
@@ -46,7 +47,7 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
     };
 
     return (
-        <div 
+        <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="pause-menu-title"
@@ -67,7 +68,7 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
                 pointerEvents: 'auto',
             }}
         >
-            <h2 
+            <h2
                 id="pause-menu-title"
                 style={{
                     color: '#d4af37',
@@ -80,12 +81,14 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
             >
                 PAUSED
             </h2>
-            
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '15px',
-            }}>
+
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '15px',
+                }}
+            >
                 <button
                     ref={resumeButtonRef}
                     onClick={onResume}
@@ -141,14 +144,16 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
                 </button>
             </div>
 
-            <div style={{
-                position: 'absolute',
-                bottom: '40px',
-                color: 'rgba(255, 255, 255, 0.3)',
-                fontSize: '12px',
-                fontFamily: 'sans-serif',
-                letterSpacing: '1px',
-            }}>
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: '40px',
+                    color: 'rgba(255, 255, 255, 0.3)',
+                    fontSize: '12px',
+                    fontFamily: 'sans-serif',
+                    letterSpacing: '1px',
+                }}
+            >
                 RIVERMARSH v0.1.0
             </div>
         </div>

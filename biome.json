@@ -1,0 +1,72 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "ignoreUnknown": false
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 100
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "security": {
+                "noGlobalEval": "error",
+                "noDangerouslySetInnerHtml": "error"
+            },
+            "suspicious": {
+                "noExplicitAny": "warn",
+                "noImplicitAnyLet": "error"
+            }
+            "security": {
+                "noGlobalEval": "error",
+                "noDangerouslySetInnerHtml": "error"
+            },
+            "complexity": {
+                "noExcessiveCognitiveComplexity": "off",
+                "noStaticOnlyClass": "off"
+            },
+            "style": {
+                "useBlockStatements": "warn",
+                "noNonNullAssertion": "off"
+            },
+            "suspicious": {
+                "noExplicitAny": "off",
+                "noArrayIndexKey": "off",
+                "useIterableCallbackReturn": "off"
+            },
+            "a11y": {
+                "noStaticElementInteractions": "off",
+                "useKeyWithClickEvents": "off",
+                "useButtonType": "off"
+            },
+            "correctness": {
+                "noUnusedVariables": "warn",
+                "noUnusedFunctionParameters": "warn"
+            }
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "single",
+            "jsxQuoteStyle": "double",
+            "trailingCommas": "es5"
+        }
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    }
+}

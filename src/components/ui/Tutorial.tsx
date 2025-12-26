@@ -11,7 +11,8 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     {
         id: 'movement',
         title: 'Movement',
-        description: 'Tap anywhere on the screen to move your otter. The virtual joystick will appear where you touch.',
+        description:
+            'Tap anywhere on the screen to move your otter. The virtual joystick will appear where you touch.',
         icon: '🎮',
     },
     {
@@ -23,13 +24,15 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     {
         id: 'resources',
         title: 'Collect Resources',
-        description: 'Tap on resources like fish, berries, and water to restore your health and stamina.',
+        description:
+            'Tap on resources like fish, berries, and water to restore your health and stamina.',
         icon: '🐟',
     },
     {
         id: 'survival',
         title: 'Survive',
-        description: 'Watch out for predators! Keep your health and stamina up by collecting resources.',
+        description:
+            'Watch out for predators! Keep your health and stamina up by collecting resources.',
         icon: '❤️',
     },
 ];
@@ -174,7 +177,8 @@ export function Tutorial() {
                                 width: '10px',
                                 height: '10px',
                                 borderRadius: '50%',
-                                background: index === currentStep ? '#d4af37' : 'rgba(255,255,255,0.3)',
+                                background:
+                                    index === currentStep ? '#d4af37' : 'rgba(255,255,255,0.3)',
                                 transition: 'background 0.3s ease',
                             }}
                         />
