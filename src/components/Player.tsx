@@ -5,7 +5,13 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { world } from '@/ecs/world';
 import { combatEvents } from '@/events/combatEvents';
-import { furFragmentShader, furVertexShader } from '@/shaders/fur';
+import { 
+    createCharacter, 
+    animateCharacter, 
+    updateFurUniforms,
+    type CharacterJoints,
+    type CharacterState
+} from '@jbcom/strata';
 import { useEngineStore } from '@/stores/engineStore';
 import { useControlsStore } from '@/stores/controlsStore';
 import { useRPGStore } from '@/stores/rpgStore';
@@ -23,21 +29,14 @@ const MAX_SPEED = 8;
 const WATER_LEVEL = 0.2;
 const BUOYANCY_FORCE = 12;
 
-interface JointRefs {
-    hips: THREE.Group;
-    legL: THREE.Group;
-    legR: THREE.Group;
-    armL: THREE.Group;
-    armR: THREE.Group;
-    tail: THREE.Group;
-    torso: THREE.Group;
-    head: THREE.Group;
-}
-
 export function Player() {
     const rigidBodyRef = useRef<RapierRigidBody>(null);
-    const meshRef = useRef<THREE.Group>(null!);
-    const jointsRef = useRef<JointRefs | null>(null);
+    const groupRef = useRef<THREE.Group>(null);
+    const characterRef = useRef<{
+        root: THREE.Group;
+        joints: CharacterJoints;
+        state: CharacterState;
+    } | null>(null);
     const timeRef = useRef(0);
     const isGroundedRef = useRef(true);
     const lastJumpTime = useRef(0);
@@ -50,6 +49,23 @@ export function Player() {
     const dashAction = useControlsStore((state) => state.actions.dash);
     const updatePlayer = useEngineStore((s) => s.updatePlayer);
     const damagePlayer = useEngineStore.getState().damagePlayer;
+
+    // Create Strata character
+    useEffect(() => {
+        if (groupRef.current && !characterRef.current) {
+            const character = createCharacter({
+                skinColor: SKIN_COLOR,
+                furOptions: {
+                    baseColor: SKIN_COLOR,
+                    tipColor: TIP_COLOR,
+                    layerCount: FUR_LAYERS,
+                },
+                scale: 1.0,
+            });
+            characterRef.current = character;
+            groupRef.current.add(character.root);
+        }
+    }, []);
 
     // Register player in ECS world
     useEffect(() => {
@@ -91,7 +107,7 @@ export function Player() {
 
         const damage = 10 + playerStats.level * 2;
         const range = 2.5;
-        const position = meshRef.current.position;
+        const position = groupRef.current?.position || new THREE.Vector3();
 
         combatEvents.emitPlayerAttack(position, range, damage);
         attackCooldownRef.current = 0.5; // Cooldown in seconds
@@ -101,26 +117,15 @@ export function Player() {
         if (audioManager) {
             audioManager.playSound('collect', 0.5); // Use collect as placeholder for attack
         }
-
-        // Trigger animation - we can use the state for this
     }, [playerStats.level]);
 
-    // Fur uniforms (shared, updated each frame)
-    const furUniforms = useMemo(
-        () => ({
-            layerOffset: { value: 0 },
-            spacing: { value: 0.02 },
-            colorBase: { value: new THREE.Color(SKIN_COLOR) },
-            colorTip: { value: new THREE.Color(TIP_COLOR) },
-            time: { value: 0 },
-        }),
-        []
-    );
-
     useFrame((_, delta) => {
-        if (!rigidBodyRef.current || !meshRef.current) {
+        if (!rigidBodyRef.current || !groupRef.current || !characterRef.current) {
             return;
         }
+
+        const rb = rigidBodyRef.current;
+        const time = _.clock.elapsedTime;
 
         // Update cooldowns
         if (attackCooldownRef.current > 0) {
@@ -136,17 +141,11 @@ export function Player() {
             performAttack();
         }
 
-        const rb = rigidBodyRef.current;
-        timeRef.current += delta;
-        furUniforms.time.value = timeRef.current;
-
         // Get current physics state
         const position = rb.translation();
         const velocity = rb.linvel();
         const isInWater = position.y < WATER_LEVEL;
 
-        // Simple ground check: if Y position is near ground and vertical velocity is low
-        // This works because Rapier physics will stop us at the ground
         const isGrounded = position.y < 0.8 && Math.abs(velocity.y) < 0.5;
         isGroundedRef.current = isGrounded;
 
@@ -156,20 +155,12 @@ export function Player() {
             const dirZ = input.direction.y;
 
             if (Math.abs(dirX) > 0.1 || Math.abs(dirZ) > 0.1) {
-                // Calculate target rotation
                 const targetAngle = Math.atan2(dirX, dirZ);
+                let angleDiff = targetAngle - groupRef.current.rotation.y;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                groupRef.current.rotation.y += angleDiff * 0.15;
 
-                // Smooth rotation on mesh (visual only)
-                let angleDiff = targetAngle - meshRef.current.rotation.y;
-                while (angleDiff > Math.PI) {
-                    angleDiff -= Math.PI * 2;
-                }
-                while (angleDiff < -Math.PI) {
-                    angleDiff += Math.PI * 2;
-                }
-                meshRef.current.rotation.y += angleDiff * 0.15;
-
-                // Apply movement force
                 const waterMultiplier = isInWater ? 0.7 : 1.0;
                 const dashMultiplier = dashAction ? 2.5 : 1.0;
                 const speedMultiplier = player.speedMultiplier || 1.0;
@@ -179,7 +170,6 @@ export function Player() {
                     z: dirZ * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier,
                 };
 
-                // Clamp horizontal velocity
                 const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
                 if (speed < MAX_SPEED * waterMultiplier * dashMultiplier * speedMultiplier) {
                     rb.applyImpulse(force, true);
@@ -187,7 +177,7 @@ export function Player() {
             }
         }
 
-        // Apply buoyancy in water
+        // Apply buoyancy
         if (isInWater) {
             const depth = WATER_LEVEL - position.y;
             const buoyancy = Math.min(depth * BUOYANCY_FORCE, BUOYANCY_FORCE);
@@ -206,70 +196,50 @@ export function Player() {
             }
         }
 
-        // Apply drag to prevent sliding
         if (isGrounded && !input.active) {
             rb.setLinvel({ x: velocity.x * 0.9, y: velocity.y, z: velocity.z * 0.9 }, true);
         }
 
-        // Fall damage check
         if (isGrounded && velocity.y < -15) {
             const damage = Math.floor(Math.abs(velocity.y + 15) * 2);
             if (damage > 0) {
                 damagePlayer(damage);
-                console.log(`Fall damage: ${damage}`);
             }
         }
 
-        // Update mesh position to follow rigid body
-        meshRef.current.position.set(position.x, position.y, position.z);
+        // Sync mesh to rigid body
+        groupRef.current.position.set(position.x, position.y, position.z);
 
-        // Stamina management
-        const consumeStamina = useEngineStore.getState().consumeStamina;
-        const restoreStamina = useEngineStore.getState().restoreStamina;
-
-        const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-        if (input.active && speed > 0.5) {
-            const dashStaminaMult = dashAction ? 4 : 1;
-            consumeStamina(5 * delta * dashStaminaMult);
-        } else if (!input.active) {
-            restoreStamina(10 * delta);
-        }
+        const horizontalSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        
+        // Update Strata character state
+        characterRef.current.state.speed = horizontalSpeed;
+        characterRef.current.state.maxSpeed = MAX_SPEED;
+        
+        // Use Strata's animation system
+        animateCharacter(characterRef.current, time);
 
         // Update game store
         updatePlayer({
             position: new THREE.Vector3(position.x, position.y, position.z),
-            rotation: meshRef.current.rotation.y,
-            isMoving: speed > 0.5,
-            speed: speed / MAX_SPEED,
+            rotation: groupRef.current.rotation.y,
+            isMoving: horizontalSpeed > 0.5,
+            speed: horizontalSpeed / MAX_SPEED,
             verticalSpeed: velocity.y,
             isJumping: !isGrounded,
         });
-
-        // Procedural Animation
-        if (jointsRef.current) {
-            animateOtter(
-                jointsRef.current,
-                speed,
-                velocity.y,
-                isGrounded,
-                timeRef.current,
-                player.stamina,
-                attackAnimTimerRef.current > 0
-            );
-        }
     });
 
-    // Expose player ref for E2E testing
+    // Expose player ref
     useEffect(() => {
-        if (meshRef.current) {
-            setPlayerRef(meshRef.current);
+        if (groupRef.current) {
+            setPlayerRef(groupRef.current);
         }
         return () => setPlayerRef(null);
     }, []);
 
     return (
         <>
-            {/* Physics body */}
             <RigidBody
                 ref={rigidBodyRef}
                 type="dynamic"
@@ -284,260 +254,7 @@ export function Player() {
                 <CapsuleCollider args={[0.3, 0.4]} position={[0, 0.7, 0]} />
             </RigidBody>
 
-            {/* Visual mesh (follows rigid body) */}
-            <group ref={meshRef}>
-                <OtterBody jointsRef={jointsRef} furUniforms={furUniforms} />
-            </group>
+            <group ref={groupRef} />
         </>
-    );
-}
-
-function animateOtter(
-    joints: JointRefs,
-    speed: number,
-    verticalSpeed: number,
-    isGrounded: boolean,
-    time: number,
-    stamina: number,
-    isAttacking: boolean
-) {
-    const normalizedSpeed = Math.min(speed / MAX_SPEED, 1);
-    const isRunning = stamina > 10 && normalizedSpeed > 0.7;
-    const isJumping = !isGrounded;
-
-    const cycleSpeed = isRunning ? 15 : 10;
-    const walkCycle = time * cycleSpeed;
-
-    if (isAttacking) {
-        // Attack animation (pounce/swipe)
-        joints.armL.rotation.x = -2.5;
-        joints.armR.rotation.x = -2.5;
-        joints.torso.rotation.x = 0.4;
-        joints.head.rotation.x = -0.2;
-        joints.tail.rotation.x = 0.5;
-    } else if (isJumping) {
-        // Jump animation
-        const jumpPhase = verticalSpeed > 0 ? 'ascending' : 'descending';
-
-        if (jumpPhase === 'ascending') {
-            joints.legL.rotation.x = -0.8;
-            joints.legR.rotation.x = -0.8;
-            joints.armL.rotation.x = -2.5;
-            joints.armR.rotation.x = -2.5;
-            joints.tail.rotation.x = -0.3;
-            joints.hips.position.y = 0.5;
-            joints.torso.rotation.x = -0.2;
-        } else {
-            joints.legL.rotation.x = -0.3;
-            joints.legR.rotation.x = -0.3;
-            joints.armL.rotation.x = -1.5;
-            joints.armR.rotation.x = -1.5;
-            joints.tail.rotation.x = -0.8;
-            joints.hips.position.y = 0.5;
-            joints.torso.rotation.x = 0.2;
-        }
-    } else if (normalizedSpeed > 0.1) {
-        // Walk/Run cycle
-        const limbSwing = isRunning ? 1.2 : 0.8;
-        const armSwing = isRunning ? 0.9 : 0.6;
-
-        joints.legL.rotation.x = Math.sin(walkCycle) * limbSwing * normalizedSpeed;
-        joints.legR.rotation.x = Math.sin(walkCycle + Math.PI) * limbSwing * normalizedSpeed;
-        joints.armL.rotation.x = Math.sin(walkCycle + Math.PI) * armSwing * normalizedSpeed;
-        joints.armR.rotation.x = Math.sin(walkCycle) * armSwing * normalizedSpeed;
-        joints.armL.rotation.z = -0.3 + Math.cos(walkCycle + Math.PI) * 0.2 * normalizedSpeed;
-        joints.armR.rotation.z = 0.3 + Math.cos(walkCycle) * 0.2 * normalizedSpeed;
-
-        const bobAmount = isRunning ? 0.08 : 0.05;
-        joints.hips.position.y = 0.5 + Math.sin(walkCycle * 2) * bobAmount * normalizedSpeed;
-        joints.torso.rotation.y = Math.sin(walkCycle) * 0.15 * normalizedSpeed;
-
-        const tailSway = isRunning ? 0.6 : 0.4;
-        joints.tail.rotation.y = Math.cos(walkCycle) * tailSway * normalizedSpeed;
-        joints.tail.rotation.x = -1.2;
-
-        joints.torso.rotation.x = isRunning ? 0.15 : 0;
-        joints.hips.rotation.x = 0;
-    } else {
-        // Idle breathing
-        const breath = Math.sin(time * 2);
-        joints.hips.position.y = 0.5 + breath * 0.005;
-        joints.torso.rotation.x = breath * 0.02;
-        joints.hips.rotation.x = 0;
-
-        // Lerp limbs back to rest
-        joints.legL.rotation.x *= 0.9;
-        joints.legR.rotation.x *= 0.9;
-        joints.armL.rotation.x *= 0.9;
-        joints.armR.rotation.x *= 0.9;
-        joints.armL.rotation.z = joints.armL.rotation.z * 0.9 - 0.3 * 0.1;
-        joints.armR.rotation.z = joints.armR.rotation.z * 0.9 + 0.3 * 0.1;
-        joints.tail.rotation.x = -1.2;
-        joints.tail.rotation.y *= 0.9;
-    }
-}
-
-interface OtterBodyProps {
-    jointsRef: React.MutableRefObject<JointRefs | null>;
-    furUniforms: Record<string, { value: unknown }>;
-}
-
-function OtterBody({ jointsRef, furUniforms }: OtterBodyProps) {
-    const hipsRef = useRef<THREE.Group>(null!);
-    const legLRef = useRef<THREE.Group>(null!);
-    const legRRef = useRef<THREE.Group>(null!);
-    const armLRef = useRef<THREE.Group>(null!);
-    const armRRef = useRef<THREE.Group>(null!);
-    const tailRef = useRef<THREE.Group>(null!);
-    const torsoRef = useRef<THREE.Group>(null!);
-    const headRef = useRef<THREE.Group>(null!);
-
-    useFrame(() => {
-        if (!jointsRef.current && hipsRef.current) {
-            jointsRef.current = {
-                hips: hipsRef.current,
-                legL: legLRef.current,
-                legR: legRRef.current,
-                armL: armLRef.current,
-                armR: armRRef.current,
-                tail: tailRef.current,
-                torso: torsoRef.current,
-                head: headRef.current,
-            };
-        }
-    });
-
-    return (
-        <group ref={hipsRef} position={[0, 0.5, 0]}>
-            {/* Hips */}
-            <FurryMesh
-                geometry={<sphereGeometry args={[0.35, 16, 16]} />}
-                scale={[1, 1.1, 1]}
-                furUniforms={furUniforms}
-            />
-
-            {/* Torso */}
-            <group ref={torsoRef} position={[0, 0.3, 0]}>
-                <FurryMesh
-                    geometry={<capsuleGeometry args={[0.32, 0.6, 4, 8]} />}
-                    position={[0, 0.3, 0]}
-                    furUniforms={furUniforms}
-                />
-
-                {/* Head */}
-                <group ref={headRef} position={[0, 0.7, 0]}>
-                    <FurryMesh
-                        geometry={<sphereGeometry args={[0.25, 16, 16]} />}
-                        furUniforms={furUniforms}
-                    />
-
-                    {/* Muzzle */}
-                    <mesh position={[0, -0.05, 0.2]} scale={[1, 0.8, 1.2]}>
-                        <sphereGeometry args={[0.15, 16, 16]} />
-                        <meshStandardMaterial color={0x5d4037} />
-                    </mesh>
-
-                    {/* Nose */}
-                    <mesh position={[0, -0.05, 0.38]}>
-                        <sphereGeometry args={[0.05]} />
-                        <meshBasicMaterial color={0x111111} />
-                    </mesh>
-                </group>
-
-                {/* Arms */}
-                <group ref={armLRef} position={[0.3, 0.5, 0.1]}>
-                    <FurryMesh
-                        geometry={<capsuleGeometry args={[0.08, 0.35, 4, 8]} />}
-                        position={[0, -0.15, 0]}
-                        rotation={[0, 0, -0.3]}
-                        furUniforms={furUniforms}
-                    />
-                </group>
-                <group ref={armRRef} position={[-0.3, 0.5, 0.1]}>
-                    <FurryMesh
-                        geometry={<capsuleGeometry args={[0.08, 0.35, 4, 8]} />}
-                        position={[0, -0.15, 0]}
-                        rotation={[0, 0, 0.3]}
-                        furUniforms={furUniforms}
-                    />
-                </group>
-            </group>
-
-            {/* Legs */}
-            <group ref={legLRef} position={[0.2, 0, 0]}>
-                <FurryMesh
-                    geometry={<capsuleGeometry args={[0.12, 0.4, 4, 8]} />}
-                    position={[0, -0.25, 0]}
-                    furUniforms={furUniforms}
-                />
-            </group>
-            <group ref={legRRef} position={[-0.2, 0, 0]}>
-                <FurryMesh
-                    geometry={<capsuleGeometry args={[0.12, 0.4, 4, 8]} />}
-                    position={[0, -0.25, 0]}
-                    furUniforms={furUniforms}
-                />
-            </group>
-
-            {/* Tail */}
-            <group ref={tailRef} position={[0, 0, -0.3]}>
-                <FurryMesh
-                    geometry={<coneGeometry args={[0.15, 0.8, 8]} />}
-                    position={[0, -0.2, 0]}
-                    rotation={[-1.2, 0, 0]}
-                    furUniforms={furUniforms}
-                />
-            </group>
-        </group>
-    );
-}
-
-interface FurryMeshProps {
-    geometry: React.ReactElement;
-    position?: [number, number, number];
-    rotation?: [number, number, number];
-    scale?: [number, number, number];
-    furUniforms: Record<string, { value: unknown }>;
-}
-
-function FurryMesh({ geometry, position, rotation, scale, furUniforms }: FurryMeshProps) {
-    const skinMat = useMemo(() => new THREE.MeshStandardMaterial({ color: SKIN_COLOR }), []);
-
-    const furMaterials = useMemo(() => {
-        const mats: THREE.ShaderMaterial[] = [];
-        for (let i = 1; i < FUR_LAYERS; i++) {
-            const mat = new THREE.ShaderMaterial({
-                vertexShader: furVertexShader,
-                fragmentShader: furFragmentShader,
-                uniforms: {
-                    layerOffset: { value: i / FUR_LAYERS },
-                    spacing: { value: furUniforms.spacing.value },
-                    colorBase: { value: furUniforms.colorBase.value },
-                    colorTip: { value: furUniforms.colorTip.value },
-                    time: furUniforms.time,
-                },
-                transparent: true,
-                depthWrite: false,
-                side: THREE.DoubleSide,
-            });
-            mats.push(mat);
-        }
-        return mats;
-    }, [furUniforms]);
-
-    return (
-        <group position={position} rotation={rotation} scale={scale}>
-            {/* Base mesh */}
-            <mesh castShadow material={skinMat}>
-                {geometry}
-            </mesh>
-
-            {/* Fur shells */}
-            {furMaterials.map((mat, i) => (
-                <mesh key={i} material={mat}>
-                    {geometry}
-                </mesh>
-            ))}
-        </group>
     );
 }
