@@ -3,6 +3,8 @@ import { BIOMES } from '../data/biomes';
 import { PREDATOR_SPECIES, PREY_SPECIES } from '../data/species';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
+import { useGameStore } from '@/stores/gameStore';
+import { LEVELING } from '@/constants/game';
 
 const MAX_NPCS = 30;
 const SPAWN_RADIUS = 60;
@@ -169,9 +171,18 @@ export function SpawnSystem(playerPos: THREE.Vector3) {
         }
     }
 
-    // Remove dead NPCs
+    // Remove dead NPCs and award XP
     for (const entity of world.with('isNPC', 'species')) {
         if (entity.species && entity.species.state === 'dead') {
+            // Award XP if close to player
+            if (entity.transform) {
+                const distance = playerPos.distanceTo(entity.transform.position);
+                if (distance < 20) { // Within 20 meters
+                    const baseXP = entity.species.type === 'predator' ? LEVELING.PREDATOR_XP : LEVELING.PREY_XP;
+                    const finalXP = baseXP * difficulty.experienceMultiplier;
+                    useGameStore.getState().addExperience(finalXP);
+                }
+            }
             world.remove(entity);
         }
     }

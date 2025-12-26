@@ -1,8 +1,22 @@
 import * as THREE from 'three';
 import { create } from 'zustand';
 import { loadGame as loadGameUtil, saveGame as saveGameUtil } from '../utils/save';
+import { PLAYER, LEVELING } from '../constants/game';
+import { getAudioManager } from '../utils/audioManager';
 
 export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
+
+/**
+ * Calculate the XP required for the next level using iterative flooring
+ * to ensure consistency with the leveling loop.
+ */
+const calculateExpToNext = (level: number): number => {
+    let required: number = LEVELING.BASE_XP_REQUIRED;
+    for (let i = 1; i < level; i++) {
+        required = Math.floor(required * LEVELING.XP_MULTIPLIER);
+    }
+    return required;
+};
 
 interface InputState {
     direction: { x: number; y: number };
@@ -23,6 +37,10 @@ interface PlayerState {
     maxHealth: number;
     stamina: number;
     maxStamina: number;
+    level: number;
+    experience: number;
+    expToNext: number;
+    damage: number;
     speedMultiplier: number;
     invulnerable: boolean;
     invulnerableUntil: number;
@@ -64,6 +82,7 @@ interface GameState {
     healPlayer: (amount: number) => void;
     restoreStamina: (amount: number) => void;
     consumeStamina: (amount: number) => void;
+    addExperience: (amount: number) => void;
     setGameOver: (gameOver: boolean) => void;
     setNearbyResource: (resource: NearbyResource | null) => void;
     addScore: (amount: number) => void;
@@ -86,10 +105,14 @@ export const useGameStore = create<GameState>((set) => ({
         verticalSpeed: 0,
         isMoving: false,
         isJumping: false,
-        health: 100,
-        maxHealth: 100,
-        stamina: 100,
-        maxStamina: 100,
+        health: PLAYER.INITIAL_HEALTH,
+        maxHealth: PLAYER.INITIAL_HEALTH,
+        stamina: PLAYER.INITIAL_STAMINA,
+        maxStamina: PLAYER.INITIAL_STAMINA,
+        level: 1,
+        experience: 0,
+        expToNext: LEVELING.BASE_XP_REQUIRED,
+        damage: PLAYER.BASE_DAMAGE,
         speedMultiplier: 1.0,
         invulnerable: false,
         invulnerableUntil: 0,
@@ -116,14 +139,9 @@ export const useGameStore = create<GameState>((set) => ({
         const gameOver = newHealth <= 0;
         
         // Play damage sound (optional, may not be available in tests)
-        try {
-            const { getAudioManager } = require('@/utils/audioManager');
-            const audioManager = getAudioManager();
-            if (audioManager) {
-                audioManager.playSound('damage', 0.5);
-            }
-        } catch (e) {
-            // Audio manager not available (e.g., in tests)
+        const audioManager = getAudioManager();
+        if (audioManager) {
+            audioManager.playSound('damage', 0.5);
         }
         
         return {
@@ -153,6 +171,54 @@ export const useGameStore = create<GameState>((set) => ({
             stamina: Math.max(0, state.player.stamina - amount),
         },
     })),
+    addExperience: (amount) => set((state) => {
+        let exp = state.player.experience + amount;
+        let level = state.player.level;
+        let expToNext = state.player.expToNext;
+        let maxHealth = state.player.maxHealth;
+        let damage = state.player.damage;
+        let health = state.player.health;
+        let leveledUp = false;
+
+        // Level up loop with soft cap
+        while (exp >= expToNext && level < LEVELING.MAX_LEVEL) {
+            exp -= expToNext;
+            level += 1;
+            expToNext = Math.floor(expToNext * LEVELING.XP_MULTIPLIER);
+            maxHealth = PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL;
+            damage = PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL;
+            leveledUp = true;
+        }
+
+        // If at max level, cap experience at expToNext - 1 to keep the bar full 
+        // but not level up again.
+        if (level >= LEVELING.MAX_LEVEL && exp >= expToNext) {
+            exp = expToNext - 1;
+        }
+
+        if (leveledUp) {
+            // Heal on level up
+            health = maxHealth;
+            
+            // Play level up sound
+            const audioManager = getAudioManager();
+            if (audioManager) {
+                audioManager.playSound('level-up' as any, 0.7);
+            }
+        }
+
+        return {
+            player: {
+                ...state.player,
+                experience: exp,
+                level,
+                expToNext,
+                maxHealth,
+                health,
+                damage,
+            },
+        };
+    }),
     setGameOver: (gameOver) => set({ gameOver }),
     setNearbyResource: (resource) => set({ nearbyResource: resource }),
     addScore: (amount) => set((state) => ({ score: state.score + amount })),
@@ -176,6 +242,8 @@ export const useGameStore = create<GameState>((set) => ({
             position: state.player.position,
             health: state.player.health,
             stamina: state.player.stamina,
+            level: state.player.level,
+            experience: state.player.experience,
         });
     },
     loadGame: () => {
@@ -188,6 +256,11 @@ export const useGameStore = create<GameState>((set) => ({
                 position: new THREE.Vector3(...saveData.player.position),
                 health: saveData.player.health,
                 stamina: saveData.player.stamina,
+                level: saveData.player.level || 1,
+                experience: saveData.player.experience || 0,
+                maxHealth: PLAYER.INITIAL_HEALTH + ((saveData.player.level || 1) - 1) * PLAYER.HEALTH_PER_LEVEL,
+                damage: PLAYER.BASE_DAMAGE + ((saveData.player.level || 1) - 1) * PLAYER.DAMAGE_PER_LEVEL,
+                expToNext: calculateExpToNext(saveData.player.level || 1),
             },
         }));
     },

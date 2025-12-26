@@ -23,6 +23,8 @@ describe('save utils', () => {
                     position: [1, 2, 3],
                     health: 100,
                     stamina: 100,
+                    level: 1,
+                    experience: 0,
                 },
                 world: {
                     time: 8,
