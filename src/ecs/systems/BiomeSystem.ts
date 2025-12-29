@@ -6,6 +6,7 @@ import {
     getBiomeAtPosition,
 } from '../data/biomes';
 import { world } from '../world';
+import { updateQuestProgress } from './QuestSystem';
 
 let biomeLayout: BiomeBounds[] | null = null;
 
@@ -28,6 +29,9 @@ export function BiomeSystem(playerX: number, playerZ: number) {
             console.log(`Entered biome: ${BIOMES[newBiome].name}`);
             biome.current = newBiome;
             biome.transitionProgress = 0;
+            
+            // Update quest progress
+            updateQuestProgress('explore', newBiome);
         }
     }
 }

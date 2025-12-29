@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
-import { type OtterNPC as OtterNPCType, useGameStore } from '@/stores/gameStore';
+import { useGameStore, type OtterNPC as OtterNPCType } from '@/stores/gameStore';
 
 interface OtterNPCProps {
     npc: OtterNPCType;
@@ -116,6 +116,17 @@ export function OtterNPC({ npc }: OtterNPCProps) {
     const handleInteract = useCallback(() => {
         if (npc.dialogue && isInRange.current) {
             startDialogue(npc.id, npc.name, npc.dialogue);
+
+            // Update quest progress
+            import('@/ecs/systems/QuestSystem').then(({ updateQuestProgress, addQuestToPlayer, RECOVER_FISH_QUEST, STARTER_QUEST }) => {
+                updateQuestProgress('talk', npc.id);
+                
+                // If it's Elder Moss, give the starter quest or recover fish quest
+                if (npc.id === 'elder_moss') {
+                    addQuestToPlayer(STARTER_QUEST);
+                    addQuestToPlayer(RECOVER_FISH_QUEST);
+                }
+            });
         }
     }, [npc.id, npc.name, npc.dialogue, startDialogue]);
 
@@ -149,7 +160,7 @@ export function OtterNPC({ npc }: OtterNPCProps) {
             // Visual feedback: brief color change to white
             if (meshRef.current) {
                 const mesh = meshRef.current.children[0] as THREE.Mesh;
-                if (mesh?.material) {
+                if (mesh && mesh.material) {
                     const material = mesh.material as THREE.MeshStandardMaterial;
                     const originalColor = material.color.clone();
                     material.color.set('#ffffff');

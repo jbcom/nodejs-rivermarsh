@@ -46,6 +46,12 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
         description: 'Collect 50 resources.',
         unlockedAt: null,
     },
+    {
+        id: 'wealthy-otter',
+        title: 'Wealthy Otter',
+        description: 'Accumulate 1000 gold.',
+        unlockedAt: null,
+    },
 ];
 
 export const useAchievementStore = create<AchievementState>()(

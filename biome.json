@@ -23,10 +23,12 @@
                 "noDangerouslySetInnerHtml": "error"
             },
             "suspicious": {
-                "noExplicitAny": "off",
-                "noImplicitAnyLet": "error",
-                "noArrayIndexKey": "off",
-                "useIterableCallbackReturn": "off"
+                "noExplicitAny": "warn",
+                "noImplicitAnyLet": "error"
+            }
+            "security": {
+                "noGlobalEval": "error",
+                "noDangerouslySetInnerHtml": "error"
             },
             "complexity": {
                 "noExcessiveCognitiveComplexity": "off",
@@ -35,6 +37,11 @@
             "style": {
                 "useBlockStatements": "warn",
                 "noNonNullAssertion": "off"
+            },
+            "suspicious": {
+                "noExplicitAny": "off",
+                "noArrayIndexKey": "off",
+                "useIterableCallbackReturn": "off"
             },
             "a11y": {
                 "noStaticElementInteractions": "off",
@@ -61,12 +68,5 @@
                 "organizeImports": "on"
             }
         }
-    },
-    "overrides": [
-        {
-            "includes": ["integration/**", ".crewai/**"],
-            "linter": { "enabled": false },
-            "formatter": { "enabled": false }
-        }
-    ]
+    }
 }

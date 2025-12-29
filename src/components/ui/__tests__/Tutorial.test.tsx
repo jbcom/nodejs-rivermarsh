@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Tutorial } from '../Tutorial';
 
@@ -34,12 +34,12 @@ describe('Tutorial', () => {
         it('should show "Start Playing" on last step', () => {
             render(<Tutorial />);
             const nextButton = screen.getByLabelText('Next step');
-
+            
             // Advance to last step (total 4 steps)
             fireEvent.click(nextButton); // Step 2: Jump
             fireEvent.click(screen.getByLabelText('Next step')); // Step 3: Collect
             fireEvent.click(screen.getByLabelText('Next step')); // Step 4: Survive
-
+            
             expect(screen.getByText('Start Playing')).toBeInTheDocument();
         });
     });
@@ -63,29 +63,29 @@ describe('Tutorial', () => {
     describe('Completion', () => {
         it('should close tutorial when finishing all steps', () => {
             render(<Tutorial />);
-
+            
             // Advance to last step
             fireEvent.click(screen.getByLabelText('Next step'));
             fireEvent.click(screen.getByLabelText('Next step'));
             fireEvent.click(screen.getByLabelText('Next step'));
-
+            
             const startButton = screen.getByLabelText('Start playing');
             fireEvent.click(startButton);
-
+            
             expect(screen.queryByText('Survival')).not.toBeInTheDocument();
         });
 
         it('should mark tutorial as completed when finished', () => {
             render(<Tutorial />);
-
+            
             // Advance to last step
             fireEvent.click(screen.getByLabelText('Next step'));
             fireEvent.click(screen.getByLabelText('Next step'));
             fireEvent.click(screen.getByLabelText('Next step'));
-
+            
             const startButton = screen.getByLabelText('Start playing');
             fireEvent.click(startButton);
-
+            
             expect(localStorage.getItem(TUTORIAL_STORAGE_KEY)).toBe('true');
         });
     });
@@ -95,10 +95,10 @@ describe('Tutorial', () => {
             vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
                 throw new Error('Storage full');
             });
-
+            
             render(<Tutorial />);
             const skipButton = screen.getByLabelText('Skip tutorial');
-
+            
             // Should still close even if saving fails
             fireEvent.click(skipButton);
             expect(screen.queryByText('Movement')).not.toBeInTheDocument();

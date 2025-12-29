@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { type InventoryItem, type Quest, useGameStore } from '@/stores/gameStore';
+import { useGameStore, InventoryItem, Quest } from '@/stores/gameStore';
 import { ShopPanel } from './ShopPanel';
+import { useEffect, useState } from 'react';
 
 const MAX_DISPLAYED_SKILLS = 4;
 
@@ -46,15 +46,7 @@ export function GameUI() {
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [
-        toggleInventory,
-        toggleQuestLog,
-        activeDialogue,
-        nextDialogue,
-        endDialogue,
-        toggleShop,
-        setGameMode,
-    ]);
+    }, [toggleInventory, toggleQuestLog, activeDialogue, nextDialogue, endDialogue, toggleShop, setGameMode]);
 
     return (
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 100 }}>
@@ -117,15 +109,10 @@ function StatsDisplay() {
                 pointerEvents: 'auto',
             }}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '10px',
-                }}
-            >
-                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#DAA520' }}>Skills</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#DAA520' }}>
+                    Skills
+                </div>
                 <button
                     onClick={() => setExpanded(false)}
                     style={{
@@ -142,24 +129,13 @@ function StatsDisplay() {
 
             {/* Otter Affinity */}
             <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '3px' }}>
-                    Otter Affinity
-                </div>
-                <div
-                    style={{
-                        background: '#222',
-                        height: '8px',
-                        borderRadius: '4px',
-                        overflow: 'hidden',
-                    }}
-                >
-                    <div
-                        style={{
-                            background: 'linear-gradient(90deg, #4444ff, #8888ff)',
-                            height: '100%',
-                            width: `${player.otterAffinity}%`,
-                        }}
-                    />
+                <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '3px' }}>Otter Affinity</div>
+                <div style={{ background: '#222', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{
+                        background: 'linear-gradient(90deg, #4444ff, #8888ff)',
+                        height: '100%',
+                        width: `${player.otterAffinity}%`,
+                    }} />
                 </div>
             </div>
 
@@ -172,21 +148,12 @@ function StatsDisplay() {
 
             {/* Core Skills */}
             <div style={{ fontSize: '11px', color: '#ccc' }}>
-                {Object.entries(player.skills)
-                    .slice(0, MAX_DISPLAYED_SKILLS)
-                    .map(([key, skill]) => (
-                        <div
-                            key={key}
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                marginBottom: '2px',
-                            }}
-                        >
-                            <span>{(skill as any).name}</span>
-                            <span style={{ color: '#DAA520' }}>Lv.{(skill as any).level}</span>
-                        </div>
-                    ))}
+                {Object.entries(player.skills).slice(0, MAX_DISPLAYED_SKILLS).map(([key, skill]) => (
+                    <div key={key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span>{(skill as any).name}</span>
+                        <span style={{ color: '#DAA520' }}>Lv.{(skill as any).level}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -219,59 +186,17 @@ function InventoryPanel() {
                 zIndex: 1500,
             }}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                    marginBottom: '30px',
-                    borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
-                    paddingBottom: '15px',
-                }}
-            >
-                <h2
-                    style={{
-                        margin: 0,
-                        color: '#d4af37',
-                        fontSize: '32px',
-                        fontFamily: 'Cinzel, serif',
-                        letterSpacing: '4px',
-                    }}
-                >
-                    INVENTORY
-                </h2>
-                <div
-                    style={{
-                        fontSize: '12px',
-                        color: '#666',
-                        fontFamily: 'Cinzel, serif',
-                        letterSpacing: '1px',
-                    }}
-                >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '30px', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '15px' }}>
+                <h2 style={{ margin: 0, color: '#d4af37', fontSize: '32px', fontFamily: 'Cinzel, serif', letterSpacing: '4px' }}>INVENTORY</h2>
+                <div style={{ fontSize: '12px', color: '#666', fontFamily: 'Cinzel, serif', letterSpacing: '1px' }}>
                     PRESS I TO CLOSE
                 </div>
             </div>
 
             {player.inventory.length === 0 ? (
-                <div
-                    style={{
-                        color: '#555',
-                        fontStyle: 'italic',
-                        textAlign: 'center',
-                        padding: '40px',
-                        fontSize: '18px',
-                    }}
-                >
-                    Your pack is empty...
-                </div>
+                <div style={{ color: '#555', fontStyle: 'italic', textAlign: 'center', padding: '40px', fontSize: '18px' }}>Your pack is empty...</div>
             ) : (
-                <div
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                        gap: '15px',
-                    }}
-                >
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
                     {player.inventory.map((item: InventoryItem) => (
                         <div
                             key={item.id}
@@ -282,44 +207,25 @@ function InventoryPanel() {
                                 border: '1px solid rgba(255,255,255,0.05)',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '8px',
+                                gap: '8px'
                             }}
                         >
                             <div
                                 style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
-                                    alignItems: 'center',
+                                    alignItems: 'center'
                                 }}
                             >
-                                <span
-                                    style={{
-                                        fontWeight: 'bold',
-                                        color: '#d4af37',
-                                        fontSize: '16px',
-                                    }}
-                                >
+                                <span style={{ fontWeight: 'bold', color: '#d4af37', fontSize: '16px' }}>
                                     {item.name}
                                 </span>
-                                <span
-                                    style={{ color: '#666', fontSize: '12px', fontWeight: 'bold' }}
-                                >
-                                    x{item.quantity}
-                                </span>
+                                <span style={{ color: '#666', fontSize: '12px', fontWeight: 'bold' }}>x{item.quantity}</span>
                             </div>
                             <div style={{ fontSize: '13px', color: '#999', lineHeight: '1.4' }}>
                                 {item.description}
                             </div>
-                            <div
-                                style={{
-                                    fontSize: '10px',
-                                    color: '#444',
-                                    marginTop: '5px',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '1px',
-                                    fontWeight: 'bold',
-                                }}
-                            >
+                            <div style={{ fontSize: '10px', color: '#444', marginTop: '5px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>
                                 {item.type.replace('_', ' ')}
                             </div>
                         </div>
@@ -341,7 +247,7 @@ function InventoryPanel() {
                     fontFamily: 'Cinzel, serif',
                     letterSpacing: '2px',
                     fontSize: '12px',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.4)';
@@ -385,62 +291,17 @@ function QuestLogPanel() {
                 zIndex: 1500,
             }}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                    marginBottom: '30px',
-                    borderBottom: '1px solid rgba(65, 105, 225, 0.2)',
-                    paddingBottom: '15px',
-                }}
-            >
-                <h2
-                    style={{
-                        margin: 0,
-                        color: '#4169E1',
-                        fontSize: '32px',
-                        fontFamily: 'Cinzel, serif',
-                        letterSpacing: '4px',
-                    }}
-                >
-                    QUEST LOG
-                </h2>
-                <div
-                    style={{
-                        fontSize: '12px',
-                        color: '#666',
-                        fontFamily: 'Cinzel, serif',
-                        letterSpacing: '1px',
-                    }}
-                >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '30px', borderBottom: '1px solid rgba(65, 105, 225, 0.2)', paddingBottom: '15px' }}>
+                <h2 style={{ margin: 0, color: '#4169E1', fontSize: '32px', fontFamily: 'Cinzel, serif', letterSpacing: '4px' }}>QUEST LOG</h2>
+                <div style={{ fontSize: '12px', color: '#666', fontFamily: 'Cinzel, serif', letterSpacing: '1px' }}>
                     PRESS Q TO CLOSE
                 </div>
             </div>
 
             <div style={{ marginBottom: '40px' }}>
-                <h3
-                    style={{
-                        color: '#d4af37',
-                        fontSize: '14px',
-                        fontFamily: 'Cinzel, serif',
-                        letterSpacing: '2px',
-                        marginBottom: '20px',
-                    }}
-                >
-                    ACTIVE TALES
-                </h3>
+                <h3 style={{ color: '#d4af37', fontSize: '14px', fontFamily: 'Cinzel, serif', letterSpacing: '2px', marginBottom: '20px' }}>ACTIVE TALES</h3>
                 {player.activeQuests.length === 0 ? (
-                    <div
-                        style={{
-                            color: '#444',
-                            fontStyle: 'italic',
-                            padding: '20px',
-                            textAlign: 'center',
-                        }}
-                    >
-                        No active quests...
-                    </div>
+                    <div style={{ color: '#444', fontStyle: 'italic', padding: '20px', textAlign: 'center' }}>No active quests...</div>
                 ) : (
                     <div style={{ display: 'grid', gap: '20px' }}>
                         {player.activeQuests.map((quest: Quest) => (
@@ -460,7 +321,7 @@ function QuestLogPanel() {
                                         fontSize: '20px',
                                         marginBottom: '10px',
                                         fontFamily: 'Cinzel, serif',
-                                        letterSpacing: '1px',
+                                        letterSpacing: '1px'
                                     }}
                                 >
                                     {quest.title}
@@ -475,23 +336,11 @@ function QuestLogPanel() {
                                 >
                                     {quest.description}
                                 </div>
-                                <div
-                                    style={{
-                                        fontSize: '12px',
-                                        color: '#666',
-                                        marginBottom: '20px',
-                                    }}
-                                >
+                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '20px' }}>
                                     FROM: {quest.giver.toUpperCase()}
                                 </div>
-
-                                <div
-                                    style={{
-                                        background: 'rgba(0,0,0,0.2)',
-                                        padding: '15px',
-                                        borderRadius: '6px',
-                                    }}
-                                >
+                                
+                                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '6px' }}>
                                     <div
                                         style={{
                                             fontSize: '11px',
@@ -499,7 +348,7 @@ function QuestLogPanel() {
                                             marginBottom: '10px',
                                             textTransform: 'uppercase',
                                             letterSpacing: '1px',
-                                            fontWeight: 'bold',
+                                            fontWeight: 'bold'
                                         }}
                                     >
                                         Objectives
@@ -515,25 +364,11 @@ function QuestLogPanel() {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '10px',
-                                                marginBottom: '6px',
+                                                marginBottom: '6px'
                                             }}
                                         >
-                                            <span style={{ fontSize: '16px' }}>
-                                                {quest.completedObjectives.includes(i) ? '✓' : '○'}
-                                            </span>
-                                            <span
-                                                style={{
-                                                    textDecoration:
-                                                        quest.completedObjectives.includes(i)
-                                                            ? 'line-through'
-                                                            : 'none',
-                                                    opacity: quest.completedObjectives.includes(i)
-                                                        ? 0.5
-                                                        : 1,
-                                                }}
-                                            >
-                                                {obj}
-                                            </span>
+                                            <span style={{ fontSize: '16px' }}>{quest.completedObjectives.includes(i) ? '✓' : '○'}</span>
+                                            <span style={{ textDecoration: quest.completedObjectives.includes(i) ? 'line-through' : 'none', opacity: quest.completedObjectives.includes(i) ? 0.5 : 1 }}>{obj}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -545,17 +380,7 @@ function QuestLogPanel() {
 
             {player.completedQuests.length > 0 && (
                 <div>
-                    <h3
-                        style={{
-                            color: '#22c55e',
-                            fontSize: '14px',
-                            fontFamily: 'Cinzel, serif',
-                            letterSpacing: '2px',
-                            marginBottom: '15px',
-                        }}
-                    >
-                        FINISHED TALES
-                    </h3>
+                    <h3 style={{ color: '#22c55e', fontSize: '14px', fontFamily: 'Cinzel, serif', letterSpacing: '2px', marginBottom: '15px' }}>FINISHED TALES</h3>
                     <div style={{ display: 'grid', gap: '10px' }}>
                         {player.completedQuests.slice(-5).map((quest: Quest) => (
                             <div
@@ -567,22 +392,13 @@ function QuestLogPanel() {
                                     border: '1px solid rgba(34, 197, 94, 0.1)',
                                     display: 'flex',
                                     justifyContent: 'space-between',
-                                    alignItems: 'center',
+                                    alignItems: 'center'
                                 }}
                             >
-                                <div
-                                    style={{
-                                        fontWeight: 'bold',
-                                        color: '#22c55e',
-                                        fontSize: '14px',
-                                        fontFamily: 'Cinzel, serif',
-                                    }}
-                                >
+                                <div style={{ fontWeight: 'bold', color: '#22c55e', fontSize: '14px', fontFamily: 'Cinzel, serif' }}>
                                     {quest.title}
                                 </div>
-                                <span style={{ color: '#22c55e', fontSize: '12px' }}>
-                                    COMPLETED
-                                </span>
+                                <span style={{ color: '#22c55e', fontSize: '12px' }}>COMPLETED</span>
                             </div>
                         ))}
                     </div>
@@ -603,7 +419,7 @@ function QuestLogPanel() {
                     fontFamily: 'Cinzel, serif',
                     letterSpacing: '2px',
                     fontSize: '12px',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(65, 105, 225, 0.4)';
@@ -709,27 +525,23 @@ function DialogueBox() {
             >
                 {currentDialogue.npcName}
             </div>
-            <div
-                style={{
-                    fontSize: '18px',
-                    lineHeight: '1.6',
-                    marginBottom: '20px',
-                    minHeight: '60px',
-                    color: '#eee',
-                }}
-            >
+            <div style={{ 
+                fontSize: '18px', 
+                lineHeight: '1.6', 
+                marginBottom: '20px',
+                minHeight: '60px',
+                color: '#eee',
+            }}>
                 {currentMessage}
             </div>
-            <div
-                style={{
-                    fontSize: '11px',
-                    color: '#666',
-                    textAlign: 'right',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
-                    fontFamily: 'Cinzel, serif',
-                }}
-            >
+            <div style={{ 
+                fontSize: '11px', 
+                color: '#666', 
+                textAlign: 'right',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontFamily: 'Cinzel, serif',
+            }}>
                 {isLastMessage ? 'Tap to finish' : 'Tap to continue'}
             </div>
         </div>

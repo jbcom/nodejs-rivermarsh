@@ -1,6 +1,7 @@
 import { combatEvents } from '../../events/combatEvents';
 import { useGameStore } from '../../stores/gameStore';
 import { world } from '../world';
+import { updateQuestProgress } from './QuestSystem';
 
 /**
  * CombatSystem - Handles combat logic and hit detection
@@ -33,12 +34,14 @@ export function CombatSystem() {
                     combatEvents.emitDamageEnemy(npcId, damage, entity.transform!.position.clone());
 
                     // Check if NPC died
-                    const updatedNPC = useGameStore
-                        .getState()
-                        .npcs.find((n: any) => n.id === npcId);
+                    const updatedNPC = useGameStore.getState().npcs.find((n: any) => n.id === npcId);
                     if (updatedNPC && (updatedNPC.health ?? 0) <= 0) {
                         // Dead!
                         entity.species!.state = 'dead';
+                        
+                        // Update quest progress
+                        updateQuestProgress('kill', entity.species!.name);
+                        
                         // Add experience - scaled by NPC difficulty/type in future
                         useGameStore.getState().addExperience(25);
                         useGameStore.getState().addGold(10);

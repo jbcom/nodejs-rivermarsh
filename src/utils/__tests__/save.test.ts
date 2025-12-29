@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadGame, type SaveData } from '../save';
 
 const SAVE_KEY = 'rivermarsh_save';
-const SAVE_VERSION = '1.0.0';
+const SAVE_VERSION = '1.1.0';
 
 describe('save utils', () => {
     beforeEach(() => {
@@ -25,6 +25,13 @@ describe('save utils', () => {
                     stamina: 100,
                     level: 1,
                     experience: 0,
+                    mana: 20,
+                    gold: 0,
+                    quests: {
+                        active: [],
+                        completed: []
+                    },
+                    achievements: []
                 },
                 world: {
                     time: 8,

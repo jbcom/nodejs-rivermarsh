@@ -27,7 +27,7 @@ test.describe('Game Initialization', () => {
         // One of them should be visible
         const isVitalityVisible = await vitalityText.isVisible();
         const isEnergyVisible = await energyText.isVisible();
-
+        
         expect(isVitalityVisible || isEnergyVisible).toBe(true);
     });
 

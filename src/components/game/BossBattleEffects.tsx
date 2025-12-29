@@ -1,7 +1,6 @@
-import { ParticleEmitter } from '@jbcom/strata';
+import React, { useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import type React from 'react';
-import { useState } from 'react';
+import { ParticleEmitter } from '@jbcom/strata';
 import { world } from '../../ecs/world';
 import { useGameStore } from '../../stores/gameStore';
 
@@ -11,43 +10,34 @@ export const BossBattleEffects: React.FC = () => {
     const [spellActive, setSpellActive] = useState(false);
 
     useFrame(() => {
-        if (gameMode !== 'boss_battle' || activeBossId === null) {
-            return;
-        }
+        if (gameMode !== 'boss_battle' || activeBossId === null) return;
 
         // activeBossId is number, e.id is number
-        const bossEntity = world.entities.find((e) => String(e.id) === String(activeBossId));
+        const bossEntity = world.entities.find(e => String(e.id) === String(activeBossId));
         if (bossEntity) {
             if (bossEntity.transform) {
                 setBossPosition([
                     bossEntity.transform.position.x,
                     bossEntity.transform.position.y + 1,
-                    bossEntity.transform.position.z,
+                    bossEntity.transform.position.z
                 ]);
             }
 
-            // Update spell casting state
             if (bossEntity.boss) {
-                // If boss is processing turn and about to use special ability (cooldown is 0)
-                const isCasting =
-                    bossEntity.boss.specialAbilityCooldown === 0 &&
-                    bossEntity.combat?.turn === 'boss' &&
-                    bossEntity.boss.isProcessingTurn === true;
-
+                const isCasting = bossEntity.boss.specialAbilityCooldown === 3 && 
+                                  bossEntity.combat?.turn === 'boss' &&
+                                  bossEntity.boss.isProcessingTurn === true;
+                
                 if (isCasting !== spellActive) {
                     setSpellActive(isCasting);
                 }
             }
         } else {
-            if (spellActive) {
-                setSpellActive(false);
-            }
+            if (spellActive) setSpellActive(false);
         }
     });
 
-    if (gameMode !== 'boss_battle' || !spellActive) {
-        return null;
-    }
+    if (gameMode !== 'boss_battle' || !spellActive) return null;
 
     return (
         <group position={bossPosition}>

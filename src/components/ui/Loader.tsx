@@ -10,8 +10,8 @@ export function Loader() {
     useEffect(() => {
         // More realistic loading simulation
         const interval = setInterval(() => {
-            setProgress((prev) => {
-                const next = prev + Math.random() * 15;
+            setProgress(prev => {
+                const next = prev + (Math.random() * 15);
                 if (next >= 100) {
                     clearInterval(interval);
                     setTimeout(() => setLoaded(true), 200);
@@ -50,25 +50,21 @@ export function Loader() {
                 pointerEvents: loaded ? 'none' : 'auto',
             }}
         >
-            <div
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '2px',
-                    background: 'rgba(212, 175, 55, 0.1)',
-                }}
-            >
-                <div
-                    style={{
-                        width: `${progress}%`,
-                        height: '100%',
-                        background: '#d4af37',
-                        boxShadow: '0 0 15px #d4af37',
-                        transition: 'width 0.3s ease-out',
-                    }}
-                />
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '2px',
+                background: 'rgba(212, 175, 55, 0.1)'
+            }}>
+                <div style={{
+                    width: `${progress}%`,
+                    height: '100%',
+                    background: '#d4af37',
+                    boxShadow: '0 0 15px #d4af37',
+                    transition: 'width 0.3s ease-out'
+                }} />
             </div>
 
             <div style={{ position: 'relative' }}>
@@ -82,19 +78,17 @@ export function Loader() {
                         animation: 'spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite',
                     }}
                 />
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '10px',
-                        color: '#d4af37',
-                        fontFamily: 'Cinzel, serif',
-                        fontWeight: 'bold',
-                    }}
-                >
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    color: '#d4af37',
+                    fontFamily: 'Cinzel, serif',
+                    fontWeight: 'bold'
+                }}>
                     {Math.floor(progress)}%
                 </div>
             </div>
@@ -108,7 +102,7 @@ export function Loader() {
                     textTransform: 'uppercase',
                     fontFamily: 'Cinzel, serif',
                     opacity: 0.8,
-                    animation: 'pulse 2s ease-in-out infinite',
+                    animation: 'pulse 2s ease-in-out infinite'
                 }}
             >
                 Awakening the Marsh...

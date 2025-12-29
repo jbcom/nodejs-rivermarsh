@@ -3,12 +3,12 @@
  * Ported from Python combat logic in game.py
  */
 
+import { useRef, useEffect, useState, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { useGameStore } from '../store/gameStore'
 import { PLAYER } from '../constants/game'
 import { combatEvents } from '../events/combatEvents'
-import { useGameStore } from '../store/gameStore'
 
 interface DamageIndicator {
   id: number

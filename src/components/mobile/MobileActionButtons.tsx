@@ -37,15 +37,15 @@ export function MobileActionButtons() {
     const rightOffset = `max(20px, ${constraints.safeAreas.right}px)`;
     const bottomOffset = `max(20px, ${constraints.safeAreas.bottom}px)`;
 
-    const handleAction = (action: 'jump' | 'interact' | 'attack', active: boolean) => {
+    const handleAction = (action: 'jump' | 'interact' | 'attack' | 'spell', active: boolean) => {
         setAction(action, active);
         if (active) {
             const pattern =
                 action === 'jump'
                     ? HAPTIC_PATTERNS.jump
-                    : action === 'attack'
+                    : action === 'attack' || action === 'spell'
                       ? HAPTIC_PATTERNS.hit
-                      : 10;
+                      : 'light';
             hapticFeedback(pattern);
         }
     };
@@ -63,38 +63,74 @@ export function MobileActionButtons() {
                 zIndex: 1000,
             }}
         >
-            {/* Primary Action: Attack */}
-            <button
-                style={{
-                    ...buttonStyle,
-                    width: '85px',
-                    height: '85px',
-                    backgroundColor: 'rgba(180, 50, 50, 0.5)',
-                    border: '3px solid rgba(255, 100, 100, 0.5)',
-                    fontSize: '14px',
-                }}
-                onTouchStart={(e) => {
-                    e.preventDefault();
-                    handleAction('attack', true);
-                }}
-                onTouchEnd={(e) => {
-                    e.preventDefault();
-                    handleAction('attack', false);
-                }}
-                onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleAction('attack', true);
-                }}
-                onMouseUp={(e) => {
-                    e.preventDefault();
-                    handleAction('attack', false);
-                }}
-                aria-label="Attack action button"
-                tabIndex={0}
-            >
-                <span style={{ fontSize: '24px', marginBottom: '2px' }}>⚔️</span>
-                ATTACK
-            </button>
+            {/* Action Buttons Container */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
+                {/* Primary Action: Attack */}
+                <button
+                    style={{
+                        ...buttonStyle,
+                        width: '85px',
+                        height: '85px',
+                        backgroundColor: 'rgba(180, 50, 50, 0.5)',
+                        border: '3px solid rgba(255, 100, 100, 0.5)',
+                        fontSize: '14px',
+                    }}
+                    onTouchStart={(e) => {
+                        e.preventDefault();
+                        handleAction('attack', true);
+                    }}
+                    onTouchEnd={(e) => {
+                        e.preventDefault();
+                        handleAction('attack', false);
+                    }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleAction('attack', true);
+                    }}
+                    onMouseUp={(e) => {
+                        e.preventDefault();
+                        handleAction('attack', false);
+                    }}
+                    aria-label="Attack action button"
+                    tabIndex={0}
+                >
+                    <span style={{ fontSize: '24px', marginBottom: '2px' }}>⚔️</span>
+                    ATTACK
+                </button>
+
+                {/* Spell Action: Fireball */}
+                <button
+                    style={{
+                        ...buttonStyle,
+                        width: '75px',
+                        height: '75px',
+                        backgroundColor: 'rgba(180, 100, 50, 0.5)',
+                        border: '3px solid rgba(255, 180, 100, 0.5)',
+                        fontSize: '13px',
+                    }}
+                    onTouchStart={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', true);
+                    }}
+                    onTouchEnd={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', false);
+                    }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', true);
+                    }}
+                    onMouseUp={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', false);
+                    }}
+                    aria-label="Spell action button"
+                    tabIndex={0}
+                >
+                    <span style={{ fontSize: '22px', marginBottom: '2px' }}>🔥</span>
+                    SPELL
+                </button>
+            </div>
 
             {/* Secondary Actions */}
             <div style={{ display: 'flex', gap: '20px' }}>

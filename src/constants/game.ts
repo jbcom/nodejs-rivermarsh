@@ -10,12 +10,16 @@
 // =============================================================================
 
 export const PLAYER = {
-    // Stats
-    INITIAL_HEALTH: 100,
-    INITIAL_STAMINA: 100,
-    HEALTH_PER_LEVEL: 10,
-    DAMAGE_PER_LEVEL: 2,
-    BASE_DAMAGE: 10,
+  // Stats
+  INITIAL_HEALTH: 100,
+  INITIAL_STAMINA: 100,
+  HEALTH_PER_LEVEL: 10,
+  MANA_PER_LEVEL: 10,
+  DAMAGE_PER_LEVEL: 2,
+  BASE_DAMAGE: 10,
+  INITIAL_MANA: 20,
+  SPELL_COST_FIREBALL: 10,
+  MANA_REGEN_RATE: 2, // Mana per second
 } as const;
 
 // =============================================================================
@@ -23,12 +27,12 @@ export const PLAYER = {
 // =============================================================================
 
 export const LEVELING = {
-    BASE_XP_REQUIRED: 100,
-    XP_MULTIPLIER: 1.5, // Exponential growth
-    MAX_LEVEL: 50, // Soft cap to prevent extreme grind
-    PREY_XP: 20,
-    PREDATOR_XP: 50,
-    BOSS_XP: 500,
+  BASE_XP_REQUIRED: 100,
+  XP_MULTIPLIER: 1.5, // Exponential growth
+  MAX_LEVEL: 50, // Soft cap to prevent extreme grind
+  PREY_XP: 20,
+  PREDATOR_XP: 50,
+  BOSS_XP: 500,
 } as const;
 
 // =============================================================================
