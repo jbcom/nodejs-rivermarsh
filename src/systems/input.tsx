@@ -19,11 +19,8 @@ export function useInput() {
             ' ': 0,
             f: 0,
             e: 0,
-<<<<<<< HEAD
             shift: 0,
-=======
             q: 0,
->>>>>>> fix/issue-80
         };
         (window as any).pressedKeys = keys;
 
@@ -36,11 +33,8 @@ export function useInput() {
             const jump = keys[' '] === 1;
             const attack = keys.f === 1;
             const interact = keys.e === 1;
-<<<<<<< HEAD
             const dash = keys.shift === 1;
-=======
             const spell = keys.q === 1;
->>>>>>> fix/issue-80
 
             if (x !== 0 || y !== 0 || jump || dash) {
                 setInput(x, y, true, jump);
@@ -59,11 +53,8 @@ export function useInput() {
             setAction('jump', jump);
             setAction('attack', attack);
             setAction('interact', interact);
-<<<<<<< HEAD
             setAction('dash', dash);
-=======
             setAction('spell', spell);
->>>>>>> fix/issue-80
         };
 
         const handleKeyDown = (e: KeyboardEvent) => {

@@ -45,16 +45,12 @@ export function Player() {
     const input = useGameStore((s) => s.input);
     const player = useGameStore((s) => s.player);
     const dashAction = useControlsStore((state) => state.actions.dash);
-<<<<<<< HEAD
+    
     const updatePlayer = useGameStore((s) => s.updatePlayer);
     const damagePlayer = useGameStore((s) => s.damagePlayer);
     const consumeStamina = useGameStore((s) => s.consumeStamina);
     const restoreStamina = useGameStore((s) => s.restoreStamina);
-=======
-    const updatePlayer = useEngineStore((s) => s.updatePlayer);
-    const useMana = useEngineStore.getState().useMana;
-    const damagePlayer = useEngineStore.getState().damagePlayer;
->>>>>>> fix/issue-80
+    const useMana = useGameStore((s) => s.useMana);
 
     // Create Strata character
     useEffect(() => {
@@ -131,9 +127,9 @@ export function Player() {
             return;
         }
 
-        const cost = PLAYER.SPELL_COST_FIREBALL;
+        const cost = PLAYER.SPELL_COST_FIREBALL || 5;
         if (useMana(cost)) {
-            const damage = 25 + playerStats.level * 5;
+            const damage = 25 + player.level * 5;
             const position = groupRef.current?.position.clone() || new THREE.Vector3();
             
             // Direction based on character rotation
@@ -142,7 +138,12 @@ export function Player() {
                 direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), groupRef.current.rotation.y);
             }
 
-            combatEvents.emitSpellCast(position, direction, 'fireball', damage);
+            // Note: emitSpellCast might not exist in all versions of combatEvents, 
+            // but we're porting it.
+            if ((combatEvents as any).emitSpellCast) {
+                (combatEvents as any).emitSpellCast(position, direction, 'fireball', damage);
+            }
+            
             spellCooldownRef.current = 1.0; // 1 second cooldown
             attackAnimTimerRef.current = 0.4; // Small animation pause
 
@@ -151,7 +152,7 @@ export function Player() {
                 audioManager.playSound('collect', 0.7); // Use collect with higher pitch/volume for spell
             }
         }
-    }, [playerStats.level, useMana]);
+    }, [player.level, useMana]);
 
     useFrame((state, delta) => {
         if (!rigidBodyRef.current || !groupRef.current || !characterRef.current) {

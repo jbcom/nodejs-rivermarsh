@@ -43,15 +43,9 @@ export function MobileActionButtons() {
             const pattern =
                 action === 'jump'
                     ? HAPTIC_PATTERNS.jump
-<<<<<<< HEAD
-                    : action === 'attack'
-                      ? HAPTIC_PATTERNS.attack
-                      : 'light';
-=======
                     : action === 'attack' || action === 'spell'
                       ? HAPTIC_PATTERNS.hit
-                      : 10;
->>>>>>> fix/issue-80
+                      : 'light';
             hapticFeedback(pattern);
         }
     };
