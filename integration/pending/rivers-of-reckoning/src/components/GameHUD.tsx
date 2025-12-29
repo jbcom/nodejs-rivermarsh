@@ -2,20 +2,20 @@
  * Game HUD - Ported from game.py draw_enhanced_hud()
  */
 
-import { Typography, LinearProgress, Chip, Stack } from '@mui/material'
 import {
-  Favorite,
-  LocalFireDepartment,
-  Explore,
-  WbSunny,
-  Cloud,
-  Thunderstorm,
   AcUnit,
+  Cloud,
+  Explore,
+  Favorite,
   FilterDrama,
+  LocalFireDepartment,
+  Thunderstorm,
+  WbSunny,
 } from '@mui/icons-material'
+import { Chip, LinearProgress, Stack, Typography } from '@mui/material'
+import { useEffect } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { BIOME_CONFIGS, WeatherType } from '../types/game'
-import { useEffect } from 'react'
 
 const WeatherIcon = ({ weather }: { weather: WeatherType }) => {
   switch (weather) {

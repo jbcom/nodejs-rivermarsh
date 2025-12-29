@@ -6,6 +6,7 @@ import { getMemoryMonitor } from '@/utils/memoryMonitor';
 import { AchievementSystem } from '../ecs/systems/AchievementSystem';
 import { AISystem } from '../ecs/systems/AISystem';
 import { BiomeSystem } from '../ecs/systems/BiomeSystem';
+import { BossBattleSystem } from '../ecs/systems/BossBattleSystem';
 import { CollisionSystem } from '../ecs/systems/CollisionSystem';
 import { CombatSystem } from '../ecs/systems/CombatSystem';
 import { EnemyEffectsSystem } from '../ecs/systems/EnemyEffectsSystem';
@@ -15,7 +16,6 @@ import { SpawnSystem } from '../ecs/systems/SpawnSystem';
 import { TimeSystem } from '../ecs/systems/TimeSystem';
 import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
-import { BossBattleSystem } from '../ecs/systems/BossBattleSystem';
 import { world } from '../ecs/world';
 import { AudioSystem } from './AudioSystem';
 
@@ -77,10 +77,10 @@ export function GameSystems() {
         // Run ECS systems in order
         CombatSystem();
         PlayerSyncSystem();
-        
+
         // Update game time in store
         useGameStore.getState().updateTime(delta);
-        
+
         TimeSystem(delta);
         WeatherSystem(delta);
         WorldEventSystem();

@@ -3,11 +3,11 @@
  * Ported from Python player.py
  */
 
-import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
-import { useGameStore } from '../store/gameStore'
 import { PLAYER } from '../constants/game'
+import { useGameStore } from '../store/gameStore'
 
 interface PlayerProps {
   heightFunction: (x: number, z: number) => number

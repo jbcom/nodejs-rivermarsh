@@ -2,8 +2,15 @@ import { Inventory as RPGInventory } from '@jbcom/strata';
 import { useGameStore } from '@/stores/gameStore';
 
 export function ShopPanel() {
-    const { player, spendGold, toggleShop, healPlayer, restoreStamina, addExperience, updatePlayer } =
-        useGameStore();
+    const {
+        player,
+        spendGold,
+        toggleShop,
+        healPlayer,
+        restoreStamina,
+        addExperience,
+        updatePlayer,
+    } = useGameStore();
 
     const items = [
         {
@@ -86,7 +93,7 @@ export function ShopPanel() {
                     alignItems: 'baseline',
                     marginBottom: '30px',
                     borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
-                    paddingBottom: '15px'
+                    paddingBottom: '15px',
                 }}
             >
                 <h2
@@ -95,24 +102,35 @@ export function ShopPanel() {
                         color: '#d4af37',
                         fontSize: '32px',
                         fontFamily: 'Cinzel, serif',
-                        letterSpacing: '4px'
+                        letterSpacing: '4px',
                     }}
                 >
                     RIVER MARKET
                 </h2>
-                <div style={{ 
-                    color: '#ffd700', 
-                    fontWeight: 'bold', 
-                    fontSize: '20px',
-                    fontFamily: 'Cinzel, serif',
-                    textShadow: '0 0 10px rgba(212, 175, 55, 0.3)'
-                }}>
+                <div
+                    style={{
+                        color: '#ffd700',
+                        fontWeight: 'bold',
+                        fontSize: '20px',
+                        fontFamily: 'Cinzel, serif',
+                        textShadow: '0 0 10px rgba(212, 175, 55, 0.3)',
+                    }}
+                >
                     💰 {player.gold} <span style={{ fontSize: '12px', opacity: 0.6 }}>GOLD</span>
                 </div>
             </div>
 
             <div style={{ display: 'flex', gap: '30px' }}>
-                <div style={{ flex: 1, display: 'grid', gap: '12px', maxHeight: '50vh', overflow: 'auto', paddingRight: '10px' }}>
+                <div
+                    style={{
+                        flex: 1,
+                        display: 'grid',
+                        gap: '12px',
+                        maxHeight: '50vh',
+                        overflow: 'auto',
+                        paddingRight: '10px',
+                    }}
+                >
                     {items.map((item) => {
                         const canAfford = player.gold >= item.cost;
                         return (
@@ -130,10 +148,23 @@ export function ShopPanel() {
                                 }}
                             >
                                 <div>
-                                    <div style={{ fontWeight: 'bold', color: '#d4af37', fontSize: '16px', letterSpacing: '1px' }}>
+                                    <div
+                                        style={{
+                                            fontWeight: 'bold',
+                                            color: '#d4af37',
+                                            fontSize: '16px',
+                                            letterSpacing: '1px',
+                                        }}
+                                    >
                                         {item.name}
                                     </div>
-                                    <div style={{ fontSize: '13px', color: '#999', marginTop: '4px' }}>
+                                    <div
+                                        style={{
+                                            fontSize: '13px',
+                                            color: '#999',
+                                            marginTop: '4px',
+                                        }}
+                                    >
                                         {item.description}
                                     </div>
                                 </div>
@@ -142,7 +173,9 @@ export function ShopPanel() {
                                     disabled={!canAfford}
                                     style={{
                                         padding: '10px 20px',
-                                        background: canAfford ? '#d4af37' : 'rgba(255,255,255,0.05)',
+                                        background: canAfford
+                                            ? '#d4af37'
+                                            : 'rgba(255,255,255,0.05)',
                                         color: canAfford ? '#000' : '#555',
                                         border: 'none',
                                         borderRadius: '4px',
@@ -151,13 +184,17 @@ export function ShopPanel() {
                                         minWidth: '100px',
                                         fontFamily: 'Cinzel, serif',
                                         transition: 'all 0.2s ease',
-                                        transform: canAfford ? 'none' : 'none'
+                                        transform: canAfford ? 'none' : 'none',
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (canAfford) e.currentTarget.style.background = '#e5c05b';
+                                        if (canAfford) {
+                                            e.currentTarget.style.background = '#e5c05b';
+                                        }
                                     }}
                                     onMouseLeave={(e) => {
-                                        if (canAfford) e.currentTarget.style.background = '#d4af37';
+                                        if (canAfford) {
+                                            e.currentTarget.style.background = '#d4af37';
+                                        }
                                     }}
                                 >
                                     {item.cost} G
@@ -167,8 +204,24 @@ export function ShopPanel() {
                     })}
                 </div>
 
-                <div style={{ width: '220px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
-                    <h3 style={{ fontSize: '14px', color: '#d4af37', marginBottom: '15px', fontFamily: 'Cinzel, serif', letterSpacing: '2px' }}>YOUR PACK</h3>
+                <div
+                    style={{
+                        width: '220px',
+                        borderLeft: '1px solid rgba(255,255,255,0.1)',
+                        paddingLeft: '20px',
+                    }}
+                >
+                    <h3
+                        style={{
+                            fontSize: '14px',
+                            color: '#d4af37',
+                            marginBottom: '15px',
+                            fontFamily: 'Cinzel, serif',
+                            letterSpacing: '2px',
+                        }}
+                    >
+                        YOUR PACK
+                    </h3>
                     <RPGInventory slots={player.inventory as any} columns={4} />
                 </div>
             </div>
@@ -187,7 +240,7 @@ export function ShopPanel() {
                     fontFamily: 'Cinzel, serif',
                     letterSpacing: '2px',
                     fontSize: '12px',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.4)';

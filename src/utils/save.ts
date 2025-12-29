@@ -1,5 +1,5 @@
+import type * as THREE from 'three';
 import { world } from '@/ecs/world';
-import * as THREE from 'three';
 
 export interface SaveData {
     version: string;

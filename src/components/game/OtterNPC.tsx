@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
-import { useGameStore, type OtterNPC as OtterNPCType } from '@/stores/gameStore';
+import { type OtterNPC as OtterNPCType, useGameStore } from '@/stores/gameStore';
 
 interface OtterNPCProps {
     npc: OtterNPCType;
@@ -149,7 +149,7 @@ export function OtterNPC({ npc }: OtterNPCProps) {
             // Visual feedback: brief color change to white
             if (meshRef.current) {
                 const mesh = meshRef.current.children[0] as THREE.Mesh;
-                if (mesh && mesh.material) {
+                if (mesh?.material) {
                     const material = mesh.material as THREE.MeshStandardMaterial;
                     const originalColor = material.color.clone();
                     material.color.set('#ffffff');

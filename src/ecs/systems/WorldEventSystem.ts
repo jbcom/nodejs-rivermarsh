@@ -1,15 +1,15 @@
 import * as THREE from 'three';
-import { useAchievementStore } from '../../stores/useAchievementStore';
 import { useGameStore } from '../../stores/gameStore';
-import { world } from '../world';
+import { useAchievementStore } from '../../stores/useAchievementStore';
 import { BOSSES } from '../data/bosses';
+import { world } from '../world';
 
 const POSSIBLE_EVENTS = [
     'blood_moon',
     'golden_hour',
     'meteor_shower',
     'foggy_morning',
-    'boss_encounter'
+    'boss_encounter',
 ];
 
 export function WorldEventSystem() {
@@ -21,7 +21,7 @@ export function WorldEventSystem() {
         if (worldEvents.activeEvents.length > 0) {
             if (now - worldEvents.lastEventTime > worldEvents.eventDuration) {
                 console.log('World Event(s) Ended:', worldEvents.activeEvents);
-                
+
                 // Cleanup boss if encounter ended
                 if (worldEvents.activeEvents.includes('boss_encounter')) {
                     const bossEntity = world.with('isBoss').entities[0];
@@ -59,7 +59,7 @@ export function WorldEventSystem() {
                 worldEvents.activeEvents = [newEvent];
                 worldEvents.lastEventTime = now;
                 console.log('World Event Started:', newEvent);
-                
+
                 if (newEvent === 'boss_encounter') {
                     triggerBossEncounter();
                 }
@@ -85,7 +85,7 @@ export function WorldEventSystem() {
 
 function triggerBossEncounter() {
     const { setGameMode, setActiveBossId, player } = useGameStore.getState();
-    
+
     // Check if a boss already exists
     const existingBoss = world.with('isBoss').entities[0];
     if (existingBoss) {
@@ -94,7 +94,11 @@ function triggerBossEncounter() {
     }
 
     // Pick a boss based on player level
-    const bossTypes: ('dread_hydra' | 'shadow_golem' | 'chaos_drake')[] = ['dread_hydra', 'shadow_golem', 'chaos_drake'];
+    const bossTypes: ('dread_hydra' | 'shadow_golem' | 'chaos_drake')[] = [
+        'dread_hydra',
+        'shadow_golem',
+        'chaos_drake',
+    ];
     const bossType = bossTypes[Math.min((player.level || 1) - 1, bossTypes.length - 1)];
     const bossData = BOSSES[bossType];
 
@@ -104,7 +108,7 @@ function triggerBossEncounter() {
         transform: {
             position: new THREE.Vector3(0, 0, 0),
             rotation: new THREE.Quaternion(),
-            scale: new THREE.Vector3(2, 2, 2)
+            scale: new THREE.Vector3(2, 2, 2),
         },
         species: {
             id: `boss_${Date.now()}`,
@@ -115,14 +119,14 @@ function triggerBossEncounter() {
             stamina: 100,
             maxStamina: 100,
             speed: 0,
-            state: 'idle'
+            state: 'idle',
         },
         boss: {
             type: bossType,
             specialAbilityCooldown: 3,
             phase: 1,
             rewards: bossData.rewards,
-            isBossBattleActive: true
+            isBossBattleActive: true,
         },
         combat: {
             damage: 10,
@@ -131,8 +135,8 @@ function triggerBossEncounter() {
             lastAttackTime: 0,
             turn: 'player',
             playerCooldown: 0,
-            bossCooldown: 0
-        }
+            bossCooldown: 0,
+        },
     });
 
     setGameMode('boss_battle');

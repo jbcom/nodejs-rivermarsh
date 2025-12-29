@@ -3,7 +3,7 @@ import { Physics } from '@react-three/rapier';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
-import { Combat, GameUI, NPCManager, BossBattleEffects } from '@/components/game';
+import { BossBattleEffects, Combat, GameUI, NPCManager } from '@/components/game';
 import {
     GyroscopeCamera,
     MobileActionButtons,
@@ -15,24 +15,24 @@ import { Player } from '@/components/Player';
 import { Resources } from '@/components/Resources';
 import { TapToCollect } from '@/components/TapToCollect';
 import { AchievementOverlay } from '@/components/ui/AchievementOverlay';
+import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { EventOverlay } from '@/components/ui/EventOverlay';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
 import { MainMenu } from '@/components/ui/MainMenu';
 import { Tutorial } from '@/components/ui/Tutorial';
-import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { World } from '@/components/World';
+import { RacingScene } from '@/features/racing/RacingScene';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
+import { useGameStore } from '@/stores/gameStore';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
-import { RacingScene } from '@/features/racing/RacingScene';
-import { useGameStore } from '@/stores/gameStore';
 import { BasicStrataExample } from '../examples/BasicStrata';
-import { WeatherExample } from '../examples/WeatherSystem';
 import { CombatDemo } from '../examples/CombatDemo';
+import { WeatherExample } from '../examples/WeatherSystem';
 
 interface SceneProps {
     useMobileControls?: boolean;
@@ -96,7 +96,7 @@ export default function App() {
 
     const constraints = useMobileConstraints();
     const [currentExample, setCurrentExample] = useState<'basic' | 'weather' | 'combat'>('basic');
-    
+
     const gameMode = useGameStore((state) => state.gameMode);
     const setGameMode = useGameStore((state) => state.setGameMode);
 
@@ -200,9 +200,7 @@ export default function App() {
                 {gameMode === 'racing' ? (
                     <RacingScene />
                 ) : (
-                    <Scene
-                        useMobileControls={constraints.isMobile}
-                    />
+                    <Scene useMobileControls={constraints.isMobile} />
                 )}
             </Canvas>
 

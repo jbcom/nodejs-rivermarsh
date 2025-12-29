@@ -1,7 +1,7 @@
 import * as fc from 'fast-check';
+import * as THREE from 'three';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore } from '../gameStore';
-import * as THREE from 'three';
 
 describe('GameStore', () => {
     beforeEach(() => {
@@ -59,7 +59,7 @@ describe('GameStore', () => {
                             player: {
                                 ...state.player,
                                 stamina: initialStamina,
-                            }
+                            },
                         }));
                     });
 
@@ -127,7 +127,7 @@ describe('GameStore', () => {
                 player: {
                     ...state.player,
                     health: 50,
-                }
+                },
             }));
         });
 

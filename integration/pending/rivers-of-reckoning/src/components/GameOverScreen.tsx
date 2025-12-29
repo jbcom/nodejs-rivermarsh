@@ -2,8 +2,8 @@
  * Game Over Screen - Ported from game.py draw_gameover()
  */
 
-import { Typography, Button, Container, Grid } from '@mui/material'
-import { Replay, Home } from '@mui/icons-material'
+import { Home, Replay } from '@mui/icons-material'
+import { Button, Container, Grid, Typography } from '@mui/material'
 import { useGameStore } from '../store/gameStore'
 
 export function GameOverScreen() {
