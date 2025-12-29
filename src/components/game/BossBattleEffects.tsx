@@ -26,9 +26,11 @@ export const BossBattleEffects: React.FC = () => {
                 ]);
             }
 
+            // Update spell casting state
             if (bossEntity.boss) {
+                // If boss is processing turn and about to use special ability (cooldown is 0)
                 const isCasting =
-                    bossEntity.boss.specialAbilityCooldown === 3 &&
+                    bossEntity.boss.specialAbilityCooldown === 0 &&
                     bossEntity.combat?.turn === 'boss' &&
                     bossEntity.boss.isProcessingTurn === true;
 

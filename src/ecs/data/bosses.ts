@@ -2,6 +2,7 @@ import type { BossComponent } from '../components';
 
 export interface BossData {
     name: string;
+    description: string;
     type: BossComponent['type'];
     health: number;
     rewards: BossComponent['rewards'];
@@ -15,6 +16,7 @@ export interface BossData {
 export const BOSSES: Record<BossComponent['type'], BossData> = {
     dread_hydra: {
         name: 'Dread Hydra',
+        description: 'Multi-headed serpent',
         type: 'dread_hydra',
         health: 50,
         rewards: { gold: 100, experience: 500 },
@@ -25,6 +27,7 @@ export const BOSSES: Record<BossComponent['type'], BossData> = {
     },
     shadow_golem: {
         name: 'Shadow Golem',
+        description: 'Stone construct with glowing eyes',
         type: 'shadow_golem',
         health: 80,
         rewards: { gold: 150, experience: 750 },
@@ -35,6 +38,7 @@ export const BOSSES: Record<BossComponent['type'], BossData> = {
     },
     chaos_drake: {
         name: 'Chaos Drake',
+        description: 'Winged dragon',
         type: 'chaos_drake',
         health: 120,
         rewards: { gold: 300, experience: 1500 },

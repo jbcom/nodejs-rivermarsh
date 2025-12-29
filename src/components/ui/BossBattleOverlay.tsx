@@ -60,9 +60,10 @@ export const BossBattleOverlay: React.FC = () => {
         >
             {/* Boss Health Bar */}
             <div style={{ width: '80%', textAlign: 'center', pointerEvents: 'auto' }}>
-                <h2 style={{ margin: '0 0 10px 0', textShadow: '2px 2px 4px black' }}>
-                    {bossData.name}
-                </h2>
+                <h2 style={{ margin: '0 0 5px 0', textShadow: '2px 2px 4px black' }}>{bossData.name}</h2>
+                <div style={{ fontSize: '14px', marginBottom: '10px', color: '#aaa', textShadow: '1px 1px 2px black' }}>
+                    {bossData.description}
+                </div>
                 <div
                     style={{
                         width: '100%',
