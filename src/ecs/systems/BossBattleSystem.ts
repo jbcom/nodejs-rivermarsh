@@ -1,6 +1,5 @@
 import { world } from '../world';
-import { useEngineStore } from '../../stores/engineStore';
-import { useRPGStore } from '../../stores/rpgStore';
+import { useGameStore } from '../../stores/gameStore';
 import { BOSSES } from '../data/bosses';
 import { combatEvents } from '../../events/combatEvents';
 
@@ -16,15 +15,13 @@ const SPELL_DAMAGE_MAX = 6;
 const SPECIAL_ABILITY_COOLDOWN = 3;
 
 export function BossBattleSystem() {
-    const { mode, activeBossId, damagePlayer, addExperience, addGold, setMode, setActiveBossId } = useEngineStore.getState();
-    const { setGameMode } = useRPGStore.getState();
+    const { gameMode, activeBossId, damagePlayer, addExperience, addGold, setGameMode, setActiveBossId } = useGameStore.getState();
 
-    if (mode !== ('boss_battle' as any) || activeBossId === null) return;
+    if (gameMode !== 'boss_battle' || activeBossId === null) return;
 
     const bossEntity = world.entities.find(e => e.id === activeBossId);
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) {
         // If boss is gone or invalid, return to exploration
-        setMode('exploration');
         setGameMode('exploration');
         setActiveBossId(null);
         return;
@@ -39,7 +36,7 @@ export function BossBattleSystem() {
         setTimeout(() => {
             // Check if still in boss battle and boss still exists
             const currentBoss = world.entities.find(e => e.id === activeBossId);
-            if (!currentBoss || !currentBoss.boss || !currentBoss.combat || (useEngineStore.getState().mode as any) !== 'boss_battle') {
+            if (!currentBoss || !currentBoss.boss || !currentBoss.combat || useGameStore.getState().gameMode !== 'boss_battle') {
                 if (currentBoss?.boss) currentBoss.boss.isProcessingTurn = false;
                 return;
             }
@@ -78,8 +75,9 @@ export function BossBattleSystem() {
                 console.log(`${bossData.name} attacks for ${damage} damage!`);
                 damagePlayer(damage);
                 boss.specialAbilityCooldown = Math.max(0, boss.specialAbilityCooldown - 1);
+                combat.lastAction = `${bossData.name} used ${actionName}`;
             }
-            combat.lastAction = `${bossData.name} used ${actionName}`;
+            
             combat.turn = 'player';
             boss.isProcessingTurn = false;
             
@@ -98,7 +96,6 @@ export function BossBattleSystem() {
         world.remove(bossEntity);
         
         // Back to exploration
-        setMode('exploration');
         setGameMode('exploration');
         setActiveBossId(null);
     }
@@ -106,8 +103,7 @@ export function BossBattleSystem() {
 
 // Function to handle player actions (called from UI)
 export function handlePlayerAction(action: 'attack' | 'spell') {
-    const { activeBossId, player, useMana } = useEngineStore.getState();
-    const { player: rpgPlayer } = useRPGStore.getState();
+    const { activeBossId, player, useMana } = useGameStore.getState();
     if (activeBossId === null) return;
 
     const bossEntity = world.entities.find(e => e.id === activeBossId);
@@ -121,7 +117,7 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
 
     if (action === 'attack') {
         // Attack: Random 2-4 damage + sword level (from Rivers of Reckoning specs)
-        const swordLevel = rpgPlayer.stats.swordLevel || 0;
+        const swordLevel = player.swordLevel || 0;
         damage = (Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) + PLAYER_ATTACK_MIN) + swordLevel;
         success = true;
         combat.lastAction = `Player attacked for ${damage} damage`;

@@ -1,7 +1,7 @@
 # Playtest Report: Brand Identity Simulation
 
 ## Executive Summary
-This report simulates user experience scenarios for two potential brand identities for the unified game project: **Rivermarsh** and **Rivers of Reckoning**. The game combines exploration (Otterfall/Rivermarsh core) with RPG elements (Rivers of Reckoning) and racing (Otter River Rush).
+This report simulates user experience scenarios for two potential brand identities for the unified game project: **Rivermarsh** and **Rivers of Reckoning**. The game combines exploration (Rivermarsh core) with RPG elements (Rivers of Reckoning) and racing (Otter River Rush).
 
 ## Scenario 1: "Rivermarsh"
 **Target Audience:** Explorers, Cozy Gamers, Survival Enthusiasts.

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { useAchievementStore } from '../../stores/useAchievementStore';
-import { useEngineStore } from '../../stores/engineStore';
-import { useRPGStore } from '../../stores/rpgStore';
+import { useGameStore } from '../../stores/gameStore';
 import { world } from '../world';
 import { BOSSES } from '../data/bosses';
 
@@ -29,9 +28,7 @@ export function WorldEventSystem() {
                     if (bossEntity) {
                         world.remove(bossEntity);
                     }
-                    const { setMode, setActiveBossId } = useEngineStore.getState();
-                    const { setGameMode } = useRPGStore.getState();
-                    setMode('exploration');
+                    const { setGameMode, setActiveBossId } = useGameStore.getState();
                     setGameMode('exploration');
                     setActiveBossId(null);
                 }
@@ -87,8 +84,7 @@ export function WorldEventSystem() {
 }
 
 function triggerBossEncounter() {
-    const { setMode: setEngineMode, setActiveBossId, player } = useEngineStore.getState();
-    const { setGameMode: setRPGMode } = useRPGStore.getState();
+    const { setGameMode, setActiveBossId, player } = useGameStore.getState();
     
     // Check if a boss already exists
     const existingBoss = world.with('isBoss').entities[0];
@@ -139,8 +135,7 @@ function triggerBossEncounter() {
         }
     });
 
-    setEngineMode('boss_battle' as any);
-    setRPGMode('boss_battle');
+    setGameMode('boss_battle');
     setActiveBossId(bossEntity.id!);
     console.log(`BOSS ENCOUNTER: ${bossData.name} appeared!`);
 }

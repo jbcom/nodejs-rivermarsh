@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { useEngineStore } from '../../stores/engineStore';
+import { useGameStore } from '../../stores/gameStore';
 import { world } from '../../ecs/world';
 import { handlePlayerAction } from '../../ecs/systems/BossBattleSystem';
 import { BOSSES } from '../../ecs/data/bosses';
 
 export const BossBattleOverlay: React.FC = () => {
-    const { mode, activeBossId, player } = useEngineStore();
+    const { gameMode, activeBossId, player } = useGameStore();
     
-    if (mode !== 'boss_battle' || activeBossId === null) return null;
+    if (gameMode !== 'boss_battle' || activeBossId === null) return null;
 
     const bossEntity = world.entities.find(e => String(e.id) === String(activeBossId));
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) return null;

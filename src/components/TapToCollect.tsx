@@ -1,6 +1,5 @@
 import { world } from '@/ecs/world';
-import { useEngineStore } from '@/stores/engineStore';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
@@ -11,7 +10,7 @@ const COLLECTION_DISTANCE = 1.5;
 
 export function TapToCollect() {
     const { camera, scene } = useThree();
-    const playerPos = useEngineStore((s) => s.player.position);
+    const playerPos = useGameStore((s) => s.player.position);
 
     useEffect(() => {
         const raycaster = new THREE.Raycaster();
@@ -49,16 +48,18 @@ export function TapToCollect() {
                     entity.resource.collected = true;
                     entity.resource.collectedAt = Date.now();
 
+                    const { healPlayer, restoreStamina, addInventoryItem } = useGameStore.getState();
+
                     // Apply effects
                     if (entity.resource.healthRestore > 0) {
-                        useEngineStore.getState().healPlayer(entity.resource.healthRestore);
+                        healPlayer(entity.resource.healthRestore);
                     }
                     if (entity.resource.staminaRestore > 0) {
-                        useEngineStore.getState().restoreStamina(entity.resource.staminaRestore);
+                        restoreStamina(entity.resource.staminaRestore);
                     }
 
                     // Add to RPG inventory
-                    useRPGStore.getState().addInventoryItem({
+                    addInventoryItem({
                         id: `resource_${entity.resource.type}_${Date.now()}`,
                         name: entity.resource.type.charAt(0).toUpperCase() + entity.resource.type.slice(1),
                         type: 'consumable',

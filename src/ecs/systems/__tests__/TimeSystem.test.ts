@@ -11,7 +11,7 @@ describe('TimeSystem', () => {
         }
     });
 
-    // Feature: otterfall-complete, Property 1: Time Progression Monotonicity
+    // Feature: rivermarsh-complete, Property 1: Time Progression Monotonicity
     // For any game frame with positive deltaTime, advancing time should increase
     // the hour value, and when hour reaches 24.0, it should wrap to 0.0 while
     // maintaining continuity.
@@ -61,7 +61,7 @@ describe('TimeSystem', () => {
         );
     });
 
-    // Feature: otterfall-complete, Property 2: Phase Transition Consistency
+    // Feature: rivermarsh-complete, Property 2: Phase Transition Consistency
     // For any hour value, the calculated time phase should match exactly one of
     // the four defined phases (dawn, day, dusk, night) based on the hour ranges.
     it('Property 2: Phase Transition Consistency', () => {

@@ -1,26 +1,26 @@
 import { world as ecsWorld } from '@/ecs/world';
-import { useEngineStore } from '@/stores/engineStore';
-import { useRPGStore } from '@/stores/rpgStore';
-import { useEffect, useState } from 'react';
+import { useGameStore } from '@/stores/gameStore';
+import { useEffect, useState, useMemo } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
+
 // Note: Don't use strata's HealthBar here - it's a 3D component that requires Canvas context
 // Using a simple HTML-based progress bar instead
 interface SimpleBarProps {
     value: number;
     maxValue: number;
-    width?: number;
+    width?: number | string;
     height?: number;
     fillColor?: string;
     backgroundColor?: string;
     style?: React.CSSProperties;
+    testId?: string;
 }
 
-function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style, 'data-testid': testId }: SimpleBarProps & { 'data-testid'?: string }) {
-    const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100));
+function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style, testId }: SimpleBarProps) {
+    const percentage = maxValue > 0 ? Math.min(100, Math.max(0, (value / maxValue) * 100)) : 0;
     return (
         <div 
-            data-testid={testId}
             style={{ 
                 width, 
                 height, 
@@ -31,7 +31,7 @@ function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c
             }}
         >
             <div 
-                data-testid={testId ? `${testId}-fill` : undefined}
+                data-testid={testId}
                 style={{
                     width: `${percentage}%`,
                     height: '100%',
@@ -56,52 +56,77 @@ interface SimpleInventoryProps {
     style?: React.CSSProperties;
 }
 
-function RPGInventory({ slots, columns = 5, slotSize = 44, style }: SimpleInventoryProps) {
+function RPGInventory({ slots = [], columns = 5, slotSize = 44, style }: SimpleInventoryProps) {
     return (
         <div style={{ 
             display: 'flex', 
-            gap: '4px', 
+            gap: '6px', 
             flexWrap: 'wrap', 
-            maxWidth: columns * (slotSize + 4),
+            maxWidth: columns * (slotSize + 6),
             ...style 
         }}>
-            {slots.slice(0, columns).map((item, i) => (
-                <div key={i} style={{
-                    width: slotSize,
-                    height: slotSize,
-                    background: 'rgba(0,0,0,0.4)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px',
-                }}>
-                    {item?.quantity ? `${item.quantity}` : ''}
-                </div>
-            ))}
+            {Array.from({ length: columns }).map((_, i) => {
+                const item = slots[i];
+                const icon = item?.id?.includes('fish') ? '🐟' : item?.id?.includes('berry') ? '🫐' : item?.id?.includes('potion') ? '🧪' : item?.id?.includes('tonic') ? '🥃' : '📦';
+                
+                return (
+                    <div key={i} style={{
+                        width: slotSize,
+                        height: slotSize,
+                        background: 'rgba(255,255,255,0.05)',
+                        border: `1px solid ${item ? 'rgba(212, 175, 55, 0.4)' : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius: '6px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '20px',
+                        position: 'relative',
+                        boxShadow: item ? 'inset 0 0 10px rgba(212, 175, 55, 0.1)' : 'none',
+                    }}>
+                        {item && <span style={{ opacity: 0.9 }}>{icon}</span>}
+                        {item?.quantity > 1 && (
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '2px',
+                                right: '4px',
+                                fontSize: '10px',
+                                color: '#d4af37',
+                                fontWeight: 'bold',
+                                textShadow: '0 1px 2px rgba(0,0,0,0.8)'
+                            }}>
+                                {item.quantity}
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 }
 
 export function HUD() {
-    // Game loop stats
-    const health = useEngineStore((s) => s.player.health);
-    const maxHealth = useEngineStore((s) => s.player.maxHealth);
-    const stamina = useEngineStore((s) => s.player.stamina);
-    const maxStamina = useEngineStore((s) => s.player.maxStamina);
-    const level = useEngineStore((s) => s.player.level);
-    const experience = useEngineStore((s) => s.player.experience);
-    const expToNext = useEngineStore((s) => s.player.expToNext);
-    const nearbyResource = useEngineStore((s) => s.nearbyResource);
-    const score = useEngineStore((s) => s.score);
-    const distance = useEngineStore((s) => s.distance);
+    // All gameplay stats from unified gameStore
+    // Primitives are safe
+    const health = useGameStore((s) => s.player?.health ?? 0);
+    const maxHealth = useGameStore((s) => s.player?.maxHealth ?? 100);
+    const stamina = useGameStore((s) => s.player?.stamina ?? 0);
+    const maxStamina = useGameStore((s) => s.player?.maxStamina ?? 100);
+    const level = useGameStore((s) => s.player?.level ?? 1);
+    const experience = useGameStore((s) => s.player?.experience ?? 0);
+    const expToNext = useGameStore((s) => s.player?.expToNext ?? 1000);
+    const gold = useGameStore((s) => s.player?.gold ?? 0);
     
-    // UI/Meta stats from useRPGStore
-    const gold = useRPGStore((s) => s.player.stats.gold);
-    const showHelpSetting = useRPGStore((s) => s.settings?.showHelp ?? true);
+    // Stable selectors for objects/arrays
+    const nearbyResource = useGameStore((s) => s.nearbyResource);
+    const score = useGameStore((s) => s.score ?? 0);
+    const distance = useGameStore((s) => s.distance ?? 0);
     
-    const { toggleShop } = useRPGStore();
+    // Settings & Inventory
+    const showHelpSetting = useGameStore((s) => s.settings?.showHelp ?? true);
+    const inventory = useGameStore((s) => s.player?.inventory);
+    const safeInventory = useMemo(() => inventory ?? [], [inventory]);
+    
+    const toggleShop = useGameStore((s) => s.toggleShop);
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');
@@ -113,10 +138,14 @@ export function HUD() {
         const interval = setInterval(() => {
             // Time
             for (const { time } of ecsWorld.with('time')) {
-                setTimeDisplay({
-                    hour: Math.floor(time.hour),
-                    phase: time.phase
-                });
+                if (time) {
+                    setTimeDisplay((prev) => {
+                        const nextHour = Math.floor(time.hour);
+                        const nextPhase = time.phase || 'day';
+                        if (prev.hour === nextHour && prev.phase === nextPhase) return prev;
+                        return { hour: nextHour, phase: nextPhase };
+                    });
+                }
                 break;
             }
             // Weather
@@ -134,7 +163,7 @@ export function HUD() {
         const { hour, phase } = timeDisplay;
         const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
         const period = hour >= 12 ? 'PM' : 'AM';
-        const phaseCapitalized = phase.charAt(0).toUpperCase() + phase.slice(1);
+        const phaseCapitalized = (phase || 'day').charAt(0).toUpperCase() + (phase || 'day').slice(1);
         return `${displayHour}:00 ${period} - ${phaseCapitalized}`;
     };
 
@@ -197,6 +226,7 @@ export function HUD() {
                         height={4} 
                         fillColor="#fbbf24"
                         style={{ marginTop: '4px' }}
+                        testId="xp-bar-fill"
                     />
                 </div>
                 <div style={{
@@ -269,42 +299,42 @@ export function HUD() {
                 <div style={{ marginBottom: '10px' }}>
                     <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Inventory</div>
                     <RPGInventory 
-                        slots={useRPGStore.getState().player.inventory as any} 
+                        slots={safeInventory} 
                         columns={5}
-                        rows={1}
-                        slotSize={44}
                         style={{ position: 'relative', width: '250px', background: 'transparent', padding: 0 }}
                     />
                 </div>
 
                 {/* Health */}
-                <div>
-                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Health</span>
+                <div style={{ transform: 'skewX(-10deg)' }}>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', fontFamily: 'Cinzel, serif' }}>
+                        <span>Vitality</span>
                         <span>{Math.round(health)} / {maxHealth}</span>
                     </div>
                     <HealthBar 
                         value={health} 
                         maxValue={maxHealth} 
-                        width={250} 
+                        width={280} 
                         height={12} 
-                        fillColor={health / maxHealth > 0.5 ? '#4ade80' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
-                        data-testid="health-bar"
+                        fillColor={health / maxHealth > 0.5 ? '#22c55e' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
+                        testId="health-bar-fill"
+                        style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
                     />
                 </div>
                 {/* Stamina */}
-                <div>
-                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Stamina</span>
+                <div style={{ transform: 'skewX(-10deg)', marginLeft: '10px' }}>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', fontFamily: 'Cinzel, serif' }}>
+                        <span>Energy</span>
                         <span>{Math.round(stamina)} / {maxStamina}</span>
                     </div>
                     <HealthBar 
                         value={stamina} 
                         maxValue={maxStamina} 
-                        width={250} 
+                        width={240} 
                         height={8} 
-                        fillColor="#60a5fa"
-                        data-testid="stamina-bar"
+                        fillColor="#3b82f6"
+                        testId="stamina-bar-fill"
+                        style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
                     />
                 </div>
 
@@ -387,7 +417,7 @@ export function HUD() {
             </div>
 
             {/* Danger Vignette */}
-            {health / maxHealth < 0.3 && (
+            {maxHealth > 0 && health / maxHealth < 0.3 && (
                 <div style={{
                     position: 'absolute',
                     top: 0,

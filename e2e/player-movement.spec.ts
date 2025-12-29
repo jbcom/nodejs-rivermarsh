@@ -1,10 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { bypassMainMenu } from './test-utils';
 
 test.describe('Player Movement', () => {
-    test('should respond to keyboard input', async ({ page }) => {
-        await page.goto('/');
+    test.beforeEach(async ({ page }) => {
+        await page.goto('');
+        await bypassMainMenu(page);
+    });
 
-        // Wait for game to load
+    test('should respond to keyboard input', async ({ page }) => {
         await page.waitForTimeout(2000);
 
         // Press arrow keys to move
@@ -21,13 +24,11 @@ test.describe('Player Movement', () => {
         await page.keyboard.press('Space');
         await page.waitForTimeout(500);
 
-        // Game should still be running (no crashes)
         const canvas = page.locator('canvas');
         await expect(canvas).toBeVisible();
     });
 
     test('should handle continuous movement', async ({ page }) => {
-        await page.goto('/');
         await page.waitForTimeout(2000);
 
         // Hold down a key for continuous movement
@@ -35,13 +36,11 @@ test.describe('Player Movement', () => {
         await page.waitForTimeout(1000);
         await page.keyboard.up('ArrowUp');
 
-        // Game should still be responsive
         const canvas = page.locator('canvas');
         await expect(canvas).toBeVisible();
     });
 
     test('should handle multiple simultaneous key presses', async ({ page }) => {
-        await page.goto('/');
         await page.waitForTimeout(2000);
 
         // Press multiple keys at once (diagonal movement)
@@ -51,7 +50,6 @@ test.describe('Player Movement', () => {
         await page.keyboard.up('ArrowUp');
         await page.keyboard.up('ArrowRight');
 
-        // Game should handle it gracefully
         const canvas = page.locator('canvas');
         await expect(canvas).toBeVisible();
     });

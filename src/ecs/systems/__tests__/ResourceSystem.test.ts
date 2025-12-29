@@ -21,7 +21,7 @@ describe('ResourceSystem', () => {
         }
     });
 
-    // Feature: otterfall-complete, Property 10: Resource Collection Idempotence
+    // Feature: rivermarsh-complete, Property 10: Resource Collection Idempotence
     // For any resource entity, collecting it multiple times before respawn should
     // only apply the health/stamina restoration once.
     it('Property 10: Resource Collection Idempotence', () => {

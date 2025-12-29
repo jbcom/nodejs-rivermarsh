@@ -1,12 +1,12 @@
 import type React from 'react';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 
 interface SettingsPanelProps {
     onClose: () => void;
 }
 
 export function SettingsPanel({ onClose }: SettingsPanelProps) {
-    const { settings, updateSettings } = useRPGStore();
+    const { settings, updateSettings } = useGameStore();
 
     const panelStyle: React.CSSProperties = {
         position: 'fixed',

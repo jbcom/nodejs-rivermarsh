@@ -37,7 +37,7 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     },
 ];
 
-const TUTORIAL_STORAGE_KEY = 'otterfall_tutorial_completed';
+const TUTORIAL_STORAGE_KEY = 'rivermarsh_tutorial_completed';
 
 export function Tutorial() {
     const [showTutorial, setShowTutorial] = useState(false);
