@@ -6,6 +6,9 @@ import glsl from 'vite-plugin-glsl';
 export default defineConfig({
     base: process.env.VITE_BASE_URL || '/rivermarsh/',
     plugins: [react(), glsl()],
+    optimizeDeps: {
+        entries: ['index.html'],
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
