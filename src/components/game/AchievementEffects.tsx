@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
 import { ParticleEmitter } from '@jbcom/strata';
 import { useAchievementStore } from '../../stores/useAchievementStore';
 import { useEngineStore } from '../../stores/engineStore';
