@@ -8,33 +8,33 @@
  * All Python functionality has been ported to TypeScript.
  */
 
+import { Canvas, useFrame } from '@react-three/fiber'
+import { OrbitControls, Stats } from '@react-three/drei'
+import { Suspense, useMemo, useRef, useCallback } from 'react'
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material'
+import * as THREE from 'three'
 
 // Strata imports - using REAL API only
 import {
-
-  // Post-processing
-  CinematicEffects,
   // Core algorithms - fbm(x, y, z, octaves?)
   fbm,
   
   // React Vegetation Components
   GrassInstances,
+  TreeInstances,
+  RockInstances,
 
   // React Components
   ProceduralSky,
   Rain,
-  RockInstances,
   Snow,
-  TreeInstances,
+
+  // Post-processing
+  CinematicEffects,
 } from '@jbcom/strata'
-import { CssBaseline, createTheme, ThemeProvider } from '@mui/material'
-import { OrbitControls, Stats } from '@react-three/drei'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Suspense, useCallback, useMemo, useRef } from 'react'
-import * as THREE from 'three'
 
 // Local components
-import { CombatSystem, EnemySystem, GameHUD, GameOverScreen, PauseMenu, Player, TitleScreen } from './components'
+import { TitleScreen, GameHUD, PauseMenu, GameOverScreen, Player, EnemySystem, CombatSystem } from './components'
 import { useGameStore } from './store/gameStore'
 import { WeatherType } from './types/game'
 

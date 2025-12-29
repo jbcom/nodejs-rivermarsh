@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useControlsStore } from '@/stores/controlsStore';
 import { useGameStore } from '@/stores/gameStore';
+import { useControlsStore } from '@/stores/controlsStore';
 
 export function useInput() {
     const setInput = useGameStore((s) => s.setInput);
@@ -20,6 +20,7 @@ export function useInput() {
             f: 0,
             e: 0,
             shift: 0,
+            q: 0,
         };
         (window as any).pressedKeys = keys;
 
@@ -33,6 +34,7 @@ export function useInput() {
             const attack = keys.f === 1;
             const interact = keys.e === 1;
             const dash = keys.shift === 1;
+            const spell = keys.q === 1;
 
             if (x !== 0 || y !== 0 || jump || dash) {
                 setInput(x, y, true, jump);
@@ -52,6 +54,7 @@ export function useInput() {
             setAction('attack', attack);
             setAction('interact', interact);
             setAction('dash', dash);
+            setAction('spell', spell);
         };
 
         const handleKeyDown = (e: KeyboardEvent) => {

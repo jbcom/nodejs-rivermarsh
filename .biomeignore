@@ -1,6 +1,7 @@
 integration/
+android/
+public/
 dist/
 node_modules/
-android/
-ios/
-docs/api/
+playwright-report/
+test-results/

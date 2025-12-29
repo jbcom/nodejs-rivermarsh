@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { world as ecsWorld } from '@/ecs/world';
@@ -11,14 +11,12 @@ vi.mock('@/ecs/world', () => ({
         with: vi.fn((type) => {
             if (type === 'time') {
                 return {
-                    entities: [
-                        {
-                            time: {
-                                hour: 8,
-                                phase: 'day',
-                            },
+                    entities: [{
+                        time: {
+                            hour: 8,
+                            phase: 'day',
                         },
-                    ],
+                    }],
                     *[Symbol.iterator]() {
                         yield {
                             time: {
@@ -31,13 +29,11 @@ vi.mock('@/ecs/world', () => ({
             }
             if (type === 'weather') {
                 return {
-                    entities: [
-                        {
-                            weather: {
-                                current: 'clear',
-                            },
+                    entities: [{
+                        weather: {
+                            current: 'clear',
                         },
-                    ],
+                    }],
                     *[Symbol.iterator]() {
                         yield {
                             weather: {
@@ -89,7 +85,7 @@ describe('HUD Component', () => {
                 distance: 0,
                 settings: {
                     showHelp: true,
-                },
+                }
             } as any);
         });
     });
@@ -322,12 +318,9 @@ describe('HUD Component', () => {
             render(<HUD />);
 
             // Wait for state update (interval is 100ms)
-            await waitFor(
-                () => {
-                    expect(screen.getByText(/2:00 PM - Day/i)).toBeInTheDocument();
-                },
-                { timeout: 1500 }
-            );
+            await waitFor(() => {
+                expect(screen.getByText(/2:00 PM - Day/i)).toBeInTheDocument();
+            }, { timeout: 1500 });
         });
 
         it('should capitalize phase names', () => {
@@ -351,12 +344,9 @@ describe('HUD Component', () => {
 
             render(<HUD />);
 
-            await waitFor(
-                () => {
-                    expect(screen.getByText(/12:00 AM - Night/i)).toBeInTheDocument();
-                },
-                { timeout: 1500 }
-            );
+            await waitFor(() => {
+                expect(screen.getByText(/12:00 AM - Night/i)).toBeInTheDocument();
+            }, { timeout: 1500 });
         });
 
         it('should handle noon (hour 12) as 12 PM', async () => {
@@ -373,12 +363,9 @@ describe('HUD Component', () => {
 
             render(<HUD />);
 
-            await waitFor(
-                () => {
-                    expect(screen.getByText(/12:00 PM - Day/i)).toBeInTheDocument();
-                },
-                { timeout: 1500 }
-            );
+            await waitFor(() => {
+                expect(screen.getByText(/12:00 PM - Day/i)).toBeInTheDocument();
+            }, { timeout: 1500 });
         });
     });
 

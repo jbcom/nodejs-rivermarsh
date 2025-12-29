@@ -1,5 +1,5 @@
 import { world } from '../world';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 import type { QuestObjectiveType, QuestComponent } from '../components';
 
 /**
@@ -19,19 +19,19 @@ export function QuestSystem() {
                 quest.status = 'completed';
 
                 // Grant rewards
-                const rpgStore = useRPGStore.getState();
+                const gameStore = useGameStore.getState();
 
                 if (quest.rewards.experience) {
-                    rpgStore.addExperience(quest.rewards.experience);
+                    gameStore.addExperience(quest.rewards.experience);
                 }
 
                 if (quest.rewards.gold) {
-                    rpgStore.addGold(quest.rewards.gold);
+                    gameStore.addGold(quest.rewards.gold);
                 }
 
                 if (quest.rewards.items) {
                     quest.rewards.items.forEach((itemReward) => {
-                        rpgStore.addInventoryItem({
+                        gameStore.addInventoryItem({
                             id: itemReward.id,
                             name: itemReward.id
                                 .split('_')

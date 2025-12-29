@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * Bypasses the main menu and goes directly to exploration mode.
@@ -9,10 +9,8 @@ export async function bypassMainMenu(page: Page) {
     await page.waitForLoadState('networkidle');
 
     // Wait for the store to be available on window
-    await page.waitForFunction(() => (window as any).__GAME_STORE__ !== undefined, {
-        timeout: 30000,
-    });
-
+    await page.waitForFunction(() => (window as any).__GAME_STORE__ !== undefined, { timeout: 30000 });
+    
     // Set game mode to exploration and mark as loaded
     await page.evaluate(() => {
         const store = (window as any).__GAME_STORE__;

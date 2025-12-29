@@ -51,7 +51,8 @@ test.describe('Biome Exploration', () => {
 
         // Position should have changed significantly
         const distance = Math.sqrt(
-            (finalPos.x - initialPos.x) ** 2 + (finalPos.z - initialPos.z) ** 2
+            Math.pow(finalPos.x - initialPos.x, 2) + 
+            Math.pow(finalPos.z - initialPos.z, 2)
         );
         expect(distance).toBeGreaterThan(10);
     });
@@ -79,7 +80,8 @@ test.describe('Biome Exploration', () => {
 
         // Position should have changed significantly
         const distance = Math.sqrt(
-            (finalPos.x - initialPos.x) ** 2 + (finalPos.z - initialPos.z) ** 2
+            Math.pow(finalPos.x - initialPos.x, 2) + 
+            Math.pow(finalPos.z - initialPos.z, 2)
         );
         expect(distance).toBeGreaterThan(10);
     });

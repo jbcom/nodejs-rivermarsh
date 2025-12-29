@@ -1,7 +1,7 @@
 import * as fc from 'fast-check';
-import * as THREE from 'three';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore } from '../gameStore';
+import * as THREE from 'three';
 
 describe('GameStore Properties', () => {
     beforeEach(() => {
@@ -43,12 +43,15 @@ describe('GameStore Properties', () => {
 
     it('Leveling System: XP addition should never decrease level', () => {
         fc.assert(
-            fc.property(fc.integer({ min: 1, max: 5000 }), (xpToAdd) => {
-                const initialLevel = useGameStore.getState().player.level;
-                useGameStore.getState().addExperience(xpToAdd);
-                const finalLevel = useGameStore.getState().player.level;
-                expect(finalLevel).toBeGreaterThanOrEqual(initialLevel);
-            })
+            fc.property(
+                fc.integer({ min: 1, max: 5000 }),
+                (xpToAdd) => {
+                    const initialLevel = useGameStore.getState().player.level;
+                    useGameStore.getState().addExperience(xpToAdd);
+                    const finalLevel = useGameStore.getState().player.level;
+                    expect(finalLevel).toBeGreaterThanOrEqual(initialLevel);
+                }
+            )
         );
     });
 
@@ -56,9 +59,7 @@ describe('GameStore Properties', () => {
         // Adding 1000 XP at level 1 should definitely level up multiple times
         useGameStore.getState().addExperience(1000);
         expect(useGameStore.getState().player.level).toBeGreaterThan(1);
-        expect(useGameStore.getState().player.experience).toBeLessThan(
-            useGameStore.getState().player.expToNext
-        );
+        expect(useGameStore.getState().player.experience).toBeLessThan(useGameStore.getState().player.expToNext);
     });
 
     it('Gold System: Spend gold should only succeed if enough funds', () => {
@@ -68,12 +69,12 @@ describe('GameStore Properties', () => {
                 fc.integer({ min: 0, max: 200 }),
                 (initialGold, cost) => {
                     useGameStore.setState((s) => ({
-                        player: { ...s.player, gold: initialGold },
+                        player: { ...s.player, gold: initialGold }
                     }));
-
+                    
                     const success = useGameStore.getState().spendGold(cost);
                     const finalGold = useGameStore.getState().player.gold;
-
+                    
                     if (initialGold >= cost) {
                         expect(success).toBe(true);
                         expect(finalGold).toBe(initialGold - cost);

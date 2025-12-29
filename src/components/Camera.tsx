@@ -1,8 +1,8 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { world } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
+import { world } from '@/ecs/world';
 
 const BASE_CAMERA_OFFSET = new THREE.Vector3(0, 3.5, -5);
 const LOOK_OFFSET = new THREE.Vector3(0, 0.5, 0);

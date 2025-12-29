@@ -3,7 +3,7 @@ import { Physics } from '@react-three/rapier';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
-import { BossBattleEffects, Combat, GameUI, NPCManager } from '@/components/game';
+import { Combat, GameUI, NPCManager, BossBattleEffects, AchievementEffects } from '@/components/game';
 import {
     GyroscopeCamera,
     MobileActionButtons,
@@ -15,23 +15,22 @@ import { Player } from '@/components/Player';
 import { Resources } from '@/components/Resources';
 import { TapToCollect } from '@/components/TapToCollect';
 import { AchievementOverlay } from '@/components/ui/AchievementOverlay';
-import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { EventOverlay } from '@/components/ui/EventOverlay';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
 import { MainMenu } from '@/components/ui/MainMenu';
 import { Tutorial } from '@/components/ui/Tutorial';
+import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { World } from '@/components/World';
-import { RacingScene } from '@/features/racing/RacingScene';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
-import { useGameStore } from '@/stores/gameStore';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
+import { RacingScene } from '@/features/racing/RacingScene';
+import { useGameStore } from '@/stores/gameStore';
 import { BasicStrataExample } from '../examples/BasicStrata';
-import { CombatDemo } from '../examples/CombatDemo';
 import { WeatherExample } from '../examples/WeatherSystem';
 
 interface SceneProps {
@@ -39,6 +38,7 @@ interface SceneProps {
 }
 
 function Scene({ useMobileControls = false }: SceneProps) {
+    const constraints = useMobileConstraints();
     useInput();
 
     // Mark game as ready after first frame
@@ -62,6 +62,7 @@ function Scene({ useMobileControls = false }: SceneProps) {
                 {/* Rivermarsh NPC system - spawns story NPCs */}
                 <NPCManager />
                 <BossBattleEffects />
+                <AchievementEffects />
             </Physics>
 
             {/* Use gyroscope camera on mobile, follow camera on desktop */}
@@ -70,17 +71,17 @@ function Scene({ useMobileControls = false }: SceneProps) {
 
             {/* Volumetric effects for fog and underwater */}
             <VolumetricEffects
-                enableFog={true}
+                enableFog={!constraints.isMobile || constraints.isTablet}
                 enableUnderwater={true}
                 fogSettings={{
                     color: new THREE.Color(0.6, 0.7, 0.8),
-                    density: 0.015,
-                    height: 5,
+                    density: constraints.isMobile ? 0.005 : 0.015,
+                    height: constraints.isMobile ? 3 : 5,
                 }}
                 underwaterSettings={{
                     color: new THREE.Color(0.0, 0.25, 0.4),
-                    density: 0.08,
-                    causticStrength: 0.4,
+                    density: constraints.isMobile ? 0.04 : 0.08,
+                    causticStrength: constraints.isMobile ? 0.2 : 0.4,
                     waterSurface: 0,
                 }}
             />
@@ -95,17 +96,15 @@ export default function App() {
     }, []);
 
     const constraints = useMobileConstraints();
-    const [currentExample, setCurrentExample] = useState<'basic' | 'weather' | 'combat'>('basic');
-
+    const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
+    
     const gameMode = useGameStore((state) => state.gameMode);
     const setGameMode = useGameStore((state) => state.setGameMode);
 
     if (gameMode === 'examples') {
         return (
             <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-                {currentExample === 'basic' && <BasicStrataExample />}
-                {currentExample === 'weather' && <WeatherExample />}
-                {currentExample === 'combat' && <CombatDemo />}
+                {currentExample === 'basic' ? <BasicStrataExample /> : <WeatherExample />}
                 <div
                     style={{
                         position: 'absolute',
@@ -153,21 +152,6 @@ export default function App() {
                     </button>
                     <button
                         style={{
-                            background:
-                                currentExample === 'combat' ? '#d4af37' : 'rgba(255,255,255,0.1)',
-                            color: currentExample === 'combat' ? '#000' : '#fff',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                        }}
-                        onClick={() => setCurrentExample('combat')}
-                    >
-                        Combat Demo
-                    </button>
-                    <button
-                        style={{
                             background: '#8b0000',
                             color: '#fff',
                             border: 'none',
@@ -188,19 +172,23 @@ export default function App() {
     return (
         <>
             <Canvas
-                shadows
-                camera={{ fov: 50, near: 0.1, far: 500, position: [0, 3.5, -5] }}
+                shadows={!constraints.isMobile || constraints.isTablet}
+                camera={{ fov: 50, near: 0.1, far: constraints.isMobile ? 300 : 500, position: [0, 3.5, -5] }}
                 gl={{
-                    antialias: false,
+                    antialias: !constraints.isMobile,
                     powerPreference: 'high-performance',
+                    stencil: false,
+                    depth: true,
                 }}
-                dpr={[1, 1.5]}
+                dpr={constraints.pixelRatio}
                 style={{ background: '#0a0808' }}
             >
                 {gameMode === 'racing' ? (
                     <RacingScene />
                 ) : (
-                    <Scene useMobileControls={constraints.isMobile} />
+                    <Scene
+                        useMobileControls={constraints.isMobile}
+                    />
                 )}
             </Canvas>
 

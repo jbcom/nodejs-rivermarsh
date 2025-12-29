@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 export interface MobileConstraints {
     // Device info
@@ -92,7 +93,7 @@ export function useMobileConstraints(): MobileConstraints {
             pixelRatio:
                 typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1, // Cap at 2x for performance
             hasNotch: detectNotch(),
-            hasHaptics: typeof navigator !== 'undefined' && 'vibrate' in navigator,
+            hasHaptics: typeof navigator !== 'undefined' && ('vibrate' in navigator || (window as any).Capacitor),
             isMobile: isPhone || isTablet,
         };
     });
@@ -120,7 +121,7 @@ export function useMobileConstraints(): MobileConstraints {
             viewportHeight: window.innerHeight,
             pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
             hasNotch: detectNotch(),
-            hasHaptics: typeof navigator !== 'undefined' && 'vibrate' in navigator,
+            hasHaptics: typeof navigator !== 'undefined' && ('vibrate' in navigator || (window as any).Capacitor),
             isMobile: isPhone || isTablet,
         });
     }, []);
@@ -177,16 +178,49 @@ export function useMobileConstraints(): MobileConstraints {
 /**
  * Haptic feedback helper
  */
-export function hapticFeedback(pattern: number | number[]) {
+export async function hapticFeedback(pattern: number | number[] | 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error') {
+    // Prefer Capacitor Haptics
+    if (typeof window !== 'undefined' && (window as any).Capacitor) {
+        try {
+            if (pattern === 'light') {
+                await Haptics.impact({ style: ImpactStyle.Light });
+            } else if (pattern === 'medium') {
+                await Haptics.impact({ style: ImpactStyle.Medium });
+            } else if (pattern === 'heavy') {
+                await Haptics.impact({ style: ImpactStyle.Heavy });
+            } else if (pattern === 'success') {
+                await Haptics.notification({ type: NotificationType.Success });
+            } else if (pattern === 'warning') {
+                await Haptics.notification({ type: NotificationType.Warning });
+            } else if (pattern === 'error') {
+                await Haptics.notification({ type: NotificationType.Error });
+            } else {
+                // For numeric patterns, just do a medium impact as a fallback
+                await Haptics.impact({ style: ImpactStyle.Medium });
+            }
+            return;
+        } catch (e) {
+            console.warn('Capacitor haptics failed', e);
+        }
+    }
+
+    // Fallback to Web Vibration API
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(pattern);
+        if (typeof pattern === 'string') {
+            const webPattern = pattern === 'light' ? 10 : pattern === 'medium' ? 20 : pattern === 'heavy' ? 50 : 20;
+            navigator.vibrate(webPattern);
+        } else {
+            navigator.vibrate(pattern);
+        }
     }
 }
 
 export const HAPTIC_PATTERNS = {
-    jump: 10,
-    dodge: [5, 20, 5] as number[],
-    collect: 15,
-    hit: [50, 50, 50] as number[],
-    gameOver: [100, 100, 200] as number[],
+    jump: 'light' as const,
+    dodge: 'medium' as const,
+    collect: 'light' as const,
+    attack: 'medium' as const,
+    hit: 'heavy' as const,
+    levelUp: 'success' as const,
+    gameOver: 'error' as const,
 };
