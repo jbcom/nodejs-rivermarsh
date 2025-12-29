@@ -16,24 +16,30 @@ interface SimpleBarProps {
     style?: React.CSSProperties;
 }
 
-function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style }: SimpleBarProps) {
+function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style, 'data-testid': testId }: SimpleBarProps & { 'data-testid'?: string }) {
     const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100));
     return (
-        <div style={{ 
-            width, 
-            height, 
-            backgroundColor, 
-            borderRadius: height / 2,
-            overflow: 'hidden',
-            ...style 
-        }}>
-            <div style={{
-                width: `${percentage}%`,
-                height: '100%',
-                backgroundColor: fillColor,
+        <div 
+            data-testid={testId}
+            style={{ 
+                width, 
+                height, 
+                backgroundColor, 
                 borderRadius: height / 2,
-                transition: 'width 0.2s ease-out',
-            }} />
+                overflow: 'hidden',
+                ...style 
+            }}
+        >
+            <div 
+                data-testid={testId ? `${testId}-fill` : undefined}
+                style={{
+                    width: `${percentage}%`,
+                    height: '100%',
+                    backgroundColor: fillColor,
+                    borderRadius: height / 2,
+                    transition: 'width 0.2s ease-out',
+                }} 
+            />
         </div>
     );
 }
@@ -283,6 +289,7 @@ export function HUD() {
                         width={250} 
                         height={12} 
                         fillColor={health / maxHealth > 0.5 ? '#4ade80' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
+                        data-testid="health-bar"
                     />
                 </div>
                 {/* Stamina */}
@@ -297,6 +304,7 @@ export function HUD() {
                         width={250} 
                         height={8} 
                         fillColor="#60a5fa"
+                        data-testid="stamina-bar"
                     />
                 </div>
 
