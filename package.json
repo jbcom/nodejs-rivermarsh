@@ -23,6 +23,7 @@
         "@capacitor/android": "^8.0.0",
         "@capacitor/cli": "^8.0.0",
         "@capacitor/core": "^8.0.0",
+        "@capacitor/haptics": "^8.0.0",
         "@capacitor/ios": "^8.0.0",
         "@jbcom/strata": "^1.4.10",
         "@react-spring/three": "^10.0.3",

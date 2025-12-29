@@ -44,8 +44,8 @@ export function MobileActionButtons() {
                 action === 'jump'
                     ? HAPTIC_PATTERNS.jump
                     : action === 'attack'
-                      ? HAPTIC_PATTERNS.hit
-                      : 10;
+                      ? HAPTIC_PATTERNS.attack
+                      : 'light';
             hapticFeedback(pattern);
         }
     };

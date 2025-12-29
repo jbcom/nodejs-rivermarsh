@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { type Achievement, useAchievementStore } from '../../stores/useAchievementStore';
+import { hapticFeedback, HAPTIC_PATTERNS } from '../../hooks/useMobileConstraints';
 
 export function AchievementOverlay() {
     const achievements = useAchievementStore((s) => s.achievements);
@@ -12,11 +13,15 @@ export function AchievementOverlay() {
             .sort((a, b) => (b.unlockedAt || 0) - (a.unlockedAt || 0));
 
         if (unlocked.length > 0) {
-            setRecentUnlock(unlocked[0]);
-            const timer = setTimeout(() => setRecentUnlock(null), 4000);
-            return () => clearTimeout(timer);
+            const achievement = unlocked[0];
+            if (recentUnlock?.id !== achievement.id) {
+                setRecentUnlock(achievement);
+                hapticFeedback(HAPTIC_PATTERNS.levelUp); // Use success pattern for achievements
+                const timer = setTimeout(() => setRecentUnlock(null), 4000);
+                return () => clearTimeout(timer);
+            }
         }
-    }, [achievements]);
+    }, [achievements, recentUnlock]);
 
     if (!recentUnlock) {
         return null;
