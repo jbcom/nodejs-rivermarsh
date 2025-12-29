@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
-import { type OtterNPC as OtterNPCType, useRPGStore } from '@/stores/rpgStore';
+import { useGameStore, type OtterNPC as OtterNPCType } from '@/stores/gameStore';
 
 interface OtterNPCProps {
     npc: OtterNPCType;
@@ -11,7 +11,7 @@ interface OtterNPCProps {
 
 export function OtterNPC({ npc }: OtterNPCProps) {
     const meshRef = useRef<THREE.Group>(null);
-    const { player, startDialogue, damageNPC } = useRPGStore();
+    const { player, startDialogue, damageNPC } = useGameStore();
     const interactAction = useControlsStore((state) => state.actions.interact);
     const isInRange = useRef(false);
     const currentDistance = useRef(Infinity);
@@ -65,7 +65,7 @@ export function OtterNPC({ npc }: OtterNPCProps) {
             return;
         }
 
-        const playerPos = new THREE.Vector3(...player.position);
+        const playerPos = player.position;
         // Use current mesh position for distance calculations, not spawn position
         const currentNpcPos = meshRef.current.position.clone();
 
@@ -104,16 +104,10 @@ export function OtterNPC({ npc }: OtterNPCProps) {
         // Update interaction range status
         isInRange.current = distance < 3 && canInteract;
 
-        if (isInRange.current) {
+        if (meshRef.current) {
             for (const child of meshRef.current.children) {
-                if (child.userData.isInteractPrompt) {
-                    child.visible = true;
-                }
-            }
-        } else {
-            for (const child of meshRef.current.children) {
-                if (child.userData.isInteractPrompt) {
-                    child.visible = false;
+                if ((child as any).userData?.isInteractPrompt) {
+                    child.visible = isInRange.current;
                 }
             }
         }
@@ -155,14 +149,16 @@ export function OtterNPC({ npc }: OtterNPCProps) {
             // Visual feedback: brief color change to white
             if (meshRef.current) {
                 const mesh = meshRef.current.children[0] as THREE.Mesh;
-                const material = mesh.material as THREE.MeshStandardMaterial;
-                const originalColor = material.color.clone();
-                material.color.set('#ffffff');
-                setTimeout(() => {
-                    if (material) {
-                        material.color.copy(originalColor);
-                    }
-                }, 100);
+                if (mesh && mesh.material) {
+                    const material = mesh.material as THREE.MeshStandardMaterial;
+                    const originalColor = material.color.clone();
+                    material.color.set('#ffffff');
+                    setTimeout(() => {
+                        if (material) {
+                            material.color.copy(originalColor);
+                        }
+                    }, 100);
+                }
             }
         }
     };
@@ -303,7 +299,7 @@ const initialNPCs: OtterNPCType[] = [
 ];
 
 export function NPCManager() {
-    const { npcs, spawnNPC } = useRPGStore();
+    const { npcs, spawnNPC } = useGameStore();
     const hasInitialized = useRef(false);
 
     useEffect(() => {

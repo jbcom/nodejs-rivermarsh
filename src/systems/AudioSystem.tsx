@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { AmbientAudio, FootstepAudio, WeatherAudio } from '@jbcom/strata';
 
 /**
@@ -29,11 +29,8 @@ export function AudioSystem() {
         return () => clearInterval(interval);
     }, [currentBiome, currentWeather]);
 
-    const playerPos = useEngineStore((s) => s.player.position);
-    const isMoving = useEngineStore((s) => s.player.isMoving);
-    const isJumping = useEngineStore((s) => s.player.isJumping);
-    const playerSpeed = useEngineStore((s) => s.player.speed);
-    const playerMaxSpeed = useEngineStore((s) => s.player.maxSpeed);
+    const player = useGameStore((s) => s.player);
+    const { position: playerPos, isMoving, isJumping, speed: playerSpeed, maxSpeed: playerMaxSpeed } = player;
 
     // Play footsteps via ref based on animation cycle or simple interval for now
     const lastStepRef = useRef(0);

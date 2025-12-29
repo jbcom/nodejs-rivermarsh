@@ -3,7 +3,7 @@ import { Physics } from '@react-three/rapier';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
-import { Combat, GameUI, NPCManager, BossBattleEffects, AchievementEffects } from '@/components/game';
+import { Combat, GameUI, NPCManager, BossBattleEffects } from '@/components/game';
 import {
     GyroscopeCamera,
     MobileActionButtons,
@@ -19,6 +19,7 @@ import { EventOverlay } from '@/components/ui/EventOverlay';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
+import { MainMenu } from '@/components/ui/MainMenu';
 import { Tutorial } from '@/components/ui/Tutorial';
 import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
@@ -28,19 +29,17 @@ import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
 import { RacingScene } from '@/features/racing/RacingScene';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
+import { AchievementEffects } from '@/components/game/AchievementEffects';
 import { BasicStrataExample } from '../examples/BasicStrata';
 import { WeatherExample } from '../examples/WeatherSystem';
 
-// Initialize test hooks for E2E testing
-initTestHooks();
-
 interface SceneProps {
     useMobileControls?: boolean;
-    useRPGStoreFeatures?: boolean;
 }
 
-function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: SceneProps) {
+function Scene({ useMobileControls = false }: SceneProps) {
+    const constraints = useMobileConstraints();
     useInput();
 
     // Mark game as ready after first frame
@@ -62,9 +61,9 @@ function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: Scene
                 <Combat />
 
                 {/* Rivermarsh NPC system - spawns story NPCs */}
-                {useRPGStoreFeatures && <NPCManager />}
-                {useRPGStoreFeatures && <BossBattleEffects />}
-                {useRPGStoreFeatures && <AchievementEffects />}
+                <NPCManager />
+                <BossBattleEffects />
+                <AchievementEffects />
             </Physics>
 
             {/* Use gyroscope camera on mobile, follow camera on desktop */}
@@ -73,17 +72,17 @@ function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: Scene
 
             {/* Volumetric effects for fog and underwater */}
             <VolumetricEffects
-                enableFog={true}
+                enableFog={!constraints.isMobile || constraints.isTablet}
                 enableUnderwater={true}
                 fogSettings={{
                     color: new THREE.Color(0.6, 0.7, 0.8),
-                    density: 0.015,
-                    height: 5,
+                    density: constraints.isMobile ? 0.005 : 0.015,
+                    height: constraints.isMobile ? 3 : 5,
                 }}
                 underwaterSettings={{
                     color: new THREE.Color(0.0, 0.25, 0.4),
-                    density: 0.08,
-                    causticStrength: 0.4,
+                    density: constraints.isMobile ? 0.04 : 0.08,
+                    causticStrength: constraints.isMobile ? 0.2 : 0.4,
                     waterSurface: 0,
                 }}
             />
@@ -92,12 +91,16 @@ function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: Scene
 }
 
 export default function App() {
+    useEffect(() => {
+        // Initialize test hooks for E2E testing
+        initTestHooks();
+    }, []);
+
     const constraints = useMobileConstraints();
     const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
-    // Rivermarsh features enabled by default - can be toggled in settings later
-    const rivermarshEnabled = true;
-    const gameMode = useRPGStore((state) => state.gameMode);
-    const setGameMode = useRPGStore((state) => state.setGameMode);
+    
+    const gameMode = useGameStore((state) => state.gameMode);
+    const setGameMode = useGameStore((state) => state.setGameMode);
 
     if (gameMode === 'examples') {
         return (
@@ -114,14 +117,14 @@ export default function App() {
                         background: 'rgba(0, 0, 0, 0.8)',
                         padding: '15px',
                         borderRadius: '10px',
-                        border: '2px solid rgba(139, 105, 20, 0.8)',
+                        border: '2px solid rgba(212, 175, 55, 0.8)',
                         fontFamily: 'Inter, sans-serif',
                     }}
                 >
                     <button
                         style={{
                             background:
-                                currentExample === 'basic' ? '#DAA520' : 'rgba(255,255,255,0.1)',
+                                currentExample === 'basic' ? '#d4af37' : 'rgba(255,255,255,0.1)',
                             color: currentExample === 'basic' ? '#000' : '#fff',
                             border: 'none',
                             padding: '8px 16px',
@@ -136,7 +139,7 @@ export default function App() {
                     <button
                         style={{
                             background:
-                                currentExample === 'weather' ? '#DAA520' : 'rgba(255,255,255,0.1)',
+                                currentExample === 'weather' ? '#d4af37' : 'rgba(255,255,255,0.1)',
                             color: currentExample === 'weather' ? '#000' : '#fff',
                             border: 'none',
                             padding: '8px 16px',
@@ -158,9 +161,9 @@ export default function App() {
                             cursor: 'pointer',
                             fontWeight: 'bold',
                         }}
-                        onClick={() => setGameMode('exploration')}
+                        onClick={() => setGameMode('main_menu')}
                     >
-                        Back to Game
+                        Back to Menu
                     </button>
                 </div>
             </div>
@@ -170,13 +173,15 @@ export default function App() {
     return (
         <>
             <Canvas
-                shadows
-                camera={{ fov: 50, near: 0.1, far: 500, position: [0, 3.5, -5] }}
+                shadows={!constraints.isMobile || constraints.isTablet}
+                camera={{ fov: 50, near: 0.1, far: constraints.isMobile ? 300 : 500, position: [0, 3.5, -5] }}
                 gl={{
-                    antialias: false,
+                    antialias: !constraints.isMobile,
                     powerPreference: 'high-performance',
+                    stencil: false,
+                    depth: true,
                 }}
-                dpr={[1, 1.5]}
+                dpr={constraints.pixelRatio}
                 style={{ background: '#0a0808' }}
             >
                 {gameMode === 'racing' ? (
@@ -184,10 +189,11 @@ export default function App() {
                 ) : (
                     <Scene
                         useMobileControls={constraints.isMobile}
-                        useRPGStoreFeatures={rivermarshEnabled}
                     />
                 )}
             </Canvas>
+
+            {gameMode === 'main_menu' && <MainMenu />}
 
             {(gameMode === 'exploration' || gameMode === 'boss_battle') && (
                 <>
@@ -206,7 +212,7 @@ export default function App() {
                     <EventOverlay />
 
                     {/* Rivermarsh game UI - inventory, quests, dialogue */}
-                    {rivermarshEnabled && <GameUI />}
+                    <GameUI />
 
                     <GameOver />
                     <Loader />

@@ -1,6 +1,5 @@
-import { useRPGStore } from '@/stores/rpgStore';
 import * as THREE from 'three';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
@@ -90,9 +89,7 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
         initializeResources(playerPos);
     }
 
-    const healPlayer = useEngineStore.getState().healPlayer;
-    const restoreStamina = useEngineStore.getState().restoreStamina;
-    const setNearbyResource = useEngineStore.getState().setNearbyResource;
+    const { healPlayer, restoreStamina, setNearbyResource } = useGameStore.getState();
 
     let closestResource: { type: ResourceType; distance: number } | null = null;
 
@@ -142,7 +139,7 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             }
 
             // Track for achievements
-            useRPGStore.getState().incrementResourcesCollected(1);
+            useGameStore.getState().incrementResourcesCollected(1);
 
             console.log(`Collected ${entity.resource.type}!`);
         }

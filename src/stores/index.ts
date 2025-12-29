@@ -1,4 +1,3 @@
 export { useControlsStore } from './controlsStore';
-export { useEngineStore } from './engineStore';
-export type * from './rpgStore';
-export { useRPGStore } from './rpgStore';
+export { useGameStore } from './gameStore';
+export type * from './gameStore';

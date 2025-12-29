@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadGame, type SaveData } from '../save';
 
-const SAVE_KEY = 'otterfall_save';
+const SAVE_KEY = 'rivermarsh_save';
 const SAVE_VERSION = '1.0.0';
 
 describe('save utils', () => {

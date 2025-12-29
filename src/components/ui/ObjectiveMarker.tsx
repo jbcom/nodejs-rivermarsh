@@ -9,7 +9,7 @@ interface ObjectiveMarkerProps {
     label?: string;
 }
 
-const OBJECTIVE_STORAGE_KEY = 'otterfall_first_resource_collected';
+const OBJECTIVE_STORAGE_KEY = 'rivermarsh_first_resource_collected';
 
 export function ObjectiveMarker({
     targetPosition,

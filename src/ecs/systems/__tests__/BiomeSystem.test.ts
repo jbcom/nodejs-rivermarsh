@@ -8,7 +8,7 @@ describe('BiomeSystem', () => {
         initializeBiomes();
     });
 
-    // Feature: otterfall-complete, Property 5: Biome Boundary Exclusivity
+    // Feature: rivermarsh-complete, Property 5: Biome Boundary Exclusivity
     // For any position in the world, the position should be contained within
     // exactly one biome's bounds (determined by closest biome center).
     it('Property 5: Biome Boundary Exclusivity', () => {

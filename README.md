@@ -124,8 +124,6 @@ This project is configured for multiple AI development assistants:
 | Claude | `CLAUDE.md` |
 | Copilot | `.github/copilot-instructions.md` |
 | Cursor | `.cursor/rules/*.mdc` |
-| CrewAI | `.crewai/manifest.yaml` |
-| Kiro | `.kiro/steering/*.md` |
 
 See `AGENTS.md` for detailed instructions.
 

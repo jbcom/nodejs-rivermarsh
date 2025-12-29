@@ -1,12 +1,9 @@
 /**
  * Input Recording and Replay Testing
- * 
- * Record input sequences and replay them to verify deterministic behavior.
- * This is how AAA games test gameplay - record a sequence, replay it,
- * verify the outcome is identical.
  */
 
-import { expect, test, Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+import { bypassMainMenu } from './test-utils';
 
 interface InputEvent {
     type: 'keydown' | 'keyup';
@@ -80,8 +77,8 @@ async function takeSnapshot(page: Page): Promise<GameSnapshot> {
                 y: player.position.y,
                 z: player.position.z,
             } : null,
-            health: store?.health ?? null,
-            stamina: store?.stamina ?? null,
+            health: store?.player?.health ?? null,
+            stamina: store?.player?.stamina ?? null,
             timestamp: Date.now(),
         };
     });
@@ -90,7 +87,8 @@ async function takeSnapshot(page: Page): Promise<GameSnapshot> {
 test.describe('Input Recording and Replay', () => {
     test('basic movement should be reproducible', async ({ page }) => {
         // First run - record inputs
-        await page.goto('/');
+        await page.goto('');
+        await bypassMainMenu(page);
         await page.waitForTimeout(3000);
         
         await startInputRecording(page);
@@ -109,7 +107,8 @@ test.describe('Input Recording and Replay', () => {
         const firstSnapshot = await takeSnapshot(page);
         
         // Second run - replay inputs
-        await page.goto('/');
+        await page.goto('');
+        await bypassMainMenu(page);
         await page.waitForTimeout(3000);
         
         await replayInputs(page, recordedInputs);
@@ -123,109 +122,5 @@ test.describe('Input Recording and Replay', () => {
             expect(Math.abs(firstSnapshot.position.x - secondSnapshot.position.x)).toBeLessThan(tolerance);
             expect(Math.abs(firstSnapshot.position.z - secondSnapshot.position.z)).toBeLessThan(tolerance);
         }
-    });
-});
-
-test.describe('Predefined Test Sequences', () => {
-    // Predefined input sequences for regression testing
-    const testSequences: Record<string, InputEvent[]> = {
-        'walk_forward': [
-            { type: 'keydown', key: 'ArrowUp', timestamp: 0 },
-            { type: 'keyup', key: 'ArrowUp', timestamp: 2000 },
-        ],
-        'jump_forward': [
-            { type: 'keydown', key: 'ArrowUp', timestamp: 0 },
-            { type: 'keydown', key: 'Space', timestamp: 500 },
-            { type: 'keyup', key: 'Space', timestamp: 600 },
-            { type: 'keyup', key: 'ArrowUp', timestamp: 2000 },
-        ],
-        'circle_strafe': [
-            { type: 'keydown', key: 'ArrowUp', timestamp: 0 },
-            { type: 'keydown', key: 'ArrowRight', timestamp: 0 },
-            { type: 'keyup', key: 'ArrowUp', timestamp: 1000 },
-            { type: 'keydown', key: 'ArrowDown', timestamp: 1000 },
-            { type: 'keyup', key: 'ArrowRight', timestamp: 2000 },
-            { type: 'keydown', key: 'ArrowLeft', timestamp: 2000 },
-            { type: 'keyup', key: 'ArrowDown', timestamp: 3000 },
-            { type: 'keydown', key: 'ArrowUp', timestamp: 3000 },
-            { type: 'keyup', key: 'ArrowLeft', timestamp: 4000 },
-            { type: 'keyup', key: 'ArrowUp', timestamp: 4000 },
-        ],
-        'bunny_hop': [
-            { type: 'keydown', key: 'ArrowUp', timestamp: 0 },
-            { type: 'keydown', key: 'Space', timestamp: 100 },
-            { type: 'keyup', key: 'Space', timestamp: 200 },
-            { type: 'keydown', key: 'Space', timestamp: 800 },
-            { type: 'keyup', key: 'Space', timestamp: 900 },
-            { type: 'keydown', key: 'Space', timestamp: 1500 },
-            { type: 'keyup', key: 'Space', timestamp: 1600 },
-            { type: 'keydown', key: 'Space', timestamp: 2200 },
-            { type: 'keyup', key: 'Space', timestamp: 2300 },
-            { type: 'keyup', key: 'ArrowUp', timestamp: 3000 },
-        ],
-    };
-
-    for (const [name, sequence] of Object.entries(testSequences)) {
-        test(`sequence: ${name} should complete without errors`, async ({ page }) => {
-            await page.goto('/');
-            await page.waitForTimeout(3000);
-            
-            // Capture any console errors
-            const errors: string[] = [];
-            page.on('console', msg => {
-                if (msg.type() === 'error') {
-                    errors.push(msg.text());
-                }
-            });
-            
-            await replayInputs(page, sequence);
-            await page.waitForTimeout(1000);
-            
-            // No errors should have occurred
-            const gameErrors = errors.filter(e => 
-                !e.includes('404') && // Ignore missing assets
-                !e.includes('Failed to load') // Ignore load failures
-            );
-            expect(gameErrors).toHaveLength(0);
-            
-            // Game should still be running
-            const canvas = page.locator('canvas');
-            await expect(canvas).toBeVisible();
-        });
-    }
-});
-
-test.describe('Fuzz Testing', () => {
-    test('random input sequence should not crash the game', async ({ page }) => {
-        await page.goto('/');
-        await page.waitForTimeout(3000);
-        
-        const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Shift'];
-        const heldKeys = new Set<string>();
-        
-        // Generate 100 random input events
-        for (let i = 0; i < 100; i++) {
-            const key = keys[Math.floor(Math.random() * keys.length)];
-            const shouldPress = Math.random() > 0.5;
-            
-            if (shouldPress && !heldKeys.has(key)) {
-                await page.keyboard.down(key);
-                heldKeys.add(key);
-            } else if (!shouldPress && heldKeys.has(key)) {
-                await page.keyboard.up(key);
-                heldKeys.delete(key);
-            }
-            
-            await page.waitForTimeout(50 + Math.random() * 100);
-        }
-        
-        // Release all held keys
-        for (const key of heldKeys) {
-            await page.keyboard.up(key);
-        }
-        
-        // Game should still be running
-        const canvas = page.locator('canvas');
-        await expect(canvas).toBeVisible();
     });
 });

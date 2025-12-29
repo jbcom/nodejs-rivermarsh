@@ -12,7 +12,7 @@ describe('WeatherSystem', () => {
         }
     });
 
-    // Feature: otterfall-complete, Property 3: Weather Transition Completeness
+    // Feature: rivermarsh-complete, Property 3: Weather Transition Completeness
     // For any weather transition, when transitionProgress reaches 1.0, the current
     // weather should equal nextWeather and nextWeather should be null.
     it('Property 3: Weather Transition Completeness', () => {
@@ -66,7 +66,7 @@ describe('WeatherSystem', () => {
         );
     });
 
-    // Feature: otterfall-complete, Property 4: Visibility Bounds
+    // Feature: rivermarsh-complete, Property 4: Visibility Bounds
     // For any weather condition, the calculated visibility modifier should be
     // between 0.0 and 1.0 inclusive.
     it('Property 4: Visibility Bounds', () => {

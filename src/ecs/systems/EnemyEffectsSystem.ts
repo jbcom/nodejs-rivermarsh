@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useEngineStore } from '@/stores/engineStore';
+import { useGameStore } from '@/stores/gameStore';
 import { PREDATOR_SPECIES } from '../data/species';
 import { world } from '../world';
 
@@ -37,7 +37,7 @@ export function EnemyEffectsSystem(delta: number) {
         curseTimer -= delta * 1000;
         if (curseTimer <= 0) {
             playerIsCursed = false;
-            useEngineStore.getState().updatePlayer({ speedMultiplier: 1.0 });
+            useGameStore.getState().updatePlayer({ speedMultiplier: 1.0 });
             console.log('Curse has lifted!');
         }
     }
@@ -130,7 +130,7 @@ export function applyCurse() {
     if (!playerIsCursed) {
         playerIsCursed = true;
         curseTimer = CURSE_DURATION;
-        useEngineStore.getState().updatePlayer({ speedMultiplier: 0.5 }); // Slow down player (50%)
+        useGameStore.getState().updatePlayer({ speedMultiplier: 0.5 }); // Slow down player (50%)
         console.log('You have been CURSED! Movement speed reduced.');
     } else {
         curseTimer = CURSE_DURATION; // Refresh curse duration

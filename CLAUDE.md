@@ -33,8 +33,6 @@ pnpm run typecheck  # TypeScript validation
 | `src/components/` | React Three Fiber + Strata components |
 | `src/stores/` | Zustand state management |
 | `integration/pending/` | Frozen source repos (reference only) |
-| `.crewai/` | CrewAI agent configurations |
-| `.kiro/` | Kiro specifications |
 | `.cursor/rules/` | Cursor IDE rules |
 
 ## 🎮 Architecture

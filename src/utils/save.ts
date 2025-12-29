@@ -24,7 +24,7 @@ export interface SaveData {
     }[];
 }
 
-const SAVE_KEY = 'otterfall_save';
+const SAVE_KEY = 'rivermarsh_save';
 const SAVE_VERSION = '1.0.0';
 
 export function saveGame(playerState: {
