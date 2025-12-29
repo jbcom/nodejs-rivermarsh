@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
-<<<<<<< HEAD
 import { useControlsStore } from '@/stores/controlsStore';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
-import { useEffect, useState, useMemo } from 'react';
-=======
->>>>>>> origin/fix/issue-8
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 import { QuestOverlay } from './QuestOverlay';
@@ -237,29 +233,6 @@ export function HUD() {
         <div
             style={{
                 position: 'absolute',
-<<<<<<< HEAD
-                top: `max(20px, ${constraints.safeAreas.top}px)`,
-                left: `max(20px, ${constraints.safeAreas.left}px)`,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '5px',
-                pointerEvents: 'auto',
-            }}>
-                <div style={{
-                    background: 'rgba(0,0,0,0.6)',
-                    backdropFilter: 'blur(4px)',
-                    padding: '8px 15px',
-                    borderRadius: '4px',
-                    borderLeft: '4px solid #d4af37',
-                    color: '#fff',
-                }}>
-                    <div style={{ fontSize: '12px', color: '#d4af37', fontWeight: 'bold' }}>LVL {level}</div>
-                    <HealthBar 
-                        value={experience} 
-                        maxValue={expToNext} 
-                        width={120} 
-                        height={4} 
-=======
                 top: 0,
                 left: 0,
                 width: '100%',
@@ -273,8 +246,8 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    top: '20px',
-                    left: '20px',
+                    top: `max(20px, ${constraints.safeAreas.top}px)`,
+                    left: `max(20px, ${constraints.safeAreas.left}px)`,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '5px',
@@ -299,7 +272,6 @@ export function HUD() {
                         maxValue={expToNext}
                         width={120}
                         height={4}
->>>>>>> origin/fix/issue-8
                         fillColor="#fbbf24"
                         style={{ marginTop: '4px' }}
                         testId="xp-bar-fill"
@@ -324,27 +296,11 @@ export function HUD() {
             </div>
 
             {/* Top Right: Time, Weather, Pause */}
-<<<<<<< HEAD
-            <div style={{
-                position: 'absolute',
-                top: `max(20px, ${constraints.safeAreas.top}px)`,
-                right: `max(20px, ${constraints.safeAreas.right}px)`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '15px',
-                pointerEvents: 'auto',
-            }}>
-                <div style={{
-                    textAlign: 'right',
-                    textShadow: '0 2px 10px rgba(0,0,0,0.8)',
-                    color: '#fff',
-                }}>
-=======
             <div
                 style={{
                     position: 'absolute',
-                    top: '20px',
-                    right: '20px',
+                    top: `max(20px, ${constraints.safeAreas.top}px)`,
+                    right: `max(20px, ${constraints.safeAreas.right}px)`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '15px',
@@ -358,7 +314,6 @@ export function HUD() {
                         color: '#fff',
                     }}
                 >
->>>>>>> origin/fix/issue-8
                     <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>{formatTime()}</div>
                     <div style={{ fontSize: '0.9em', opacity: 0.8 }}>
                         {getWeatherIcon(weatherDisplay)} {weatherDisplay.toUpperCase()}
@@ -403,32 +358,20 @@ export function HUD() {
                 </button>
             </div>
 
-<<<<<<< HEAD
             {/* Quest Overlay */}
             <QuestOverlay />
 
             {/* Bottom Left: Health, Stamina & Mana */}
-            <div style={{
-                position: 'absolute',
-                bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
-                left: `max(20px, ${constraints.safeAreas.left}px)`,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-            }}>
-=======
-            {/* Bottom Left: Health & Stamina */}
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    left: '20px',
+                    bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
+                    left: `max(20px, ${constraints.safeAreas.left}px)`,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
                 }}
             >
->>>>>>> origin/fix/issue-8
                 {/* Inventory */}
                 <div style={{ marginBottom: '10px' }}>
                     <div
@@ -569,43 +512,11 @@ export function HUD() {
             </div>
 
             {/* Bottom Right: Score & Distance */}
-<<<<<<< HEAD
-            <div style={{
-                position: 'absolute',
-                bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
-                right: `max(20px, ${constraints.safeAreas.right}px)`,
-                textAlign: 'right',
-                color: '#fff',
-            }}>
-                <div style={{ fontSize: '2em', fontWeight: 'bold', margin: 0 }}>{Math.floor(score).toLocaleString()}</div>
-                <div style={{ fontSize: '1em', opacity: 0.7, color: '#60a5fa' }}>{Math.floor(distance)}m</div>
-            </div>
-
-            {/* Center Bottom: Help Text / Nearby Resource */}
-            <div style={{
-                position: 'absolute',
-                bottom: `max(20px, ${constraints.safeAreas.bottom}px)`,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                textAlign: 'center',
-            }}>
-                {nearbyResource ? (
-                    <div 
-                        onClick={() => {
-                            // If mobile, allow tapping the resource indicator to collect
-                            if (constraints.isMobile) {
-                                // ResourceSystem handles proximity collection automatically
-                                // but we could trigger an interact action here if needed.
-                                useControlsStore.getState().setAction('interact', true);
-                                setTimeout(() => useControlsStore.getState().setAction('interact', false), 100);
-                            }
-                        }}
-=======
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    right: '20px',
+                    bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
+                    right: `max(20px, ${constraints.safeAreas.right}px)`,
                     textAlign: 'right',
                     color: '#fff',
                 }}
@@ -622,7 +533,7 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '20px',
+                    bottom: `max(20px, ${constraints.safeAreas.bottom}px)`,
                     left: '50%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
@@ -630,50 +541,41 @@ export function HUD() {
             >
                 {nearbyResource ? (
                     <div
->>>>>>> origin/fix/issue-8
+                        onClick={() => {
+                            // If mobile, allow tapping the resource indicator to collect
+                            if (constraints.isMobile) {
+                                // ResourceSystem handles proximity collection automatically
+                                // but we could trigger an interact action here if needed.
+                                useControlsStore.getState().setAction('interact', true);
+                                setTimeout(() => useControlsStore.getState().setAction('interact', false), 100);
+                            }
+                        }}
                         style={{
                             background: 'rgba(0,0,0,0.8)',
                             border: '2px solid #d4af37',
                             borderRadius: '8px',
-<<<<<<< HEAD
                             padding: '12px 24px',
                             minHeight: '44px',
-=======
-                            padding: '10px 20px',
->>>>>>> origin/fix/issue-8
                             display: 'flex',
                             alignItems: 'center',
                             gap: '12px',
                             marginBottom: '20px',
                             pointerEvents: 'auto',
-<<<<<<< HEAD
                             cursor: 'pointer',
                         }}
                     >
                         <span style={{ fontSize: '28px' }}>{nearbyResource.icon}</span>
                         <div style={{ textAlign: 'left' }}>
-                            <div style={{ color: '#fff', fontWeight: 'bold' }}>{nearbyResource.name}</div>
-                            <div style={{ color: '#d4af37', fontSize: '14px' }}>
-                                {constraints.isMobile ? 'Tap to collect' : 'Press E to collect'}
-                            </div>
-=======
-                        }}
-                    >
-                        <span style={{ fontSize: '24px' }}>{nearbyResource.icon}</span>
-                        <div style={{ textAlign: 'left' }}>
                             <div style={{ color: '#fff', fontWeight: 'bold' }}>
                                 {nearbyResource.name}
                             </div>
-                            <div style={{ color: '#d4af37', fontSize: '12px' }}>Tap to collect</div>
->>>>>>> origin/fix/issue-8
+                            <div style={{ color: '#d4af37', fontSize: '14px' }}>
+                                {constraints.isMobile ? 'Tap to collect' : 'Press E to collect'}
+                            </div>
                         </div>
                     </div>
                 ) : (
                     showHelpSetting && (
-<<<<<<< HEAD
-                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            WASD: Move • Space: Jump • Q: Spell • ESC: Pause
-=======
                         <div
                             style={{
                                 color: 'rgba(255,255,255,0.4)',
@@ -682,8 +584,7 @@ export function HUD() {
                                 letterSpacing: '1px',
                             }}
                         >
-                            WASD: Move • Space: Jump • ESC: Pause
->>>>>>> origin/fix/issue-8
+                            WASD: Move • Space: Jump • Q: Spell • ESC: Pause
                         </div>
                     )
                 )}

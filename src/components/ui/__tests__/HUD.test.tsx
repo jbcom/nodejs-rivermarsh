@@ -57,7 +57,6 @@ vi.mock('@/ecs/world', () => ({
 
 describe('HUD Component', () => {
     beforeEach(() => {
-<<<<<<< HEAD
         // Reset stores to initial state
         act(() => {
             useGameStore.setState({
@@ -92,28 +91,6 @@ describe('HUD Component', () => {
                     showHelp: true,
                 },
             } as any);
-=======
-        // Reset store to initial state
-        useEngineStore.setState({
-            player: {
-                health: 100,
-                maxHealth: 100,
-                stamina: 100,
-                maxStamina: 100,
-                mana: 100,
-                maxMana: 100,
-                position: new THREE.Vector3(0, 0, 0),
-                rotation: 0,
-                speed: 0,
-                maxSpeed: 0.15,
-                verticalSpeed: 0,
-                isMoving: false,
-                isJumping: false,
-                invulnerable: false,
-                invulnerableUntil: 0,
-            },
-            nearbyResource: null,
->>>>>>> origin/fix/issue-80
         });
     });
 
@@ -259,7 +236,7 @@ describe('HUD Component', () => {
             render(<HUD />);
 
             expect(screen.getByText('Fish')).toBeInTheDocument();
-            expect(screen.getByText('Tap to collect')).toBeInTheDocument();
+            expect(screen.getByText(/collect/i)).toBeInTheDocument();
             expect(screen.getByText('🐟')).toBeInTheDocument();
         });
 

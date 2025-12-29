@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ParticleEmitter } from '@jbcom/strata';
 import { useAchievementStore } from '../../stores/useAchievementStore';
-import { useEngineStore } from '../../stores/engineStore';
+import { useGameStore } from '../../stores/gameStore';
 import * as THREE from 'three';
 
 export const AchievementEffects: React.FC = () => {
     const achievements = useAchievementStore((s) => s.achievements);
-    const playerPos = useEngineStore((s) => s.player.position);
+    const playerPos = useGameStore((s) => s.player.position);
     const [active, setActive] = useState(false);
     const [effectPos, setEffectPos] = useState<[number, number, number]>([0, 0, 0]);
 

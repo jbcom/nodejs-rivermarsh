@@ -1,12 +1,12 @@
 import { useAchievementStore } from '../../stores/useAchievementStore';
-import { useRPGStore } from '../../stores/rpgStore';
+import { useGameStore } from '../../stores/gameStore';
 import { world } from '../world';
 
 const visitedBiomes = new Set<string>();
 
 export function AchievementSystem() {
     const { unlockAchievement } = useAchievementStore.getState();
-    const { player } = useRPGStore.getState();
+    const { player } = useGameStore.getState();
 
     // Survivor: Survive for a full day cycle
     for (const { time } of world.with('time')) {
@@ -26,17 +26,17 @@ export function AchievementSystem() {
     }
 
     // Master Scavenger: Collect 50 resources
-    if (player.stats.totalResourcesCollected >= 50) {
+    if (player.totalResourcesCollected >= 50) {
         unlockAchievement('master-scavenger');
     }
 
     // Bounty Hunter: Defeat your first predator
-    if (player.stats.predatorsKilled >= 1) {
+    if (player.predatorsKilled >= 1) {
         unlockAchievement('bounty-hunter');
     }
 
     // Wealthy Otter: Accumulate 1000 gold
-    if (player.stats.gold >= 1000) {
+    if (player.gold >= 1000) {
         unlockAchievement('wealthy-otter');
     }
 }
