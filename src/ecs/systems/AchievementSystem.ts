@@ -1,10 +1,12 @@
 import { useAchievementStore } from '../../stores/useAchievementStore';
+import { useGameStore } from '../../stores/gameStore';
 import { world } from '../world';
 
 const visitedBiomes = new Set<string>();
 
 export function AchievementSystem() {
     const { unlockAchievement } = useAchievementStore.getState();
+    const { player } = useGameStore.getState();
 
     // Survivor: Survive for a full day cycle
     for (const { time } of world.with('time')) {
@@ -24,9 +26,17 @@ export function AchievementSystem() {
     }
 
     // Master Scavenger: Collect 50 resources
-    // This would ideally be tracked in a stats store.
-    // For now we'll just leave the hook for other systems to call.
+    if (player.totalResourcesCollected >= 50) {
+        unlockAchievement('master-scavenger');
+    }
 
     // Bounty Hunter: Defeat your first predator
-    // Checked in AISystem or combat logic.
+    if (player.predatorsKilled >= 1) {
+        unlockAchievement('bounty-hunter');
+    }
+
+    // Wealthy Otter: Accumulate 1000 gold
+    if (player.gold >= 1000) {
+        unlockAchievement('wealthy-otter');
+    }
 }

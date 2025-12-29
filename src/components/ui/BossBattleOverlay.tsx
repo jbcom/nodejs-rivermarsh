@@ -8,6 +8,25 @@ import { useGameStore } from '../../stores/gameStore';
 export const BossBattleOverlay: React.FC = () => {
     const { gameMode, activeBossId, player } = useGameStore();
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Find boss entity to check turn
+            const bossEntity = world.entities.find((e) => String(e.id) === String(activeBossId));
+            if (!bossEntity || !bossEntity.combat || bossEntity.combat.turn !== 'player') {
+                return;
+            }
+
+            if (e.key.toLowerCase() === 'a') {
+                handlePlayerAction('attack');
+            } else if (e.key.toLowerCase() === 's') {
+                handlePlayerAction('spell');
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [activeBossId]);
+
     if (gameMode !== 'boss_battle' || activeBossId === null) {
         return null;
     }
@@ -21,23 +40,6 @@ export const BossBattleOverlay: React.FC = () => {
     const bossData = (BOSSES as any)[boss.type];
 
     const healthPercent = species.maxHealth > 0 ? (species.health / species.maxHealth) * 100 : 0;
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (combat.turn !== 'player') {
-                return;
-            }
-
-            if (e.key.toLowerCase() === 'a') {
-                handlePlayerAction('attack');
-            } else if (e.key.toLowerCase() === 's') {
-                handlePlayerAction('spell');
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [combat.turn]);
 
     return (
         <div
@@ -142,17 +144,17 @@ export const BossBattleOverlay: React.FC = () => {
                 <div style={{ textAlign: 'center' }}>
                     <button
                         onClick={() => handlePlayerAction('spell')}
-                        disabled={combat.turn !== 'player'}
+                        disabled={combat.turn !== 'player' || player.mana < 3}
                         style={{
                             width: '80px',
                             height: '80px',
                             borderRadius: '50%',
                             border: '4px solid #fff',
-                            backgroundColor: combat.turn === 'player' ? '#2196F3' : '#666',
+                            backgroundColor: (combat.turn === 'player' && player.mana >= 3) ? '#2196F3' : '#666',
                             color: 'white',
                             fontSize: '24px',
                             fontWeight: 'bold',
-                            cursor: combat.turn === 'player' ? 'pointer' : 'default',
+                            cursor: (combat.turn === 'player' && player.mana >= 3) ? 'pointer' : 'default',
                             boxShadow: '0 4px 8px rgba(0,0,0,0.5)',
                         }}
                     >

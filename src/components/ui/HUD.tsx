@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
+import { useControlsStore } from '@/stores/controlsStore';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
+import { QuestOverlay } from './QuestOverlay';
 
 // Note: Don't use strata's HealthBar here - it's a 3D component that requires Canvas context
 // Using a simple HTML-based progress bar instead
@@ -129,12 +132,15 @@ function RPGInventory({ slots = [], columns = 5, slotSize = 44, style }: SimpleI
 }
 
 export function HUD() {
+    const constraints = useMobileConstraints();
+    
     // All gameplay stats from unified gameStore
-    // Primitives are safe
     const health = useGameStore((s) => s.player?.health ?? 0);
     const maxHealth = useGameStore((s) => s.player?.maxHealth ?? 100);
     const stamina = useGameStore((s) => s.player?.stamina ?? 0);
     const maxStamina = useGameStore((s) => s.player?.maxStamina ?? 100);
+    const mana = useGameStore((s) => s.player?.mana ?? 0);
+    const maxMana = useGameStore((s) => s.player?.maxMana ?? 20);
     const level = useGameStore((s) => s.player?.level ?? 1);
     const experience = useGameStore((s) => s.player?.experience ?? 0);
     const expToNext = useGameStore((s) => s.player?.expToNext ?? 1000);
@@ -240,8 +246,8 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    top: '20px',
-                    left: '20px',
+                    top: `max(20px, ${constraints.safeAreas.top}px)`,
+                    left: `max(20px, ${constraints.safeAreas.left}px)`,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '5px',
@@ -293,8 +299,8 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    top: '20px',
-                    right: '20px',
+                    top: `max(20px, ${constraints.safeAreas.top}px)`,
+                    right: `max(20px, ${constraints.safeAreas.right}px)`,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '15px',
@@ -352,12 +358,15 @@ export function HUD() {
                 </button>
             </div>
 
-            {/* Bottom Left: Health & Stamina */}
+            {/* Quest Overlay */}
+            <QuestOverlay />
+
+            {/* Bottom Left: Health & Stamina & Mana */}
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    left: '20px',
+                    bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
+                    left: `max(20px, ${constraints.safeAreas.left}px)`,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -420,6 +429,35 @@ export function HUD() {
                                   : '#ef4444'
                         }
                         testId="health-bar-fill"
+                        style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
+                    />
+                </div>
+                {/* Mana */}
+                <div style={{ transform: 'skewX(-10deg)', marginLeft: '5px' }}>
+                    <div
+                        style={{
+                            color: '#fff',
+                            fontSize: '10px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '2px',
+                            marginBottom: '4px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            fontFamily: 'Cinzel, serif',
+                        }}
+                    >
+                        <span>Mystic</span>
+                        <span>
+                            {Math.round(mana)} / {maxMana}
+                        </span>
+                    </div>
+                    <HealthBar
+                        value={mana}
+                        maxValue={maxMana}
+                        width={260}
+                        height={10}
+                        fillColor="#a855f7"
+                        testId="mana-bar-fill"
                         style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
                     />
                 </div>
@@ -490,8 +528,8 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    right: '20px',
+                    bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
+                    right: `max(20px, ${constraints.safeAreas.right}px)`,
                     textAlign: 'right',
                     color: '#fff',
                 }}
@@ -508,7 +546,7 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '20px',
+                    bottom: `max(20px, ${constraints.safeAreas.bottom}px)`,
                     left: '50%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
@@ -516,24 +554,40 @@ export function HUD() {
             >
                 {nearbyResource ? (
                     <div
+                        onClick={() => {
+                            // If mobile, allow tapping the resource indicator to collect
+                            if (constraints.isMobile) {
+                                // ResourceSystem handles proximity collection automatically
+                                // but we could trigger an interact action here if needed.
+                                useControlsStore.getState().setAction('interact', true);
+                                setTimeout(
+                                    () => useControlsStore.getState().setAction('interact', false),
+                                    100
+                                );
+                            }
+                        }}
                         style={{
                             background: 'rgba(0,0,0,0.8)',
                             border: '2px solid #d4af37',
                             borderRadius: '8px',
-                            padding: '10px 20px',
+                            padding: '12px 24px',
+                            minHeight: '44px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '12px',
                             marginBottom: '20px',
                             pointerEvents: 'auto',
+                            cursor: 'pointer',
                         }}
                     >
-                        <span style={{ fontSize: '24px' }}>{nearbyResource.icon}</span>
+                        <span style={{ fontSize: '28px' }}>{nearbyResource.icon}</span>
                         <div style={{ textAlign: 'left' }}>
                             <div style={{ color: '#fff', fontWeight: 'bold' }}>
                                 {nearbyResource.name}
                             </div>
-                            <div style={{ color: '#d4af37', fontSize: '12px' }}>Tap to collect</div>
+                            <div style={{ color: '#d4af37', fontSize: '14px' }}>
+                                {constraints.isMobile ? 'Tap to collect' : 'Press E to collect'}
+                            </div>
                         </div>
                     </div>
                 ) : (
@@ -546,7 +600,7 @@ export function HUD() {
                                 letterSpacing: '1px',
                             }}
                         >
-                            WASD: Move • Space: Jump • ESC: Pause
+                            WASD: Move • Space: Jump • Q: Spell • ESC: Pause
                         </div>
                     )
                 )}

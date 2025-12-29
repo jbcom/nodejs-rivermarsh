@@ -14,8 +14,12 @@ export const PLAYER = {
     INITIAL_HEALTH: 100,
     INITIAL_STAMINA: 100,
     HEALTH_PER_LEVEL: 10,
+    MANA_PER_LEVEL: 10,
     DAMAGE_PER_LEVEL: 2,
     BASE_DAMAGE: 10,
+    INITIAL_MANA: 20,
+    SPELL_COST_FIREBALL: 10,
+    MANA_REGEN_RATE: 2, // Mana per second
 } as const;
 
 // =============================================================================

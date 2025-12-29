@@ -3,7 +3,7 @@ import { Physics } from '@react-three/rapier';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
-import { BossBattleEffects, Combat, GameUI, NPCManager } from '@/components/game';
+import { AchievementEffects, BossBattleEffects, Combat, GameUI, NPCManager, SpellSystem } from '@/components/game';
 import {
     GyroscopeCamera,
     MobileActionButtons,
@@ -39,6 +39,7 @@ interface SceneProps {
 }
 
 function Scene({ useMobileControls = false }: SceneProps) {
+    const constraints = useMobileConstraints();
     useInput();
 
     // Mark game as ready after first frame
@@ -62,6 +63,8 @@ function Scene({ useMobileControls = false }: SceneProps) {
                 {/* Rivermarsh NPC system - spawns story NPCs */}
                 <NPCManager />
                 <BossBattleEffects />
+                <AchievementEffects />
+                <SpellSystem />
             </Physics>
 
             {/* Use gyroscope camera on mobile, follow camera on desktop */}
@@ -70,17 +73,17 @@ function Scene({ useMobileControls = false }: SceneProps) {
 
             {/* Volumetric effects for fog and underwater */}
             <VolumetricEffects
-                enableFog={true}
+                enableFog={!constraints.isMobile || constraints.isTablet}
                 enableUnderwater={true}
                 fogSettings={{
                     color: new THREE.Color(0.6, 0.7, 0.8),
-                    density: 0.015,
-                    height: 5,
+                    density: constraints.isMobile ? 0.005 : 0.015,
+                    height: constraints.isMobile ? 3 : 5,
                 }}
                 underwaterSettings={{
                     color: new THREE.Color(0.0, 0.25, 0.4),
-                    density: 0.08,
-                    causticStrength: 0.4,
+                    density: constraints.isMobile ? 0.04 : 0.08,
+                    causticStrength: constraints.isMobile ? 0.2 : 0.4,
                     waterSurface: 0,
                 }}
             />
@@ -188,13 +191,15 @@ export default function App() {
     return (
         <>
             <Canvas
-                shadows
-                camera={{ fov: 50, near: 0.1, far: 500, position: [0, 3.5, -5] }}
+                shadows={!constraints.isMobile || constraints.isTablet}
+                camera={{ fov: 50, near: 0.1, far: constraints.isMobile ? 300 : 500, position: [0, 3.5, -5] }}
                 gl={{
-                    antialias: false,
+                    antialias: !constraints.isMobile,
                     powerPreference: 'high-performance',
+                    stencil: false,
+                    depth: true,
                 }}
-                dpr={[1, 1.5]}
+                dpr={constraints.pixelRatio}
                 style={{ background: '#0a0808' }}
             >
                 {gameMode === 'racing' ? (

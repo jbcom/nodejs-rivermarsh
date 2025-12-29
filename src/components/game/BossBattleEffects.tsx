@@ -18,19 +18,20 @@ export const BossBattleEffects: React.FC = () => {
         // activeBossId is number, e.id is number
         const bossEntity = world.entities.find((e) => String(e.id) === String(activeBossId));
         if (bossEntity) {
+            // Update boss position for effects
             if (bossEntity.transform) {
                 setBossPosition([
                     bossEntity.transform.position.x,
-                    bossEntity.transform.position.y + 1,
+                    bossEntity.transform.position.y + 1, // Aim for the chest/middle
                     bossEntity.transform.position.z,
                 ]);
             }
 
             // Update spell casting state
             if (bossEntity.boss) {
-                // If boss is processing turn and about to use special ability (cooldown is 0)
+                // If boss is processing turn and about to use special ability (cooldown is 0 or 3 depending on system)
                 const isCasting =
-                    bossEntity.boss.specialAbilityCooldown === 0 &&
+                    (bossEntity.boss.specialAbilityCooldown === 0 || bossEntity.boss.specialAbilityCooldown === 3) &&
                     bossEntity.combat?.turn === 'boss' &&
                     bossEntity.boss.isProcessingTurn === true;
 

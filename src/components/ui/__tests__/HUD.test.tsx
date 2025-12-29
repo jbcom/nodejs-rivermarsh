@@ -78,8 +78,6 @@ describe('HUD Component', () => {
                     isJumping: false,
                     invulnerable: false,
                     invulnerableUntil: 0,
-                    damage: 10,
-                    speedMultiplier: 1,
                     mana: 20,
                     maxMana: 20,
                     inventory: [],

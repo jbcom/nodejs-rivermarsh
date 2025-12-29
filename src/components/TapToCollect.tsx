@@ -9,7 +9,7 @@ import { getAudioManager } from '@/utils/audioManager';
 const COLLECTION_DISTANCE = 1.5;
 
 export function TapToCollect() {
-    const { camera, scene } = useThree();
+    const { camera } = useThree();
     const playerPos = useGameStore((s) => s.player.position);
 
     useEffect(() => {
@@ -75,6 +75,7 @@ export function TapToCollect() {
                         quantity: 1,
                         description: `A fresh ${entity.resource.type} collected from the wild.`,
                     });
+                    useGameStore.getState().incrementResourcesCollected(1);
 
                     // Play collection sound
                     const audioManager = getAudioManager();

@@ -15,6 +15,7 @@ import { useControlsStore } from '@/stores/controlsStore';
 import { useGameStore } from '@/stores/gameStore';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
+import { PLAYER } from '@/constants/game';
 
 const FUR_LAYERS = 6;
 const SKIN_COLOR = 0x3e2723;
@@ -39,12 +40,14 @@ export function Player() {
     const lastJumpTime = useRef(0);
     const attackCooldownRef = useRef(0);
     const attackAnimTimerRef = useRef(0);
+    const spellCooldownRef = useRef(0);
 
     const input = useGameStore((s) => s.input);
     const player = useGameStore((s) => s.player);
     const dashAction = useControlsStore((state) => state.actions.dash);
     const updatePlayer = useGameStore((s) => s.updatePlayer);
     const damagePlayer = useGameStore((s) => s.damagePlayer);
+    const useMana = useGameStore((s) => s.useMana);
     const consumeStamina = useGameStore((s) => s.consumeStamina);
     const restoreStamina = useGameStore((s) => s.restoreStamina);
 
@@ -91,6 +94,7 @@ export function Player() {
                 speed: MAX_SPEED,
                 state: 'idle',
             },
+            quests: [],
         });
 
         return () => {
@@ -117,6 +121,33 @@ export function Player() {
         }
     }, [player.level]);
 
+    const performSpell = useCallback(() => {
+        if (spellCooldownRef.current > 0) {
+            return;
+        }
+
+        const cost = PLAYER.SPELL_COST_FIREBALL;
+        if (useMana(cost)) {
+            const damage = 25 + player.level * 5;
+            const position = groupRef.current?.position.clone() || new THREE.Vector3();
+            
+            // Direction based on character rotation
+            const direction = new THREE.Vector3(0, 0, 1);
+            if (groupRef.current) {
+                direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), groupRef.current.rotation.y);
+            }
+
+            combatEvents.emitSpellCast(position, direction, 'fireball', damage);
+            spellCooldownRef.current = 1.0; // 1 second cooldown
+            attackAnimTimerRef.current = 0.4; // Small animation pause
+
+            const audioManager = getAudioManager();
+            if (audioManager) {
+                audioManager.playSound('collect', 0.7); // Use collect with higher pitch/volume for spell
+            }
+        }
+    }, [player.level, useMana]);
+
     useFrame((state, delta) => {
         if (!rigidBodyRef.current || !groupRef.current || !characterRef.current) {
             return;
@@ -129,14 +160,20 @@ export function Player() {
         if (attackCooldownRef.current > 0) {
             attackCooldownRef.current -= delta;
         }
+        if (spellCooldownRef.current > 0) {
+            spellCooldownRef.current -= delta;
+        }
         if (attackAnimTimerRef.current > 0) {
             attackAnimTimerRef.current -= delta;
         }
 
         // Check for attack input
-        const attackPressed = useControlsStore.getState().actions.attack;
-        if (attackPressed && attackCooldownRef.current <= 0) {
+        const actions = useControlsStore.getState().actions;
+        if (actions.attack && attackCooldownRef.current <= 0) {
             performAttack();
+        }
+        if (actions.spell && spellCooldownRef.current <= 0) {
+            performSpell();
         }
 
         // Get current physics state

@@ -16,6 +16,7 @@ interface ControlsState {
         attack: boolean;
         jump: boolean;
         dash: boolean;
+        spell: boolean;
     };
     isJoystickActive: boolean;
     debugLogging: boolean;
@@ -24,7 +25,7 @@ interface ControlsState {
     setJoystickActive: (active: boolean) => void;
     setCamera: (x: number, y: number) => void;
     setCameraAzimuth: (azimuth: number) => void;
-    setAction: (action: 'interact' | 'attack' | 'jump' | 'dash', pressed: boolean) => void;
+    setAction: (action: 'interact' | 'attack' | 'jump' | 'dash' | 'spell', pressed: boolean) => void;
     resetMovement: () => void;
     resetCamera: () => void;
     toggleDebugLogging: () => void;
@@ -40,6 +41,7 @@ export const useControlsStore = create<ControlsState>()(
                 attack: false,
                 jump: false,
                 dash: false,
+                spell: false,
             },
             isJoystickActive: false,
             debugLogging: false,

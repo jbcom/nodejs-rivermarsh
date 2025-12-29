@@ -3,6 +3,8 @@ import { create } from 'zustand';
 import { persist, subscribeWithSelector } from 'zustand/middleware';
 import { LEVELING, PLAYER } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
+import { saveGame as saveGameUtil, loadGame as loadGameUtil } from '../utils/save';
+import { hapticFeedback, HAPTIC_PATTERNS } from '../hooks/useMobileConstraints';
 
 // --- Types ---
 
@@ -133,6 +135,8 @@ export interface GameState {
         experience: number;
         expToNext: number;
         otterAffinity: number;
+        predatorsKilled: number;
+        totalResourcesCollected: number;
 
         // Equipment & Skills
         swordLevel: number;
@@ -204,6 +208,8 @@ export interface GameState {
     completeQuest: (questId: string) => void;
     updateQuestObjective: (questId: string, objectiveIndex: number) => void;
     updateFactionReputation: (faction: OtterFaction, amount: number) => void;
+    incrementResourcesCollected: (amount?: number) => void;
+    incrementPredatorsKilled: () => void;
 
     // UI Actions
     showInventory: boolean;
@@ -237,7 +243,22 @@ export interface GameState {
     setDistance: (distance: number) => void;
     setInput: (x: number, y: number, active: boolean, jump: boolean) => void;
     updateSettings: (settings: Partial<GameState['settings']>) => void;
+
+    // Save/Load Actions
+    saveGame: () => void;
+    loadGame: () => void;
 }
+
+/**
+ * Calculate the XP required for the next level using iterative flooring.
+ */
+const calculateExpToNext = (level: number): number => {
+    let required: number = LEVELING.BASE_XP_REQUIRED;
+    for (let i = 1; i < level; i++) {
+        required = Math.floor(required * LEVELING.XP_MULTIPLIER);
+    }
+    return required;
+};
 
 export const useGameStore = create<GameState>()(
     subscribeWithSelector(
@@ -270,6 +291,8 @@ export const useGameStore = create<GameState>()(
                     experience: 0,
                     expToNext: LEVELING.BASE_XP_REQUIRED,
                     otterAffinity: 50,
+                    predatorsKilled: 0,
+                    totalResourcesCollected: 0,
                     swordLevel: 0,
                     shieldLevel: 0,
                     bootsLevel: 0,
@@ -363,7 +386,12 @@ export const useGameStore = create<GameState>()(
                 setDifficulty: (difficulty) => set({ difficulty }),
                 togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
                 setPaused: (isPaused) => set({ isPaused }),
-                setGameOver: (gameOver) => set({ gameOver }),
+                setGameOver: (gameOver) => {
+                    set({ gameOver });
+                    if (gameOver) {
+                        hapticFeedback(HAPTIC_PATTERNS.gameOver);
+                    }
+                },
 
                 updatePlayer: (updates) =>
                     set((state) => ({
@@ -390,6 +418,8 @@ export const useGameStore = create<GameState>()(
                         if (audioManager) {
                             audioManager.playSound('damage', 0.5);
                         }
+
+                        hapticFeedback(HAPTIC_PATTERNS.hit);
 
                         return {
                             player: {
@@ -482,6 +512,7 @@ export const useGameStore = create<GameState>()(
                             if (audioManager) {
                                 audioManager.playSound('level-up' as any, 0.7);
                             }
+                            hapticFeedback(HAPTIC_PATTERNS.levelUp);
                         }
 
                         return {
@@ -783,6 +814,11 @@ export const useGameStore = create<GameState>()(
                         get().addGold(10);
                         get().addExperience(20);
                         get().removeNPC(npcId);
+
+                        // Track predator kills for achievements
+                        if (npc.type === 'hostile') {
+                            get().incrementPredatorsKilled();
+                        }
                     }
                 },
 
@@ -794,6 +830,67 @@ export const useGameStore = create<GameState>()(
                     set({ input: { direction: { x, y }, active, jump } }),
                 updateSettings: (settings) =>
                     set((state) => ({ settings: { ...state.settings, ...settings } })),
+
+                incrementResourcesCollected: (amount = 1) =>
+                    set((state) => ({
+                        player: {
+                            ...state.player,
+                            totalResourcesCollected: state.player.totalResourcesCollected + amount,
+                        },
+                    })),
+                incrementPredatorsKilled: () =>
+                    set((state) => ({
+                        player: {
+                            ...state.player,
+                            predatorsKilled: state.player.predatorsKilled + 1,
+                        },
+                    })),
+
+                saveGame: () => {
+                    const state = get();
+                    saveGameUtil({
+                        position: state.player.position,
+                        health: state.player.health,
+                        stamina: state.player.stamina,
+                        level: state.player.level,
+                        experience: state.player.experience,
+                        mana: state.player.mana,
+                        gold: state.player.gold,
+                        quests: {
+                            active: state.player.activeQuests,
+                            completed: state.player.completedQuests,
+                        },
+                        achievements: [], // Achievements handled by useAchievementStore for now
+                    });
+                },
+                loadGame: () => {
+                    const saveData = loadGameUtil();
+                    if (!saveData) {
+                        return;
+                    }
+
+                    set((state) => {
+                        const level = saveData.player.level || 1;
+                        return {
+                            player: {
+                                ...state.player,
+                                position: new THREE.Vector3(...saveData.player.position),
+                                health: saveData.player.health,
+                                stamina: saveData.player.stamina,
+                                level: level,
+                                experience: saveData.player.experience || 0,
+                                mana: saveData.player.mana,
+                                gold: saveData.player.gold,
+                                expToNext: calculateExpToNext(level),
+                                maxHealth:
+                                    PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL,
+                                maxMana: 20 + (level - 1) * 10,
+                                activeQuests: saveData.player.quests?.active || [],
+                                completedQuests: saveData.player.quests?.completed || [],
+                            },
+                        };
+                    });
+                },
             }),
             {
                 name: 'rivermarsh-game-state',
@@ -824,6 +921,8 @@ export const useGameStore = create<GameState>()(
                         completedQuests: state.player.completedQuests,
                         factionReputation: state.player.factionReputation,
                         otterAffinity: state.player.otterAffinity,
+                        predatorsKilled: state.player.predatorsKilled,
+                        totalResourcesCollected: state.player.totalResourcesCollected,
                         skills: state.player.skills,
                     },
                     settings: state.settings,

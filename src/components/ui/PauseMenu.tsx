@@ -124,7 +124,8 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
                         marginTop: '20px',
                         fontSize: '14px',
                         width: 'auto',
-                        padding: '8px 20px',
+                        padding: '12px 30px',
+                        minHeight: '44px',
                         borderColor: 'rgba(239, 68, 68, 0.4)',
                         color: 'rgba(239, 68, 68, 0.8)',
                     }}

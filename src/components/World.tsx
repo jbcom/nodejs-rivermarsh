@@ -18,6 +18,7 @@ import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
 import { GrassInstances, RockInstances, TreeInstances } from './GPUInstancing';
 import { DEFAULT_BIOMES, SDFTerrain, useTerrainHeight } from './SDFTerrain';
+import { SpellSystem } from './game/SpellSystem';
 
 export function World() {
     const getHeight = useTerrainHeight(DEFAULT_BIOMES);
@@ -49,6 +50,7 @@ export function World() {
                 heightFunc={getHeight}
             />
 
+            <SpellSystem />
             <NightFireflies count={80} radius={25} />
             <WeatherEffects />
             <Lighting />

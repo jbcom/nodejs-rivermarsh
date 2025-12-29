@@ -4,6 +4,8 @@ import { getAudioManager } from '../../utils/audioManager';
 import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
+import { updateQuestProgress } from './QuestSystem';
+import { hapticFeedback, HAPTIC_PATTERNS } from '../../hooks/useMobileConstraints';
 
 const MAX_RESOURCES = 20;
 const SPAWN_RADIUS = 50;
@@ -89,7 +91,7 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
         initializeResources(playerPos);
     }
 
-    const { healPlayer, restoreStamina, setNearbyResource } = useGameStore.getState();
+    const { healPlayer, restoreStamina, setNearbyResource, incrementResourcesCollected } = useGameStore.getState();
 
     let closestResource: { type: ResourceType; distance: number } | null = null;
 
@@ -124,6 +126,9 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             entity.resource.collected = true;
             entity.resource.collectedAt = Date.now();
 
+            // Update quest progress
+            updateQuestProgress('collect', entity.resource.type);
+
             // Apply effects
             if (entity.resource.healthRestore > 0) {
                 healPlayer(entity.resource.healthRestore);
@@ -137,6 +142,10 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             if (audioManager) {
                 audioManager.playSound('collect', 0.6);
             }
+            hapticFeedback(HAPTIC_PATTERNS.collect);
+
+            // Track for achievements
+            incrementResourcesCollected(1);
 
             console.log(`Collected ${entity.resource.type}!`);
         }
