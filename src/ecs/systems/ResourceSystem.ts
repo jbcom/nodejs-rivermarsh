@@ -4,6 +4,7 @@ import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
 import { getAudioManager } from '../../utils/audioManager';
+import { updateQuestProgress } from './QuestSystem';
 
 const MAX_RESOURCES = 20;
 const SPAWN_RADIUS = 50;
@@ -123,6 +124,9 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             // Collect resource
             entity.resource.collected = true;
             entity.resource.collectedAt = Date.now();
+
+            // Update quest progress
+            updateQuestProgress('collect', entity.resource.type);
 
             // Apply effects
             if (entity.resource.healthRestore > 0) {

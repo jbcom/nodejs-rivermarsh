@@ -91,6 +91,7 @@ export function Player() {
                 speed: MAX_SPEED,
                 state: 'idle',
             },
+            quests: [],
         });
 
         return () => {

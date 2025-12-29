@@ -116,6 +116,17 @@ export function OtterNPC({ npc }: OtterNPCProps) {
     const handleInteract = useCallback(() => {
         if (npc.dialogue && isInRange.current) {
             startDialogue(npc.id, npc.name, npc.dialogue);
+
+            // Update quest progress
+            import('@/ecs/systems/QuestSystem').then(({ updateQuestProgress, addQuestToPlayer, RECOVER_FISH_QUEST, STARTER_QUEST }) => {
+                updateQuestProgress('talk', npc.id);
+                
+                // If it's Elder Moss, give the starter quest or recover fish quest
+                if (npc.id === 'elder_moss') {
+                    addQuestToPlayer(STARTER_QUEST);
+                    addQuestToPlayer(RECOVER_FISH_QUEST);
+                }
+            });
         }
     }, [npc.id, npc.name, npc.dialogue, startDialogue]);
 

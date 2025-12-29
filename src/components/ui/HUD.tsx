@@ -3,6 +3,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useEffect, useState, useMemo } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
+import { QuestOverlay } from './QuestOverlay';
 
 // Note: Don't use strata's HealthBar here - it's a 3D component that requires Canvas context
 // Using a simple HTML-based progress bar instead
@@ -285,6 +286,9 @@ export function HUD() {
                     ⏸
                 </button>
             </div>
+
+            {/* Quest Overlay */}
+            <QuestOverlay />
 
             {/* Bottom Left: Health & Stamina */}
             <div style={{
