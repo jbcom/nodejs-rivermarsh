@@ -203,7 +203,7 @@ export function loadGame(): SaveData | null {
 
         // Migration for achievements format (string[] -> {id, unlockedAt}[])
         if (Array.isArray(data.player.achievements) && data.player.achievements.length > 0 && typeof data.player.achievements[0] === 'string') {
-            data.player.achievements = data.player.achievements.map((id: string) => ({ id, unlockedAt: Date.now() }));
+            data.player.achievements = (data.player.achievements as unknown as string[]).map((id: string) => ({ id, unlockedAt: Date.now() }));
         }
 
         return data;
