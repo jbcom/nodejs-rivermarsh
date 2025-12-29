@@ -13,9 +13,9 @@ export function QuestOverlay() {
         // Poll for quest changes from ECS world
         // In a more complex setup, we'd use a reactive system or event bus
         const interval = setInterval(() => {
-            const player = world.with('isPlayer', 'quests').entities[0];
+            const player = world.with('isPlayer', 'quests' as any).entities[0];
             if (player && player.quests) {
-                const active = player.quests.filter((q) => q.status === 'active');
+                const active = player.quests.filter((q: any) => q.status === 'active');
                 setActiveQuests([...active]);
             } else {
                 setActiveQuests([]);
@@ -74,13 +74,13 @@ export function QuestOverlay() {
                     </h4>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {quest.objectives.map((obj) => (
+                        {quest.objectives.map((obj, idx) => (
                             <div
-                                key={obj.id}
+                                key={`${quest.id}-obj-${idx}`}
                                 style={{
                                     fontSize: '13px',
-                                    color: obj.isCompleted ? '#4ade80' : '#ffffff',
-                                    opacity: obj.isCompleted ? 0.8 : 1,
+                                    color: obj.completed ? '#4ade80' : '#ffffff',
+                                    opacity: obj.completed ? 0.8 : 1,
                                     display: 'flex',
                                     alignItems: 'flex-start',
                                     gap: '8px',
@@ -90,9 +90,9 @@ export function QuestOverlay() {
                                 <span style={{ 
                                     minWidth: '18px', 
                                     textAlign: 'center',
-                                    color: obj.isCompleted ? '#4ade80' : '#4169E1' 
+                                    color: obj.completed ? '#4ade80' : '#4169E1' 
                                 }}>
-                                    {obj.isCompleted ? '✓' : '•'}
+                                    {obj.completed ? '✓' : '•'}
                                 </span>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ 
@@ -101,18 +101,18 @@ export function QuestOverlay() {
                                         marginBottom: '2px'
                                     }}>
                                         <span style={{ 
-                                            textDecoration: obj.isCompleted ? 'line-through' : 'none',
+                                            textDecoration: obj.completed ? 'line-through' : 'none',
                                             fontSize: '12px'
                                         }}>
-                                            {obj.description}
+                                            {obj.type} {obj.target}
                                         </span>
-                                        {!obj.isCompleted && (
+                                        {!obj.completed && (
                                             <span style={{ fontSize: '11px', fontWeight: 'bold' }}>
-                                                {obj.currentAmount}/{obj.requiredAmount}
+                                                {obj.current}/{obj.required}
                                             </span>
                                         )}
                                     </div>
-                                    {!obj.isCompleted && obj.requiredAmount > 1 && (
+                                    {!obj.completed && obj.required > 1 && (
                                         <div style={{ 
                                             width: '100%', 
                                             height: '3px', 
@@ -121,7 +121,7 @@ export function QuestOverlay() {
                                             overflow: 'hidden'
                                         }}>
                                             <div style={{ 
-                                                width: `${(obj.currentAmount / obj.requiredAmount) * 100}%`,
+                                                width: `${(obj.current / obj.required) * 100}%`,
                                                 height: '100%',
                                                 background: '#4169E1',
                                                 transition: 'width 0.3s ease-out'

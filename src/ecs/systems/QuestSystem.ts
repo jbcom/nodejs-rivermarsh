@@ -1,5 +1,5 @@
 import { world } from '../world';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 import type { QuestObjectiveType, QuestComponent } from '../components';
 
 /**
@@ -13,40 +13,38 @@ export function QuestSystem() {
             if (quest.status !== 'active') continue;
 
             // Check if all objectives are completed
-            const allCompleted = quest.objectives.every((obj) => obj.isCompleted);
+            const allCompleted = quest.objectives.every((obj) => obj.completed);
 
             if (allCompleted) {
                 quest.status = 'completed';
 
                 // Grant rewards
-                const rpgStore = useRPGStore.getState();
+                const gameStore = useGameStore.getState();
 
                 if (quest.rewards.experience) {
-                    rpgStore.addExperience(quest.rewards.experience);
+                    gameStore.addExperience(quest.rewards.experience);
                 }
 
                 if (quest.rewards.gold) {
-                    rpgStore.addGold(quest.rewards.gold);
+                    gameStore.addGold(quest.rewards.gold);
                 }
 
                 if (quest.rewards.items) {
-                    quest.rewards.items.forEach((itemReward) => {
-                        rpgStore.addInventoryItem({
-                            id: itemReward.id,
-                            name: itemReward.id
+                    quest.rewards.items.forEach((itemId) => {
+                        gameStore.addInventoryItem({
+                            id: itemId,
+                            name: itemId
                                 .split('_')
                                 .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
                                 .join(' '),
                             type: 'treasure',
-                            quantity: itemReward.quantity,
+                            quantity: 1,
                             description: `Reward from quest: ${quest.title}`,
                         });
                     });
                 }
 
                 console.log(`Quest completed: ${quest.title}`);
-                
-                // Show notification if we had a notification system
             }
         }
     }
@@ -66,24 +64,23 @@ export function updateQuestProgress(type: QuestObjectiveType, target: string, am
             if (quest.status !== 'active') continue;
 
             for (const obj of quest.objectives) {
-                if (obj.isCompleted) continue;
+                if (obj.completed) continue;
                 
                 // Match by type and target (or wildcard '*')
                 if (obj.type === type && (obj.target === target || obj.target === '*')) {
-                    obj.currentAmount += amount;
-                    if (obj.currentAmount >= obj.requiredAmount) {
-                        obj.currentAmount = obj.requiredAmount;
-                        obj.isCompleted = true;
+                    obj.current += amount;
+                    if (obj.current >= obj.required) {
+                        obj.current = obj.required;
+                        obj.completed = true;
                     }
                     changed = true;
-                    console.log(`Quest progress: ${quest.title} - ${obj.description} (${obj.currentAmount}/${obj.requiredAmount})`);
+                    console.log(`Quest progress: ${quest.title} - ${obj.type} ${obj.target} (${obj.current}/${obj.required})`);
                 }
             }
         }
         
         if (changed) {
-            // In a real app, we might want to trigger a store update to refresh UI
-            // Since QuestOverlay will probably read from ECS directly, it's fine.
+            // Update might be needed if UI doesn't track ECS
         }
     }
 }
@@ -115,28 +112,24 @@ export const RECOVER_FISH_QUEST: QuestComponent = {
     status: 'active',
     objectives: [
         {
-            id: 'collect_fish',
             type: 'collect',
             target: 'fish',
-            requiredAmount: 5,
-            currentAmount: 0,
-            description: 'Recover 5 Fish',
-            isCompleted: false,
+            required: 5,
+            current: 0,
+            completed: false,
         },
         {
-            id: 'kill_raiders',
             type: 'kill',
             target: 'Marsh Raider',
-            requiredAmount: 2,
-            currentAmount: 0,
-            description: 'Defeat 2 Marsh Raiders',
-            isCompleted: false,
+            required: 2,
+            current: 0,
+            completed: false,
         },
     ],
     rewards: {
         experience: 200,
         gold: 100,
-        items: [{ id: 'elder_gift', quantity: 1 }],
+        items: ['elder_gift'],
     },
 };
 
@@ -147,36 +140,23 @@ export const STARTER_QUEST: QuestComponent = {
     status: 'active',
     objectives: [
         {
-            id: 'explore_marsh',
-            type: 'explore',
-            target: 'marsh',
-            requiredAmount: 1,
-            currentAmount: 0,
-            description: 'Explore the Marsh biome',
-            isCompleted: false,
-        },
-        {
-            id: 'collect_berries',
             type: 'collect',
             target: 'berries',
-            requiredAmount: 3,
-            currentAmount: 0,
-            description: 'Collect 3 Berries',
-            isCompleted: false,
+            required: 3,
+            current: 0,
+            completed: false,
         },
         {
-            id: 'talk_elder',
-            type: 'talk',
+            type: 'talk_to',
             target: 'elder_moss',
-            requiredAmount: 1,
-            currentAmount: 0,
-            description: 'Talk to Elder Moss',
-            isCompleted: false,
+            required: 1,
+            current: 0,
+            completed: false,
         }
     ],
     rewards: {
         experience: 100,
         gold: 50,
-        items: [{ id: 'starter_fish', quantity: 2 }]
+        items: ['starter_fish', 'starter_fish']
     }
 };
