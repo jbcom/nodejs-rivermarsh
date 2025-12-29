@@ -9,7 +9,7 @@ import { getAudioManager } from '@/utils/audioManager';
 const COLLECTION_DISTANCE = 1.5;
 
 export function TapToCollect() {
-    const { camera, scene } = useThree();
+    const { camera } = useThree();
     const playerPos = useGameStore((s) => s.player.position);
 
     useEffect(() => {
