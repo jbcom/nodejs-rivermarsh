@@ -4,6 +4,7 @@ import { subscribeWithSelector, persist } from 'zustand/middleware';
 import { PLAYER, LEVELING } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
 import { hapticFeedback, HAPTIC_PATTERNS } from '../hooks/useMobileConstraints';
+import { loadGame as loadGameUtil, saveGame as saveGameUtil } from '../utils/save';
 
 // --- Types ---
 
@@ -87,6 +88,18 @@ interface RockData {
     radius: number;
 }
 
+/**
+ * Calculate the XP required for the next level using iterative flooring
+ * to ensure consistency with the leveling loop.
+ */
+const calculateExpToNext = (level: number): number => {
+    let required: number = LEVELING.BASE_XP_REQUIRED;
+    for (let i = 1; i < level; i++) {
+        required = Math.floor(required * LEVELING.XP_MULTIPLIER);
+    }
+    return required;
+};
+
 // --- Store Interface ---
 
 export interface GameState {
@@ -121,6 +134,7 @@ export interface GameState {
         experience: number;
         expToNext: number;
         otterAffinity: number;
+        damage: number;
         
         // Tracking for achievements
         predatorsKilled: number;
@@ -231,6 +245,10 @@ export interface GameState {
     setDistance: (distance: number) => void;
     setInput: (x: number, y: number, active: boolean, jump: boolean) => void;
     updateSettings: (settings: Partial<GameState['settings']>) => void;
+    
+    // Persistence
+    saveGame: () => void;
+    loadGame: () => void;
 }
 
 export const useGameStore = create<GameState>()(
@@ -264,6 +282,7 @@ export const useGameStore = create<GameState>()(
                     experience: 0,
                     expToNext: LEVELING.BASE_XP_REQUIRED,
                     otterAffinity: 50,
+                    damage: PLAYER.BASE_DAMAGE,
                     predatorsKilled: 0,
                     totalResourcesCollected: 0,
                     swordLevel: 0,
@@ -418,6 +437,7 @@ export const useGameStore = create<GameState>()(
                     let maxMana = state.player.maxMana;
                     let health = state.player.health;
                     let mana = state.player.mana;
+                    let damage = state.player.damage;
                     let leveledUp = false;
 
                     while (exp >= expToNext && level < LEVELING.MAX_LEVEL) {
@@ -425,6 +445,7 @@ export const useGameStore = create<GameState>()(
                         level += 1;
                         expToNext = Math.floor(expToNext * LEVELING.XP_MULTIPLIER);
                         maxHealth = PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL;
+                        damage = PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL;
                         maxMana += 10;
                         leveledUp = true;
                     }
@@ -453,6 +474,7 @@ export const useGameStore = create<GameState>()(
                             health,
                             maxMana,
                             mana,
+                            damage,
                         },
                     };
                 }),
@@ -683,6 +705,43 @@ export const useGameStore = create<GameState>()(
                         predatorsKilled: state.player.predatorsKilled + 1,
                     }
                 })),
+                
+                saveGame: () => {
+                    const state = get();
+                    saveGameUtil({
+                        position: state.player.position,
+                        health: state.player.health,
+                        stamina: state.player.stamina,
+                        level: state.player.level,
+                        experience: state.player.experience,
+                        mana: state.player.mana,
+                        gold: state.player.gold,
+                    });
+                },
+                
+                loadGame: () => {
+                    const saveData = loadGameUtil();
+                    if (!saveData) return;
+                    set((state) => {
+                        const level = saveData.player.level || 1;
+                        return {
+                            player: {
+                                ...state.player,
+                                position: new THREE.Vector3(...saveData.player.position),
+                                health: saveData.player.health,
+                                stamina: saveData.player.stamina,
+                                level: level,
+                                experience: saveData.player.experience || 0,
+                                mana: saveData.player.mana ?? 20,
+                                gold: saveData.player.gold ?? 0,
+                                maxHealth: PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL,
+                                damage: PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL,
+                                expToNext: calculateExpToNext(level),
+                                maxMana: 20 + (level - 1) * 10,
+                            }
+                        };
+                    });
+                },
             }),
             {
                 name: 'rivermarsh-game-state',
