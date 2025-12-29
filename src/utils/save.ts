@@ -10,11 +10,13 @@ export interface SaveData {
         stamina: number;
         level: number;
         experience: number;
-<<<<<<< HEAD
-        mana?: number;
-        gold?: number;
-=======
->>>>>>> fix/issue-29
+        mana: number;
+        gold: number;
+        quests: {
+            active: any[];
+            completed: any[];
+        };
+        achievements: { id: string; unlockedAt: number }[];
     };
     world: {
         time: number;
@@ -28,7 +30,7 @@ export interface SaveData {
 }
 
 const SAVE_KEY = 'rivermarsh_save';
-const SAVE_VERSION = '1.0.0';
+const SAVE_VERSION = '1.1.0';
 
 export function saveGame(playerState: {
     position: THREE.Vector3;
@@ -36,11 +38,13 @@ export function saveGame(playerState: {
     stamina: number;
     level: number;
     experience: number;
-<<<<<<< HEAD
     mana: number;
     gold: number;
-=======
->>>>>>> fix/issue-29
+    quests: {
+        active: any[];
+        completed: any[];
+    };
+    achievements: { id: string; unlockedAt: number }[];
 }): void {
     try {
         // Get world state from ECS
@@ -70,11 +74,10 @@ export function saveGame(playerState: {
                 stamina: playerState.stamina,
                 level: playerState.level,
                 experience: playerState.experience,
-<<<<<<< HEAD
                 mana: playerState.mana,
                 gold: playerState.gold,
-=======
->>>>>>> fix/issue-29
+                quests: playerState.quests,
+                achievements: playerState.achievements,
             },
             world: {
                 time: timeHour,
@@ -101,7 +104,6 @@ function isValidSaveData(data: any): data is SaveData {
     }
 
     // Check player
-<<<<<<< HEAD
     if (!data.player || typeof data.player !== 'object') {
         return false;
     }
@@ -112,56 +114,37 @@ function isValidSaveData(data: any): data is SaveData {
         return false;
     }
 
-    // Type validation for optional fields (backward compatibility)
-    if (data.player.health !== undefined && typeof data.player.health !== 'number') {
-        return false;
-    }
-    if (data.player.stamina !== undefined && typeof data.player.stamina !== 'number') {
-        return false;
-    }
-    if (data.player.level !== undefined && typeof data.player.level !== 'number') {
-        return false;
-    }
-    if (data.player.experience !== undefined && typeof data.player.experience !== 'number') {
-        return false;
-    }
-    if (data.player.mana !== undefined && typeof data.player.mana !== 'number') {
-        return false;
-    }
-    if (data.player.gold !== undefined && typeof data.player.gold !== 'number') {
-        return false;
+    // Type validation for core fields
+    const numericFields = ['health', 'stamina', 'level', 'experience', 'mana', 'gold'];
+    for (const field of numericFields) {
+        if (data.player[field] !== undefined && typeof data.player[field] !== 'number') {
+            return false;
+        }
     }
 
     // Range validation to prevent corrupted save data
-    if ((data.player.health ?? 0) < 0) {
-        return false;
-    }
-    if ((data.player.stamina ?? 0) < 0) {
-        return false;
-    }
-    if ((data.player.level ?? 1) < 1) {
-        return false;
-    }
-    if ((data.player.experience ?? 0) < 0) {
-        return false;
-    }
-=======
-    if (!data.player || typeof data.player !== 'object') return false;
-    if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
-    if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
-    
-    // Type validation for optional fields (backward compatibility)
-    if (data.player.health !== undefined && typeof data.player.health !== 'number') return false;
-    if (data.player.stamina !== undefined && typeof data.player.stamina !== 'number') return false;
-    if (data.player.level !== undefined && typeof data.player.level !== 'number') return false;
-    if (data.player.experience !== undefined && typeof data.player.experience !== 'number') return false;
-
-    // Range validation to prevent corrupted save data
-    if ((data.player.health ?? 0) < 0) return false;
-    if ((data.player.stamina ?? 0) < 0) return false;
-    if ((data.player.level ?? 1) < 1) return false;
+    if ((data.player.health ?? 0) < 0 || (data.player.health ?? 0) > 1000) return false;
+    if ((data.player.stamina ?? 0) < 0 || (data.player.stamina ?? 0) > 1000) return false;
+    if ((data.player.level ?? 1) < 1 || (data.player.level ?? 1) > 100) return false;
     if ((data.player.experience ?? 0) < 0) return false;
->>>>>>> fix/issue-29
+    if ((data.player.mana ?? 0) < 0 || (data.player.mana ?? 0) > 1000) return false;
+    if ((data.player.gold ?? 0) < 0) return false;
+
+    // Quests validation (if present)
+    if (data.player.quests !== undefined) {
+        if (typeof data.player.quests !== 'object') return false;
+        if (!Array.isArray(data.player.quests.active) || !Array.isArray(data.player.quests.completed)) return false;
+    }
+
+    // Achievements validation (if present)
+    if (data.player.achievements !== undefined) {
+        if (!Array.isArray(data.player.achievements)) return false;
+        for (const ach of data.player.achievements) {
+            if (typeof ach !== 'string' && (typeof ach !== 'object' || typeof ach.id !== 'string')) {
+                return false;
+            }
+        }
+    }
 
     // Check world
     if (!data.world || typeof data.world !== 'object') {
@@ -198,18 +181,27 @@ export function loadGame(): SaveData | null {
             return null;
         }
 
-        const data = JSON.parse(savedData);
-
-        // Version check
-        if (data.version !== SAVE_VERSION) {
-            console.warn('Save data version mismatch, ignoring save');
-            return null;
-        }
+        let data = JSON.parse(savedData);
 
         // Security: Validate schema to prevent loading malformed data
         if (!isValidSaveData(data)) {
             console.warn('Save data schema validation failed, ignoring save');
             return null;
+        }
+
+        // Backward compatibility / Migration
+        if (data.version === '1.0.0') {
+            console.log('Migrating save data from 1.0.0 to 1.1.0');
+            data.version = '1.1.0';
+            data.player.mana = data.player.mana ?? 20;
+            data.player.gold = data.player.gold ?? 0;
+            data.player.quests = data.player.quests ?? { active: [], completed: [] };
+            data.player.achievements = data.player.achievements ?? [];
+        }
+
+        // Migration for achievements format (string[] -> {id, unlockedAt}[])
+        if (Array.isArray(data.player.achievements) && data.player.achievements.length > 0 && typeof data.player.achievements[0] === 'string') {
+            data.player.achievements = (data.player.achievements as unknown as string[]).map((id: string) => ({ id, unlockedAt: Date.now() }));
         }
 
         return data;
