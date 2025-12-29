@@ -3,7 +3,7 @@ import { Physics } from '@react-three/rapier';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
-import { Combat, GameUI, NPCManager, BossBattleEffects } from '@/components/game';
+import { BossBattleEffects, Combat, GameUI, NPCManager } from '@/components/game';
 import {
     GyroscopeCamera,
     MobileActionButtons,
@@ -15,22 +15,23 @@ import { Player } from '@/components/Player';
 import { Resources } from '@/components/Resources';
 import { TapToCollect } from '@/components/TapToCollect';
 import { AchievementOverlay } from '@/components/ui/AchievementOverlay';
+import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { EventOverlay } from '@/components/ui/EventOverlay';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
 import { MainMenu } from '@/components/ui/MainMenu';
 import { Tutorial } from '@/components/ui/Tutorial';
-import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { World } from '@/components/World';
+import { RacingScene } from '@/features/racing/RacingScene';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
+import { useGameStore } from '@/stores/gameStore';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
-import { RacingScene } from '@/features/racing/RacingScene';
-import { useGameStore } from '@/stores/gameStore';
 import { BasicStrataExample } from '../examples/BasicStrata';
+import { CombatDemo } from '../examples/CombatDemo';
 import { WeatherExample } from '../examples/WeatherSystem';
 
 interface SceneProps {
@@ -94,15 +95,17 @@ export default function App() {
     }, []);
 
     const constraints = useMobileConstraints();
-    const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
-    
+    const [currentExample, setCurrentExample] = useState<'basic' | 'weather' | 'combat'>('basic');
+
     const gameMode = useGameStore((state) => state.gameMode);
     const setGameMode = useGameStore((state) => state.setGameMode);
 
     if (gameMode === 'examples') {
         return (
             <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-                {currentExample === 'basic' ? <BasicStrataExample /> : <WeatherExample />}
+                {currentExample === 'basic' && <BasicStrataExample />}
+                {currentExample === 'weather' && <WeatherExample />}
+                {currentExample === 'combat' && <CombatDemo />}
                 <div
                     style={{
                         position: 'absolute',
@@ -150,6 +153,21 @@ export default function App() {
                     </button>
                     <button
                         style={{
+                            background:
+                                currentExample === 'combat' ? '#d4af37' : 'rgba(255,255,255,0.1)',
+                            color: currentExample === 'combat' ? '#000' : '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                        }}
+                        onClick={() => setCurrentExample('combat')}
+                    >
+                        Combat Demo
+                    </button>
+                    <button
+                        style={{
                             background: '#8b0000',
                             color: '#fff',
                             border: 'none',
@@ -182,9 +200,7 @@ export default function App() {
                 {gameMode === 'racing' ? (
                     <RacingScene />
                 ) : (
-                    <Scene
-                        useMobileControls={constraints.isMobile}
-                    />
+                    <Scene useMobileControls={constraints.isMobile} />
                 )}
             </Canvas>
 

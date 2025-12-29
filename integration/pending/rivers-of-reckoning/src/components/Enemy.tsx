@@ -3,8 +3,8 @@
  * Ported from Python enemy.py and procedural_enemies.py
  */
 
-import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { ENEMY, PLAYER } from '../constants/game'
 import { combatEvents } from '../events/combatEvents'

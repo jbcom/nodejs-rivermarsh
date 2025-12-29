@@ -5,20 +5,20 @@
 
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+import { LEVELING, PLAYER, TIME, WEATHER } from '../constants/game'
 import {
   BiomeType,
-  TimePhase,
-  WeatherType,
   GameState,
-  PlayerStats,
   Health,
-  Stamina,
+  PlayerStats,
   Position,
+  Stamina,
   TimeOfDay,
+  TimePhase,
   Weather,
+  WeatherType,
   WorldState,
 } from '../types/game'
-import { PLAYER, TIME, WEATHER, LEVELING } from '../constants/game'
 
 interface GameStore {
   // Game state

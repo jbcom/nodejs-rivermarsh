@@ -2,8 +2,8 @@
  * Title Screen - Ported from game.py draw_title()
  */
 
-import { Typography, Button, Container, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import { PlayArrow, Star } from '@mui/icons-material'
+import { Button, Container, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material'
 import { useGameStore } from '../store/gameStore'
 
 export function TitleScreen() {

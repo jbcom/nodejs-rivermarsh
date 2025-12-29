@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { useGameStore } from '@/stores/gameStore';
+import { getAudioManager } from '../../utils/audioManager';
 import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
-import { getAudioManager } from '../../utils/audioManager';
 
 const MAX_RESOURCES = 20;
 const SPAWN_RADIUS = 50;

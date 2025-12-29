@@ -1,10 +1,18 @@
 {
     "$schema": "https://typedoc.org/schema.json",
-    "entryPoints": ["src/main.tsx", "src/ecs/world.ts", "src/stores/gameStore.ts"],
+    "entryPoints": [
+        "src/main.tsx",
+        "src/ecs/world.ts",
+        "src/ecs/components.ts",
+        "src/ecs/systems/index.ts",
+        "src/stores/engineStore.ts",
+        "src/stores/rpgStore.ts"
+    ],
     "out": "docs/api",
     "name": "Rivermarsh API Documentation",
     "includeVersion": true,
     "disableSources": false,
     "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],
+    "skipErrorChecking": true,
     "plugin": []
 }

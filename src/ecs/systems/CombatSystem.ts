@@ -33,7 +33,9 @@ export function CombatSystem() {
                     combatEvents.emitDamageEnemy(npcId, damage, entity.transform!.position.clone());
 
                     // Check if NPC died
-                    const updatedNPC = useGameStore.getState().npcs.find((n: any) => n.id === npcId);
+                    const updatedNPC = useGameStore
+                        .getState()
+                        .npcs.find((n: any) => n.id === npcId);
                     if (updatedNPC && (updatedNPC.health ?? 0) <= 0) {
                         // Dead!
                         entity.species!.state = 'dead';

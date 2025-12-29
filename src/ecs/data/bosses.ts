@@ -1,4 +1,4 @@
-import { BossComponent } from '../components';
+import type { BossComponent } from '../components';
 
 export interface BossData {
     name: string;
@@ -20,8 +20,8 @@ export const BOSSES: Record<BossComponent['type'], BossData> = {
         rewards: { gold: 100, experience: 500 },
         abilities: [
             { name: 'Multi-Bite', damage: 8, description: 'All heads strike at once' },
-            { name: 'Regrow', damage: 0, description: 'Regains health' }
-        ]
+            { name: 'Regrow', damage: 0, description: 'Regains health' },
+        ],
     },
     shadow_golem: {
         name: 'Shadow Golem',
@@ -30,8 +30,8 @@ export const BOSSES: Record<BossComponent['type'], BossData> = {
         rewards: { gold: 150, experience: 750 },
         abilities: [
             { name: 'Stone Crush', damage: 12, description: 'Smashes with giant stone fists' },
-            { name: 'Dark Pulse', damage: 5, description: 'Releases a wave of shadow energy' }
-        ]
+            { name: 'Dark Pulse', damage: 5, description: 'Releases a wave of shadow energy' },
+        ],
     },
     chaos_drake: {
         name: 'Chaos Drake',
@@ -40,7 +40,7 @@ export const BOSSES: Record<BossComponent['type'], BossData> = {
         rewards: { gold: 300, experience: 1500 },
         abilities: [
             { name: 'Chaos Breath', damage: 15, description: 'Breathes multi-colored fire' },
-            { name: 'Wing Buffet', damage: 10, description: 'Knocks back with a powerful gust' }
-        ]
-    }
+            { name: 'Wing Buffet', damage: 10, description: 'Knocks back with a powerful gust' },
+        ],
+    },
 };

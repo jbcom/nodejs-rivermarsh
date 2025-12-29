@@ -65,8 +65,7 @@ test.describe('Player Movement Verification', () => {
 
         if (initialPos && finalPos) {
             const distance = Math.sqrt(
-                Math.pow(finalPos.x - initialPos.x, 2) + 
-                Math.pow(finalPos.z - initialPos.z, 2)
+                (finalPos.x - initialPos.x) ** 2 + (finalPos.z - initialPos.z) ** 2
             );
             expect(distance).toBeGreaterThan(0.1);
         }
@@ -75,7 +74,7 @@ test.describe('Player Movement Verification', () => {
     test('jumping should temporarily increase Y position', async ({ page }) => {
         // Wait for player to settle on ground
         await page.waitForTimeout(3000);
-        
+
         const initialPos = await getPlayerPosition(page);
 
         // Jump
@@ -108,8 +107,7 @@ test.describe('Player Movement Verification', () => {
 
         if (initialPos && finalPos) {
             const distance = Math.sqrt(
-                Math.pow(finalPos.x - initialPos.x, 2) + 
-                Math.pow(finalPos.z - initialPos.z, 2)
+                (finalPos.x - initialPos.x) ** 2 + (finalPos.z - initialPos.z) ** 2
             );
             expect(distance).toBeGreaterThan(0.1);
         }

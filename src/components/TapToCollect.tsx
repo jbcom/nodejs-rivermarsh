@@ -1,10 +1,10 @@
-import { world } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
-import { getAudioManager } from '@/utils/audioManager';
 import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
+import { world } from '@/ecs/world';
+import { useGameStore } from '@/stores/gameStore';
+import { getAudioManager } from '@/utils/audioManager';
 
 const COLLECTION_DISTANCE = 1.5;
 
@@ -18,7 +18,9 @@ export function TapToCollect() {
 
         const handleTap = (e: TouchEvent) => {
             // Only handle single-finger taps (not pinch or multi-touch)
-            if (e.touches.length !== 1) return;
+            if (e.touches.length !== 1) {
+                return;
+            }
 
             const touch = e.touches[0];
 
@@ -31,13 +33,17 @@ export function TapToCollect() {
 
             // Check all resources
             for (const entity of world.with('isResource', 'transform', 'resource')) {
-                if (!entity.transform || !entity.resource || entity.resource.collected) continue;
+                if (!entity.transform || !entity.resource || entity.resource.collected) {
+                    continue;
+                }
 
                 const resourcePos = entity.transform.position;
 
                 // Check if resource is within collection distance of player
                 const distanceToPlayer = playerPos.distanceTo(resourcePos);
-                if (distanceToPlayer > COLLECTION_DISTANCE) continue;
+                if (distanceToPlayer > COLLECTION_DISTANCE) {
+                    continue;
+                }
 
                 // Check if tap hit the resource (sphere collision)
                 const resourceRadius = 0.5; // Approximate size
@@ -48,7 +54,8 @@ export function TapToCollect() {
                     entity.resource.collected = true;
                     entity.resource.collectedAt = Date.now();
 
-                    const { healPlayer, restoreStamina, addInventoryItem } = useGameStore.getState();
+                    const { healPlayer, restoreStamina, addInventoryItem } =
+                        useGameStore.getState();
 
                     // Apply effects
                     if (entity.resource.healthRestore > 0) {
@@ -61,10 +68,12 @@ export function TapToCollect() {
                     // Add to RPG inventory
                     addInventoryItem({
                         id: `resource_${entity.resource.type}_${Date.now()}`,
-                        name: entity.resource.type.charAt(0).toUpperCase() + entity.resource.type.slice(1),
+                        name:
+                            entity.resource.type.charAt(0).toUpperCase() +
+                            entity.resource.type.slice(1),
                         type: 'consumable',
                         quantity: 1,
-                        description: `A fresh ${entity.resource.type} collected from the wild.`
+                        description: `A fresh ${entity.resource.type} collected from the wild.`,
                     });
 
                     // Play collection sound
@@ -87,7 +96,7 @@ export function TapToCollect() {
         return () => {
             window.removeEventListener('touchstart', handleTap);
         };
-    }, [camera, scene, playerPos]);
+    }, [camera, playerPos]);
 
     return null;
 }

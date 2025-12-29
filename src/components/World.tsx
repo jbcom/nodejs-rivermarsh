@@ -14,8 +14,8 @@ import {
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { world as ecsWorld } from '@/ecs/world';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
+import { world as ecsWorld } from '@/ecs/world';
 import { GrassInstances, RockInstances, TreeInstances } from './GPUInstancing';
 import { DEFAULT_BIOMES, SDFTerrain, useTerrainHeight } from './SDFTerrain';
 

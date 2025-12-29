@@ -1,3 +1,9 @@
+import {
+    animateCharacter,
+    type CharacterJoints,
+    type CharacterState,
+    createCharacter,
+} from '@jbcom/strata';
 import { useFrame } from '@react-three/fiber';
 import type { RapierRigidBody } from '@react-three/rapier';
 import { CapsuleCollider, RigidBody } from '@react-three/rapier';
@@ -5,14 +11,8 @@ import { useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { world } from '@/ecs/world';
 import { combatEvents } from '@/events/combatEvents';
-import { 
-    createCharacter, 
-    animateCharacter, 
-    type CharacterJoints,
-    type CharacterState
-} from '@jbcom/strata';
-import { useGameStore } from '@/stores/gameStore';
 import { useControlsStore } from '@/stores/controlsStore';
+import { useGameStore } from '@/stores/gameStore';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
 
@@ -155,19 +155,23 @@ export function Player() {
             if (Math.abs(dirX) > 0.1 || Math.abs(dirZ) > 0.1) {
                 const targetAngle = Math.atan2(dirX, dirZ);
                 let angleDiff = targetAngle - groupRef.current.rotation.y;
-                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                while (angleDiff > Math.PI) {
+                    angleDiff -= Math.PI * 2;
+                }
+                while (angleDiff < -Math.PI) {
+                    angleDiff += Math.PI * 2;
+                }
                 groupRef.current.rotation.y += angleDiff * 0.15;
 
                 const waterMultiplier = isInWater ? 0.7 : 1.0;
                 const dashMultiplier = dashAction ? 2.5 : 1.0;
-                
+
                 // Consume stamina when sprinting
                 if (dashAction && player.stamina > 0) {
                     consumeStamina(delta * 30);
                 }
 
-                const speedMultiplier = 1.0; 
+                const speedMultiplier = 1.0;
                 const force = {
                     x: dirX * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier,
                     y: 0,
@@ -218,18 +222,18 @@ export function Player() {
         groupRef.current.position.set(position.x, position.y, position.z);
 
         const horizontalSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-        
+
         // Update Strata character state
         characterRef.current.state.speed = horizontalSpeed;
         characterRef.current.state.maxSpeed = MAX_SPEED;
-        
+
         // Use Strata's animation system
         (animateCharacter as any)(characterRef.current, time);
 
         // Update game store only if significant change or every few frames to reduce re-renders
         const pos = new THREE.Vector3(position.x, position.y, position.z);
-        const shouldUpdateStore = 
-            pos.distanceToSquared(player.position) > 0.0001 || 
+        const shouldUpdateStore =
+            pos.distanceToSquared(player.position) > 0.0001 ||
             Math.abs(groupRef.current.rotation.y - player.rotation) > 0.01 ||
             state.clock.elapsedTime % 0.5 < delta; // Update at least every 0.5s
 

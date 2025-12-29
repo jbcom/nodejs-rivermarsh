@@ -1,10 +1,10 @@
+import { AmbientAudio, FootstepAudio, WeatherAudio } from '@jbcom/strata';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
-import { AmbientAudio, FootstepAudio, WeatherAudio } from '@jbcom/strata';
 
 /**
  * AudioSystem - Manages game audio including footsteps and biome ambient sounds
@@ -30,7 +30,13 @@ export function AudioSystem() {
     }, [currentBiome, currentWeather]);
 
     const player = useGameStore((s) => s.player);
-    const { position: playerPos, isMoving, isJumping, speed: playerSpeed, maxSpeed: playerMaxSpeed } = player;
+    const {
+        position: playerPos,
+        isMoving,
+        isJumping,
+        speed: playerSpeed,
+        maxSpeed: playerMaxSpeed,
+    } = player;
 
     // Play footsteps via ref based on animation cycle or simple interval for now
     const lastStepRef = useRef(0);
@@ -39,15 +45,17 @@ export function AudioSystem() {
             const now = state.clock.elapsedTime;
             const stepInterval = playerSpeed / playerMaxSpeed > 0.7 ? 0.3 : 0.5;
             if (now - lastStepRef.current > stepInterval) {
-                const terrainType = playerPos.y < 0.2
-                    ? 'water'
-                    : getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout()) === 'tundra'
-                      ? 'snow'
-                      : ['mountain', 'desert'].includes(
-                              getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout())
-                          )
-                        ? 'rock'
-                        : 'grass';
+                const terrainType =
+                    playerPos.y < 0.2
+                        ? 'water'
+                        : getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout()) ===
+                            'tundra'
+                          ? 'snow'
+                          : ['mountain', 'desert'].includes(
+                                  getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout())
+                              )
+                            ? 'rock'
+                            : 'grass';
                 footstepRef.current?.playFootstep(terrainType);
                 lastStepRef.current = now;
             }
@@ -73,10 +81,10 @@ export function AudioSystem() {
                 }}
                 volume={0.3}
             />
-            <AmbientAudio 
-                url={biomeToUrl[currentBiome] || biomeToUrl.marsh} 
-                autoplay 
-                fadeTime={2} 
+            <AmbientAudio
+                url={biomeToUrl[currentBiome] || biomeToUrl.marsh}
+                autoplay
+                fadeTime={2}
             />
             <WeatherAudio
                 rainUrl="/audio/ambient/rain_loop.ogg"

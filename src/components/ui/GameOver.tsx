@@ -23,7 +23,7 @@ export function GameOver() {
                 alignItems: 'center',
                 zIndex: 1000,
                 pointerEvents: 'all',
-                backdropFilter: 'blur(5px)'
+                backdropFilter: 'blur(5px)',
             }}
         >
             <h1

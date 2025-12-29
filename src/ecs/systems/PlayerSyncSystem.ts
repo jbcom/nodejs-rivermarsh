@@ -10,10 +10,10 @@ export function PlayerSyncSystem() {
     for (const entity of world.with('isPlayer', 'species', 'transform')) {
         // Get position from store (updated by Player physics)
         const { x, y, z } = player.position;
-        
+
         // Update ECS position from store
         entity.transform!.position.set(x, y, z);
-        
+
         // Sync species stats from store to ECS (for AI systems)
         if (entity.species) {
             entity.species.health = player.health;

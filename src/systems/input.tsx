@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useGameStore } from '@/stores/gameStore';
 import { useControlsStore } from '@/stores/controlsStore';
+import { useGameStore } from '@/stores/gameStore';
 
 export function useInput() {
     const setInput = useGameStore((s) => s.setInput);

@@ -13,7 +13,8 @@ table.docutils {
     width: 100%;
 }
 
-table.docutils td, table.docutils th {
+table.docutils td,
+table.docutils th {
     padding: 8px 12px;
     border: 1px solid #e1e4e5;
 }

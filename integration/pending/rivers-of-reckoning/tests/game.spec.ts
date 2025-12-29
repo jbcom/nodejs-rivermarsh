@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test.describe('Rivers of Reckoning - Strata Edition', () => {
   test.beforeEach(async ({ page }) => {

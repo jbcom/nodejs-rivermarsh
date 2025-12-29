@@ -2,8 +2,8 @@
  * Pause Menu - Ported from game.py draw_paused()
  */
 
-import { Typography, Button, Container, Stack } from '@mui/material'
-import { PlayArrow, Home, Settings } from '@mui/icons-material'
+import { Home, PlayArrow, Settings } from '@mui/icons-material'
+import { Button, Container, Stack, Typography } from '@mui/material'
 import { useGameStore } from '../store/gameStore'
 
 export function PauseMenu() {
