@@ -31,6 +31,7 @@ import { RacingScene } from '@/features/racing/RacingScene';
 import { useRPGStore } from '@/stores/rpgStore';
 import { BasicStrataExample } from '../examples/BasicStrata';
 import { WeatherExample } from '../examples/WeatherSystem';
+import { CombatDemo } from '../examples/CombatDemo';
 
 // Initialize test hooks for E2E testing
 initTestHooks();
@@ -92,7 +93,7 @@ function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: Scene
 
 export default function App() {
     const constraints = useMobileConstraints();
-    const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
+    const [currentExample, setCurrentExample] = useState<'basic' | 'weather' | 'combat'>('basic');
     // Rivermarsh features enabled by default - can be toggled in settings later
     const rivermarshEnabled = true;
     const gameMode = useRPGStore((state) => state.gameMode);
@@ -101,7 +102,9 @@ export default function App() {
     if (gameMode === 'examples') {
         return (
             <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-                {currentExample === 'basic' ? <BasicStrataExample /> : <WeatherExample />}
+                {currentExample === 'basic' && <BasicStrataExample />}
+                {currentExample === 'weather' && <WeatherExample />}
+                {currentExample === 'combat' && <CombatDemo />}
                 <div
                     style={{
                         position: 'absolute',
@@ -146,6 +149,21 @@ export default function App() {
                         onClick={() => setCurrentExample('weather')}
                     >
                         Weather System
+                    </button>
+                    <button
+                        style={{
+                            background:
+                                currentExample === 'combat' ? '#DAA520' : 'rgba(255,255,255,0.1)',
+                            color: currentExample === 'combat' ? '#000' : '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                        }}
+                        onClick={() => setCurrentExample('combat')}
+                    >
+                        Combat Demo
                     </button>
                     <button
                         style={{

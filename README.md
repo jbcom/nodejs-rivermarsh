@@ -6,40 +6,44 @@
 
 ## 🎮 Playable Demo & Showcase
 
-[**Launch Playable WebGL Demo**](https://jbcom.github.io/rivermarsh)
+[**🚀 Launch Playable WebGL Demo**](https://jbcom.github.io/rivermarsh)
 
 ### 📸 Gameplay Showcase
 
 | World Exploration | Dynamic Weather | Racing Mode |
 |-------------------|-----------------|-------------|
-| ![Exploration Placeholder](https://via.placeholder.com/400x225?text=Procedural+Biomes) | ![Weather Placeholder](https://via.placeholder.com/400x225?text=Rain+and+Snow+Effects) | ![Racing Placeholder](https://via.placeholder.com/400x225?text=River+Racing+Mini-game) |
+| ![Exploration](https://raw.githubusercontent.com/jbcom/rivermarsh/main/public/showcase/exploration.jpg) | ![Weather](https://raw.githubusercontent.com/jbcom/rivermarsh/main/public/showcase/weather.jpg) | ![Racing](https://raw.githubusercontent.com/jbcom/rivermarsh/main/public/showcase/racing.jpg) |
+
+> *Note: If images are not appearing, please check the `public/showcase/` directory in the repository.*
 
 ### 🎞️ Core Gameplay Loop
-![Gameplay GIF](https://via.placeholder.com/800x450?text=Core+Gameplay+Loop+-+Explore,+Survive,+Collect)
+![Gameplay GIF](https://raw.githubusercontent.com/jbcom/rivermarsh/main/public/showcase/gameplay.gif)
 
 ## ✨ Features
 
 - 🗺️ **Procedural Worlds** - Infinite wetland biomes generated with OpenSimplex noise
-- 🌧️ **Dynamic Weather** - Rain, snow, fog, and day/night cycles
-- ⚔️ **RPG Combat** - Spells, enemies, boss battles, and leveling
+- 🌧️ **Dynamic Weather** - Rain, snow, fog, and day/night cycles (via `@jbcom/strata`)
+- ⚔️ **RPG Combat** - Spells, enemies, boss battles, and leveling (Miniplex ECS)
 - 🏃 **Racing Mode** - River racing mini-game with obstacles
 - 📱 **Mobile-First** - Touch controls, gyroscope camera, responsive UI
 - 🎮 **Cross-Platform** - Web, iOS, Android via Capacitor
 
 ## 📚 Library & Examples
 
-The project includes a set of examples demonstrating the integration of `@jbcom/strata`:
+The project includes runnable examples demonstrating `@jbcom/strata` integration:
 
-- [**Basic Strata Example**](./examples/BasicStrata.tsx) - Atmospheric setup (Sky, Water, Fog)
-- [**Weather System Example**](./examples/WeatherSystem.tsx) - Dynamic particle effects
+- [**Basic Strata**](./examples/BasicStrata.tsx) - Atmospheric setup (Sky, Water, Fog)
+- [**Weather System**](./examples/WeatherSystem.tsx) - Dynamic particle effects
+- [**Combat Demo**](./examples/CombatDemo.tsx) - ECS + Physics integration
 
 To view these in the game, click the **EXAMPLES** button in the top-right corner of the HUD.
 
-### API Documentation
-API documentation is generated using TypeDoc:
-```bash
-pnpm run docs # Generates to docs/api
-```
+### 🛠️ Developer Tooling
+We use modern tooling to ensure code quality and documentation:
+- **Linting & Formatting**: [Biome](https://biomejs.dev/) (replaces ESLint/Prettier)
+- **Documentation**: [TypeDoc](https://typedoc.org/) for API reference
+- **Pre-commit Hooks**: Husky + lint-staged for automatic validation
+- **CI/CD**: GitHub Actions for automated testing and deployment to GitHub Pages
 
 ## 🎯 Current Status: Integration Phase
 

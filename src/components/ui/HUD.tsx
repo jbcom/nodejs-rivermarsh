@@ -230,6 +230,24 @@ export function HUD() {
                     </div>
                 </div>
                 <button
+                    onClick={() => useRPGStore.getState().setGameMode('examples')}
+                    style={{
+                        background: 'rgba(212, 175, 55, 0.4)',
+                        border: '1px solid #d4af37',
+                        borderRadius: '4px',
+                        padding: '8px 15px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        transition: 'all 0.2s ease',
+                    }}
+                >
+                    Examples
+                </button>
+                <button
                     onClick={() => setIsPaused(true)}
                     style={{
                         background: 'rgba(0, 0, 0, 0.4)',

@@ -16,6 +16,12 @@ Demonstrates Strata's particle systems:
 - `Snow`: Soft snow particles with turbulence.
 - Dynamic intensity and day/night transitions.
 
+### 3. Combat Demo (`CombatDemo.tsx`)
+Demonstrates the integration of:
+- `miniplex`: Entity management and combat logic.
+- `@react-three/rapier`: Physics-based movement and collisions.
+- Player interaction and visual feedback.
+
 ## How to use these in your code
 
 All Strata components are designed to work seamlessly with `@react-three/fiber`.
