@@ -5,6 +5,7 @@
 
 import { useEngineStore } from '@/stores';
 import { useCallback, useEffect, useState } from 'react';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
 
 export interface MobileConstraints {
     // Device info
@@ -175,19 +176,4 @@ export function useMobileConstraints(): MobileConstraints {
     return constraints;
 }
 
-/**
- * Haptic feedback helper
- */
-export function hapticFeedback(pattern: number | number[]) {
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(pattern);
-    }
-}
-
-export const HAPTIC_PATTERNS = {
-    jump: 10,
-    dodge: [5, 20, 5] as number[],
-    collect: 15,
-    hit: [50, 50, 50] as number[],
-    gameOver: [100, 100, 200] as number[],
-};
+export { HAPTIC_PATTERNS, hapticFeedback };

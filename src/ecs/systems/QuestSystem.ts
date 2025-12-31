@@ -1,4 +1,3 @@
-import { world } from '../world';
 import { useRPGStore } from '@/stores';
 import type { QuestObjectiveType, QuestComponent } from '../components';
 
@@ -6,48 +5,17 @@ import type { QuestObjectiveType, QuestComponent } from '../components';
  * QuestSystem - Tracks quest progress and handles rewards
  */
 export function QuestSystem() {
-    for (const entity of world.with('quests', 'isPlayer')) {
-        const { quests } = entity;
+    const { player, completeQuest } = useRPGStore.getState();
 
-        for (const quest of quests) {
-            if (quest.status !== 'active') continue;
+    for (const quest of player.activeQuests) {
+        if (quest.status !== 'active') continue;
 
-            // Check if all objectives are completed
-            const allCompleted = quest.objectives.every((obj) => obj.isCompleted);
+        // Check if all objectives are completed
+        const allCompleted = quest.objectives.every((obj) => obj.isCompleted);
 
-            if (allCompleted) {
-                quest.status = 'completed';
-
-                // Grant rewards
-                const rpgStore = useRPGStore.getState();
-
-                if (quest.rewards.experience) {
-                    rpgStore.addExperience(quest.rewards.experience);
-                }
-
-                if (quest.rewards.gold) {
-                    rpgStore.addGold(quest.rewards.gold);
-                }
-
-                if (quest.rewards.items) {
-                    quest.rewards.items.forEach((itemReward) => {
-                        rpgStore.addInventoryItem({
-                            id: itemReward.id,
-                            name: itemReward.id
-                                .split('_')
-                                .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-                                .join(' '),
-                            type: 'treasure',
-                            quantity: itemReward.quantity,
-                            description: `Reward from quest: ${quest.title}`,
-                        });
-                    });
-                }
-
-                console.log(`Quest completed: ${quest.title}`);
-                
-                // Show notification if we had a notification system
-            }
+        if (allCompleted) {
+            completeQuest(quest.id);
+            console.log(`Quest completed: ${quest.title}`);
         }
     }
 }
@@ -56,56 +24,14 @@ export function QuestSystem() {
  * Updates progress for all active quests matching the type and target
  */
 export function updateQuestProgress(type: QuestObjectiveType, target: string, amount = 1) {
-    const players = world.with('quests', 'isPlayer').entities;
-    
-    for (const player of players) {
-        if (!player.quests) continue;
-        
-        let changed = false;
-        for (const quest of player.quests) {
-            if (quest.status !== 'active') continue;
-
-            for (const obj of quest.objectives) {
-                if (obj.isCompleted) continue;
-                
-                // Match by type and target (or wildcard '*')
-                if (obj.type === type && (obj.target === target || obj.target === '*')) {
-                    obj.currentAmount += amount;
-                    if (obj.currentAmount >= obj.requiredAmount) {
-                        obj.currentAmount = obj.requiredAmount;
-                        obj.isCompleted = true;
-                    }
-                    changed = true;
-                    console.log(`Quest progress: ${quest.title} - ${obj.description} (${obj.currentAmount}/${obj.requiredAmount})`);
-                }
-            }
-        }
-        
-        if (changed) {
-            // In a real app, we might want to trigger a store update to refresh UI
-            // Since QuestOverlay will probably read from ECS directly, it's fine.
-        }
-    }
+    useRPGStore.getState().updateQuestProgress(type, target, amount);
 }
 
 /**
  * Helper to add a quest to the player
  */
-export function addQuestToPlayer(quest: QuestComponent) {
-    const player = world.with('isPlayer').entities[0];
-    if (player) {
-        if (!player.quests) {
-            player.quests = [];
-        }
-        
-        // Don't add if already exists
-        if (player.quests.find(q => q.id === quest.id)) {
-            return;
-        }
-        
-        player.quests.push({ ...quest, status: 'active' });
-        console.log(`New quest accepted: ${quest.title}`);
-    }
+export function addQuestToPlayer(quest: any) {
+    useRPGStore.getState().startQuest(quest);
 }
 
 export const RECOVER_FISH_QUEST: QuestComponent = {

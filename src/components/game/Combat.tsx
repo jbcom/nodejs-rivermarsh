@@ -15,6 +15,7 @@ interface DamageEffect {
     id: number;
     position: THREE.Vector3;
     time: number;
+    type?: 'attack' | 'spell';
 }
 
 export function Combat() {
@@ -25,7 +26,7 @@ export function Combat() {
 
     // Subscribe to damage events
     useEffect(() => {
-        return combatEvents.onDamageEnemy((_enemyId, damage, position) => {
+        const unsubDamage = combatEvents.onDamageEnemy((_enemyId, damage, position) => {
             if (!position) {
                 return;
             }
@@ -50,8 +51,24 @@ export function Combat() {
 
             // Add particle effect
             const effectId = effectIdCounterRef.current++;
-            setEffects((prev) => [...prev, { id: effectId, position: position.clone(), time: 0 }]);
+            setEffects((prev) => [
+                ...prev,
+                { id: effectId, position: position.clone(), time: 0, type: 'attack' },
+            ]);
         });
+
+        const unsubSpell = combatEvents.onPlayerSpell((position) => {
+            const effectId = effectIdCounterRef.current++;
+            setEffects((prev) => [
+                ...prev,
+                { id: effectId, position: position.clone(), time: 0, type: 'spell' },
+            ]);
+        });
+
+        return () => {
+            unsubDamage();
+            unsubSpell();
+        };
     }, []);
 
     // Update indicators and effects
@@ -92,16 +109,16 @@ export function Combat() {
                     position={[eff.position.x, eff.position.y + 0.5, eff.position.z]}
                 >
                     <ParticleEmitter
-                        maxParticles={20}
-                        emissionRate={100}
-                        lifetime={0.4}
+                        maxParticles={eff.type === 'spell' ? 50 : 20}
+                        emissionRate={eff.type === 'spell' ? 200 : 100}
+                        lifetime={eff.type === 'spell' ? 0.8 : 0.4}
                         shape="sphere"
-                        shapeParams={{ radius: 0.2 }}
-                        velocity={[0, 2, 0]}
+                        shapeParams={{ radius: eff.type === 'spell' ? 1.5 : 0.2 }}
+                        velocity={[0, eff.type === 'spell' ? 1 : 2, 0]}
                         velocityVariance={[1, 1, 1]}
-                        startColor="#ff4400"
-                        endColor="#ffff00"
-                        startSize={0.1}
+                        startColor={eff.type === 'spell' ? '#4444ff' : '#ff4400'}
+                        endColor={eff.type === 'spell' ? '#00ffff' : '#ffff00'}
+                        startSize={eff.type === 'spell' ? 0.2 : 0.1}
                         endSize={0.01}
                         startOpacity={1}
                         endOpacity={0}

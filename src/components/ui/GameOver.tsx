@@ -1,12 +1,19 @@
 import { useEngineStore, useRPGStore } from '@/stores';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
 
 export function GameOver() {
     const gameOver = useEngineStore((s) => s.gameOver);
     const respawn = useRPGStore((s) => s.respawn);
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
 
     if (!gameOver) {
         return null;
     }
+
+    const handleRespawn = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        respawn();
+    };
 
     return (
         <div
@@ -54,7 +61,7 @@ export function GameOver() {
             </p>
 
             <button
-                onClick={respawn}
+                onClick={handleRespawn}
                 style={{
                     padding: '15px 50px',
                     fontSize: '1.2em',
@@ -68,6 +75,7 @@ export function GameOver() {
                     letterSpacing: '4px',
                     transition: 'all 0.3s ease',
                     pointerEvents: 'auto',
+                    minHeight: '44px',
                 }}
                 onMouseEnter={(e) => {
                     e.currentTarget.style.background = '#d4af37';

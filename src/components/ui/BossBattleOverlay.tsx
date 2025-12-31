@@ -1,13 +1,16 @@
-import type React from 'react';
+import { useEngineStore, useRPGStore } from '@/stores';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
 import { useEffect } from 'react';
 import { BOSSES } from '../../ecs/data/bosses';
 import { handlePlayerAction } from '../../ecs/systems/BossBattleSystem';
 import { world } from '../../ecs/world';
-import { useEngineStore, useRPGStore } from '../../stores';
 
-export const BossBattleOverlay: React.FC = () => {
+export const BossBattleOverlay = () => {
     const gameMode = useEngineStore((s) => s.gameMode);
     const { activeBossId, player } = useRPGStore();
+    const constraints = useMobileConstraints();
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
 
     if (gameMode !== 'boss_battle' || activeBossId === null) {
         return null;
@@ -23,6 +26,11 @@ export const BossBattleOverlay: React.FC = () => {
 
     const healthPercent = species.maxHealth > 0 ? (species.health / species.maxHealth) * 100 : 0;
 
+    const handleAction = (action: 'attack' | 'spell') => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        handlePlayerAction(action);
+    };
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (combat.turn !== 'player') {
@@ -30,15 +38,20 @@ export const BossBattleOverlay: React.FC = () => {
             }
 
             if (e.key.toLowerCase() === 'a') {
-                handlePlayerAction('attack');
+                handleAction('attack');
             } else if (e.key.toLowerCase() === 's') {
-                handlePlayerAction('spell');
+                handleAction('spell');
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [combat.turn]);
+    }, [combat.turn, hapticsEnabled]);
+
+    const topOffset = `max(40px, ${constraints.safeAreas.top + 40}px)`;
+    const bottomOffset = `max(40px, ${constraints.safeAreas.bottom + 40}px)`;
+    const leftOffset = `max(40px, ${constraints.safeAreas.left + 40}px)`;
+    const rightOffset = `max(40px, ${constraints.safeAreas.right + 40}px)`;
 
     return (
         <div
@@ -52,7 +65,10 @@ export const BossBattleOverlay: React.FC = () => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '40px',
+                paddingTop: topOffset,
+                paddingBottom: bottomOffset,
+                paddingLeft: leftOffset,
+                paddingRight: rightOffset,
                 backgroundColor: 'rgba(0,0,0,0.3)',
                 pointerEvents: 'none',
                 fontFamily: 'monospace',
@@ -119,7 +135,7 @@ export const BossBattleOverlay: React.FC = () => {
             <div style={{ display: 'flex', gap: '20px', pointerEvents: 'auto' }}>
                 <div style={{ textAlign: 'center' }}>
                     <button
-                        onClick={() => handlePlayerAction('attack')}
+                        onClick={() => handleAction('attack')}
                         disabled={combat.turn !== 'player'}
                         style={{
                             width: '80px',
@@ -142,7 +158,7 @@ export const BossBattleOverlay: React.FC = () => {
 
                 <div style={{ textAlign: 'center' }}>
                     <button
-                        onClick={() => handlePlayerAction('spell')}
+                        onClick={() => handleAction('spell')}
                         disabled={combat.turn !== 'player'}
                         style={{
                             width: '80px',
@@ -168,8 +184,8 @@ export const BossBattleOverlay: React.FC = () => {
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    left: '40px',
+                    bottom: bottomOffset,
+                    left: leftOffset,
                     backgroundColor: 'rgba(0,0,0,0.6)',
                     padding: '10px',
                     borderRadius: '8px',

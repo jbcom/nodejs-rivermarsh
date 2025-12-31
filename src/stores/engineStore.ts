@@ -37,6 +37,7 @@ export interface EngineState {
     settings: {
         soundEnabled: boolean;
         musicEnabled: boolean;
+        hapticsEnabled: boolean;
         volume: number;
         showHelp: boolean;
     };
@@ -84,6 +85,7 @@ export const useEngineStore = create<EngineState>()(
         settings: {
             soundEnabled: true,
             musicEnabled: true,
+            hapticsEnabled: true,
             volume: 0.8,
             showHelp: true,
         },

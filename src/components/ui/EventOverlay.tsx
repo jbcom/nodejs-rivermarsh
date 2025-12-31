@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { world } from '../../ecs/world';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 
 export function EventOverlay() {
     const [activeEvents, setActiveEvents] = useState<string[]>([]);
+    const constraints = useMobileConstraints();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -25,12 +27,15 @@ export function EventOverlay() {
         foggy_morning: { title: 'THICK FOG', color: '#cccccc', icon: '🌫️' },
     };
 
+    const bottomOffset = `max(100px, ${constraints.safeAreas.bottom + 100}px)`;
+    const rightOffset = `max(20px, ${constraints.safeAreas.right + 20}px)`;
+
     return (
         <div
             style={{
                 position: 'absolute',
-                bottom: '100px',
-                right: '20px',
+                bottom: bottomOffset,
+                right: rightOffset,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '10px',

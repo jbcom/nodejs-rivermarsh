@@ -1,7 +1,11 @@
 import { Inventory as RPGInventory } from '@jbcom/strata';
 import { useRPGStore } from '@/stores';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
+import { useEngineStore } from '@/stores/engineStore';
 
 export function ShopPanel() {
+    const constraints = useMobileConstraints();
     const {
         player,
         spendGold,
@@ -10,11 +14,15 @@ export function ShopPanel() {
         restoreStamina,
         addExperience,
     } = useRPGStore();
+    
+    const settings = useEngineStore((s) => s.settings);
 
     // Specific update for shop items that were part of player object
     const updateRPGPlayer = (updates: any) => useRPGStore.setState((s) => ({
         player: { ...s.player, ...updates }
     }));
+
+    const hapticsEnabled = settings.hapticsEnabled;
 
     const items = [
         {
@@ -63,8 +71,17 @@ export function ShopPanel() {
 
     const handleBuy = (item: (typeof items)[0]) => {
         if (spendGold(item.cost)) {
+            hapticFeedback(HAPTIC_PATTERNS.success, hapticsEnabled);
             item.action();
+            // TODO: Play sound effect here once Audio system is unified
+        } else {
+            hapticFeedback(HAPTIC_PATTERNS.hit, hapticsEnabled); // Feedback for failure
         }
+    };
+
+    const handleClose = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        toggleShop();
     };
 
     return (
@@ -76,13 +93,15 @@ export function ShopPanel() {
                 transform: 'translate(-50%, -50%)',
                 background: 'rgba(5, 5, 10, 0.95)',
                 backdropFilter: 'blur(15px)',
-                padding: '40px',
+                padding: constraints.isPhone ? '20px' : '40px',
                 borderRadius: '12px',
                 color: '#fff',
                 fontFamily: 'Inter, sans-serif',
-                minWidth: '600px',
+                minWidth: constraints.isPhone ? '90%' : '600px',
                 maxWidth: '900px',
-                width: '80%',
+                width: constraints.isPhone ? '90%' : '80%',
+                maxHeight: '85vh',
+                overflow: 'auto',
                 border: '1px solid rgba(212, 175, 55, 0.3)',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
                 pointerEvents: 'auto',
@@ -103,7 +122,7 @@ export function ShopPanel() {
                     style={{
                         margin: 0,
                         color: '#d4af37',
-                        fontSize: '32px',
+                        fontSize: constraints.isPhone ? '24px' : '32px',
                         fontFamily: 'Cinzel, serif',
                         letterSpacing: '4px',
                     }}
@@ -114,7 +133,7 @@ export function ShopPanel() {
                     style={{
                         color: '#ffd700',
                         fontWeight: 'bold',
-                        fontSize: '20px',
+                        fontSize: constraints.isPhone ? '16px' : '20px',
                         fontFamily: 'Cinzel, serif',
                         textShadow: '0 0 10px rgba(212, 175, 55, 0.3)',
                     }}
@@ -123,13 +142,19 @@ export function ShopPanel() {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '30px' }}>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: constraints.isPhone ? 'column' : 'row',
+                    gap: '30px',
+                }}
+            >
                 <div
                     style={{
                         flex: 1,
                         display: 'grid',
                         gap: '12px',
-                        maxHeight: '50vh',
+                        maxHeight: constraints.isPhone ? '40vh' : '50vh',
                         overflow: 'auto',
                         paddingRight: '10px',
                     }}
@@ -155,7 +180,7 @@ export function ShopPanel() {
                                         style={{
                                             fontWeight: 'bold',
                                             color: '#d4af37',
-                                            fontSize: '16px',
+                                            fontSize: constraints.isPhone ? '14px' : '16px',
                                             letterSpacing: '1px',
                                         }}
                                     >
@@ -163,7 +188,7 @@ export function ShopPanel() {
                                     </div>
                                     <div
                                         style={{
-                                            fontSize: '13px',
+                                            fontSize: '12px',
                                             color: '#999',
                                             marginTop: '4px',
                                         }}
@@ -175,7 +200,8 @@ export function ShopPanel() {
                                     onClick={() => handleBuy(item)}
                                     disabled={!canAfford}
                                     style={{
-                                        padding: '10px 20px',
+                                        padding: '12px 20px',
+                                        minHeight: '44px',
                                         background: canAfford
                                             ? '#d4af37'
                                             : 'rgba(255,255,255,0.05)',
@@ -184,7 +210,7 @@ export function ShopPanel() {
                                         borderRadius: '4px',
                                         cursor: canAfford ? 'pointer' : 'not-allowed',
                                         fontWeight: 'bold',
-                                        minWidth: '100px',
+                                        minWidth: '80px',
                                         fontFamily: 'Cinzel, serif',
                                         transition: 'all 0.2s ease',
                                     }}
@@ -229,19 +255,20 @@ export function ShopPanel() {
             </div>
 
             <button
-                onClick={toggleShop}
+                onClick={handleClose}
                 style={{
                     marginTop: '30px',
                     width: '100%',
-                    padding: '12px',
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#666',
+                    padding: '16px',
+                    minHeight: '44px',
+                    background: 'rgba(212, 175, 55, 0.1)',
+                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    color: '#d4af37',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     fontFamily: 'Cinzel, serif',
                     letterSpacing: '2px',
-                    fontSize: '12px',
+                    fontSize: '14px',
                     transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {

@@ -124,20 +124,7 @@ export interface WorldEventComponent {
     lastEventTime: number;
 }
 
-export interface BossComponent {
-    type: 'dread_hydra' | 'shadow_golem' | 'chaos_drake';
-    heads?: number; // for hydra
-    specialAbilityCooldown: number;
-    phase: number;
-    rewards: {
-        gold: number;
-        experience: number;
-    };
-    isBossBattleActive: boolean;
-    isProcessingTurn?: boolean;
-}
-
-export type QuestObjectiveType = 'collect' | 'kill' | 'explore' | 'talk';
+export type QuestObjectiveType = 'kill' | 'collect' | 'explore' | 'talk';
 
 export interface QuestObjective {
     id: string;
@@ -153,13 +140,26 @@ export interface QuestComponent {
     id: string;
     title: string;
     description: string;
-    status: 'available' | 'active' | 'completed' | 'failed';
+    status: 'active' | 'completed' | 'failed' | 'available';
     objectives: QuestObjective[];
     rewards: {
-        experience: number;
-        gold: number;
-        items?: { id: string; quantity: number }[];
+        experience?: number;
+        gold?: number;
+        items?: Array<{ id: string; quantity: number }>;
     };
+}
+
+export interface BossComponent {
+    type: 'dread_hydra' | 'shadow_golem' | 'chaos_drake';
+    heads?: number; // for hydra
+    specialAbilityCooldown: number;
+    phase: number;
+    rewards: {
+        gold: number;
+        experience: number;
+    };
+    isBossBattleActive: boolean;
+    isProcessingTurn?: boolean;
 }
 
 // The Entity Type

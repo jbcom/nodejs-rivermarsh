@@ -12,10 +12,12 @@ export type DamageHandler = (
     position?: THREE.Vector3
 ) => void;
 export type AttackHandler = (position: THREE.Vector3, range: number, damage: number) => void;
+export type SpellHandler = (position: THREE.Vector3, range: number, damage: number) => void;
 
 class CombatEventBus {
     private damageHandlers: Set<DamageHandler> = new Set();
     private attackHandlers: Set<AttackHandler> = new Set();
+    private spellHandlers: Set<SpellHandler> = new Set();
 
     // Enemy system subscribes to receive damage events
     onDamageEnemy(handler: DamageHandler): () => void {
@@ -29,9 +31,20 @@ class CombatEventBus {
         return () => this.attackHandlers.delete(handler);
     }
 
+    // Combat system publishes spell events
+    onPlayerSpell(handler: SpellHandler): () => void {
+        this.spellHandlers.add(handler);
+        return () => this.spellHandlers.delete(handler);
+    }
+
     // Called by combat system when player attacks
     emitPlayerAttack(position: THREE.Vector3, range: number, damage: number): void {
         this.attackHandlers.forEach((handler) => handler(position, range, damage));
+    }
+
+    // Called by combat system when player casts spell
+    emitPlayerSpell(position: THREE.Vector3, range: number, damage: number): void {
+        this.spellHandlers.forEach((handler) => handler(position, range, damage));
     }
 
     // Called to damage a specific enemy
@@ -43,6 +56,7 @@ class CombatEventBus {
     clear(): void {
         this.damageHandlers.clear();
         this.attackHandlers.clear();
+        this.spellHandlers.clear();
     }
 }
 

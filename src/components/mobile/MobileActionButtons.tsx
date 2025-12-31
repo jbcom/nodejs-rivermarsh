@@ -1,10 +1,8 @@
-import type React from 'react';
-import {
-    HAPTIC_PATTERNS,
-    hapticFeedback,
-    useMobileConstraints,
-} from '@/hooks/useMobileConstraints';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 import { useControlsStore } from '@/stores/controlsStore';
+import { useEngineStore } from '@/stores/engineStore';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
+import type React from 'react';
 
 const buttonStyle: React.CSSProperties = {
     width: '70px',
@@ -29,6 +27,7 @@ const buttonStyle: React.CSSProperties = {
 export function MobileActionButtons() {
     const { setAction } = useControlsStore();
     const constraints = useMobileConstraints();
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
 
     if (!constraints.isMobile) {
         return null;
@@ -37,7 +36,7 @@ export function MobileActionButtons() {
     const rightOffset = `max(20px, ${constraints.safeAreas.right}px)`;
     const bottomOffset = `max(20px, ${constraints.safeAreas.bottom}px)`;
 
-    const handleAction = (action: 'jump' | 'interact' | 'attack', active: boolean) => {
+    const handleAction = (action: 'jump' | 'interact' | 'attack' | 'spell', active: boolean) => {
         setAction(action, active);
         if (active) {
             const pattern =
@@ -45,8 +44,10 @@ export function MobileActionButtons() {
                     ? HAPTIC_PATTERNS.jump
                     : action === 'attack'
                       ? HAPTIC_PATTERNS.hit
-                      : 10;
-            hapticFeedback(pattern);
+                      : action === 'spell'
+                        ? HAPTIC_PATTERNS.success
+                        : HAPTIC_PATTERNS.button;
+            hapticFeedback(pattern, hapticsEnabled);
         }
     };
 
@@ -98,6 +99,35 @@ export function MobileActionButtons() {
 
             {/* Secondary Actions */}
             <div style={{ display: 'flex', gap: '20px' }}>
+                <button
+                    style={{
+                        ...buttonStyle,
+                        backgroundColor: 'rgba(100, 50, 180, 0.5)',
+                        border: '3px solid rgba(150, 100, 255, 0.5)',
+                    }}
+                    onTouchStart={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', true);
+                    }}
+                    onTouchEnd={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', false);
+                    }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', true);
+                    }}
+                    onMouseUp={(e) => {
+                        e.preventDefault();
+                        handleAction('spell', false);
+                    }}
+                    aria-label="Cast Spell"
+                    tabIndex={0}
+                >
+                    <span style={{ fontSize: '20px', marginBottom: '2px' }}>✨</span>
+                    SPELL
+                </button>
+
                 <button
                     style={{
                         ...buttonStyle,

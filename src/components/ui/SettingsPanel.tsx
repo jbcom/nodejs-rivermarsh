@@ -46,9 +46,9 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
     };
 
     const toggleButtonStyle = (enabled: boolean): React.CSSProperties => ({
-        width: '60px',
-        height: '30px',
-        borderRadius: '15px',
+        width: '70px',
+        height: '44px',
+        borderRadius: '22px',
         background: enabled ? '#d4af37' : 'rgba(255,255,255,0.2)',
         border: 'none',
         cursor: 'pointer',
@@ -57,13 +57,13 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
     });
 
     const toggleKnobStyle = (enabled: boolean): React.CSSProperties => ({
-        width: '24px',
-        height: '24px',
+        width: '36px',
+        height: '36px',
         borderRadius: '50%',
         background: '#fff',
         position: 'absolute',
-        top: '3px',
-        left: enabled ? '33px' : '3px',
+        top: '4px',
+        left: enabled ? '30px' : '4px',
         transition: 'all 0.3s ease',
         boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
     });
@@ -87,6 +87,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                     <button
                         style={toggleButtonStyle(settings.soundEnabled)}
                         onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
+                        aria-label="Toggle Sound Effects"
                     >
                         <div style={toggleKnobStyle(settings.soundEnabled)} />
                     </button>
@@ -97,8 +98,20 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                     <button
                         style={toggleButtonStyle(settings.musicEnabled)}
                         onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
+                        aria-label="Toggle Music"
                     >
                         <div style={toggleKnobStyle(settings.musicEnabled)} />
+                    </button>
+                </div>
+
+                <div style={rowStyle}>
+                    <span style={{ color: '#fff', fontSize: '1.1em' }}>HAPTIC FEEDBACK</span>
+                    <button
+                        style={toggleButtonStyle(settings.hapticsEnabled)}
+                        onClick={() => updateSettings({ hapticsEnabled: !settings.hapticsEnabled })}
+                        aria-label="Toggle Haptic Feedback"
+                    >
+                        <div style={toggleKnobStyle(settings.hapticsEnabled)} />
                     </button>
                 </div>
 
@@ -129,6 +142,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                     <button
                         style={toggleButtonStyle(settings.showHelp)}
                         onClick={() => updateSettings({ showHelp: !settings.showHelp })}
+                        aria-label="Toggle Help Text"
                     >
                         <div style={toggleKnobStyle(settings.showHelp)} />
                     </button>

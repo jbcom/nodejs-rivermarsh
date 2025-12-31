@@ -16,42 +16,57 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 import { GrassInstances, RockInstances, TreeInstances } from './GPUInstancing';
 import { DEFAULT_BIOMES, SDFTerrain, useTerrainHeight } from './SDFTerrain';
 
 export function World() {
+    const constraints = useMobileConstraints();
     const getHeight = useTerrainHeight(DEFAULT_BIOMES);
+
+    // Optimize settings for mobile
+    const terrainResolution = constraints.isMobile ? 16 : 24;
+    const terrainViewDistance = constraints.isMobile ? 2 : 3;
+    const grassCount = constraints.isMobile ? 6000 : 12000;
+    const treeCount = constraints.isMobile ? 300 : 600;
+    const rockCount = constraints.isMobile ? 150 : 250;
+    const fireflyCount = constraints.isMobile ? 40 : 80;
 
     return (
         <group>
             <MarshWaterFeatures />
 
             {/* SDF-based terrain with caves and overhangs */}
-            <SDFTerrain chunkSize={32} resolution={24} viewDistance={3} biomes={DEFAULT_BIOMES} />
+            <SDFTerrain
+                chunkSize={32}
+                resolution={terrainResolution}
+                viewDistance={terrainViewDistance}
+                biomes={DEFAULT_BIOMES}
+            />
 
             {/* GPU-driven vegetation via Strata */}
             <GrassInstances
-                count={12000}
+                count={grassCount}
                 areaSize={150}
                 biomes={DEFAULT_BIOMES}
                 heightFunc={getHeight}
             />
             <TreeInstances
-                count={600}
+                count={treeCount}
                 areaSize={150}
                 biomes={DEFAULT_BIOMES}
                 heightFunc={getHeight}
             />
             <RockInstances
-                count={250}
+                count={rockCount}
                 areaSize={150}
                 biomes={DEFAULT_BIOMES}
                 heightFunc={getHeight}
             />
 
-            <NightFireflies count={80} radius={25} />
+            <NightFireflies count={fireflyCount} radius={25} />
             <WeatherEffects />
-            <Lighting />
+            <Lighting isMobile={constraints.isMobile} />
             <Atmosphere />
         </group>
     );
@@ -206,13 +221,15 @@ function MarshWaterFeatures() {
     );
 }
 
-function Lighting() {
+function Lighting({ isMobile }: { isMobile?: boolean }) {
     const sunRef = useRef<THREE.DirectionalLight>(null!);
     const ambientRef = useRef<THREE.AmbientLight>(null!);
     const currentAmbientColor = useRef(new THREE.Color('#333344'));
     const targetAmbientColor = useRef(new THREE.Color('#333344'));
     const currentSunColor = useRef(new THREE.Color('#ffaa77'));
     const targetSunColor = useRef(new THREE.Color('#ffaa77'));
+
+    const shadowMapSize = isMobile ? 512 : 1024;
 
     useFrame(() => {
         // Read time data from ECS
@@ -273,7 +290,7 @@ function Lighting() {
                 shadow-camera-right={30}
                 shadow-camera-top={30}
                 shadow-camera-bottom={-30}
-                shadow-mapSize={[1024, 1024]}
+                shadow-mapSize={[shadowMapSize, shadowMapSize]}
             />
             <ambientLight ref={ambientRef} intensity={0.6} color="#333344" />
             <directionalLight position={[-20, 10, -20]} intensity={0.8} color="#4488ff" />

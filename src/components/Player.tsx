@@ -122,6 +122,29 @@ export function Player() {
         }
     }, [playerRPG.level]);
 
+    const performSpell = useCallback(() => {
+        if (attackCooldownRef.current > 0 || playerRPG.mana < 5) {
+            return;
+        }
+
+        const damage = 25 + playerRPG.level * 5;
+        const range = 10.0;
+        const position = groupRef.current?.position.clone() || new THREE.Vector3();
+
+        // Consume mana
+        const success = useRPGStore.getState().useMana(5);
+        if (!success) return;
+
+        combatEvents.emitPlayerSpell(position, range, damage);
+        attackCooldownRef.current = 1.5; // Longer cooldown for spells
+        attackAnimTimerRef.current = 0.5;
+
+        const audioManager = getAudioManager();
+        if (audioManager) {
+            audioManager.playSound('level-up' as any, 0.6); // Use level-up as placeholder for spell
+        }
+    }, [playerRPG.level, playerRPG.mana]);
+
     useFrame((state, delta) => {
         if (!rigidBodyRef.current || !groupRef.current || !characterRef.current) {
             return;
@@ -142,6 +165,11 @@ export function Player() {
         const attackPressed = useControlsStore.getState().actions.attack;
         if (attackPressed && attackCooldownRef.current <= 0) {
             performAttack();
+        }
+
+        const spellPressed = useControlsStore.getState().actions.spell;
+        if (spellPressed && attackCooldownRef.current <= 0) {
+            performSpell();
         }
 
         // Get current physics state

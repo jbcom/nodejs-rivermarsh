@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react';
 import { useEngineStore, useRPGStore } from '@/stores';
 import type { InventoryItem, Quest } from '@/stores';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { ShopPanel } from './ShopPanel';
 
 const MAX_DISPLAYED_SKILLS = 4;
 
 export function GameUI() {
+    const constraints = useMobileConstraints();
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
+    
     // RPG Actions
     const showInventory = useRPGStore((s) => s.showInventory);
     const showQuestLog = useRPGStore((s) => s.showQuestLog);
@@ -21,27 +27,44 @@ export function GameUI() {
     // Engine Actions
     const setGameMode = useEngineStore((s) => s.setGameMode);
 
+    const handleToggleInventory = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        toggleInventory();
+    };
+
+    const handleToggleQuestLog = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        toggleQuestLog();
+    };
+
+    const handleToggleShop = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        toggleShop();
+    };
+
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (e.key === 'i' || e.key === 'I') {
-                toggleInventory();
+                handleToggleInventory();
             }
             if (e.key === 'q' || e.key === 'Q') {
-                toggleQuestLog();
+                handleToggleQuestLog();
             }
             if (e.key === 'b' || e.key === 'B') {
-                toggleShop();
+                handleToggleShop();
             }
             if (e.key === 'r' || e.key === 'R') {
                 setGameMode('racing');
             }
             if (e.key === 'Enter' || e.key === ' ') {
                 if (activeDialogue) {
+                    hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
                     nextDialogue();
                 }
             }
             if (e.key === 'Escape') {
                 if (activeDialogue) {
+                    hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
                     endDialogue();
                 }
             }
@@ -61,12 +84,12 @@ export function GameUI() {
 
     return (
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 100 }}>
-            <StatsDisplay />
-            {showInventory && <InventoryPanel />}
-            {showQuestLog && <QuestLogPanel />}
+            <StatsDisplay constraints={constraints} />
+            {showInventory && <InventoryPanel constraints={constraints} />}
+            {showQuestLog && <QuestLogPanel constraints={constraints} />}
             {showShop && <ShopPanel />}
-            {activeDialogue && <DialogueBox />}
-            <HelpText />
+            {activeDialogue && <DialogueBox constraints={constraints} />}
+            {!constraints.isMobile && <HelpText />}
         </div>
     );
 }
@@ -75,28 +98,40 @@ export function GameUI() {
  * StatsDisplay - Shows RPG-specific stats like skills and affinity
  * Core stats (health, stamina, gold, XP) are shown in the main HUD
  */
-function StatsDisplay() {
+function StatsDisplay({ constraints }: { constraints: any }) {
     const player = useRPGStore((s) => s.player);
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
     const [expanded, setExpanded] = useState(false);
+
+    const handleExpand = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        setExpanded(true);
+    };
+
+    const handleCollapse = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        setExpanded(false);
+    };
 
     // Only show skills panel when expanded
     if (!expanded) {
         return (
             <button
-                onClick={() => setExpanded(true)}
+                onClick={handleExpand}
                 style={{
                     position: 'absolute',
-                    top: 180,
-                    left: 20,
+                    top: `max(180px, ${constraints.safeAreas.top + 180}px)`,
+                    left: `max(20px, ${constraints.safeAreas.left + 20}px)`,
                     background: 'rgba(0, 0, 0, 0.6)',
                     border: '1px solid rgba(139, 105, 20, 0.6)',
                     borderRadius: '8px',
-                    padding: '8px 12px',
+                    padding: '12px 16px',
                     color: '#DAA520',
                     fontFamily: 'Inter, sans-serif',
-                    fontSize: '12px',
+                    fontSize: '14px',
                     cursor: 'pointer',
                     pointerEvents: 'auto',
+                    minHeight: '44px',
                 }}
             >
                 Skills & Stats
@@ -108,8 +143,8 @@ function StatsDisplay() {
         <div
             style={{
                 position: 'absolute',
-                top: 180,
-                left: 20,
+                top: `max(180px, ${constraints.safeAreas.top + 180}px)`,
+                left: `max(20px, ${constraints.safeAreas.left + 20}px)`,
                 background: 'rgba(0, 0, 0, 0.85)',
                 padding: '15px',
                 borderRadius: '10px',
@@ -130,16 +165,22 @@ function StatsDisplay() {
             >
                 <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#DAA520' }}>Skills</div>
                 <button
-                    onClick={() => setExpanded(false)}
+                    onClick={handleCollapse}
                     style={{
                         background: 'transparent',
                         border: 'none',
                         color: '#888',
                         cursor: 'pointer',
-                        fontSize: '16px',
+                        fontSize: '20px',
+                        padding: '10px',
+                        minWidth: '44px',
+                        minHeight: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                     }}
                 >
-                    x
+                    ✕
                 </button>
             </div>
 
@@ -195,9 +236,15 @@ function StatsDisplay() {
     );
 }
 
-function InventoryPanel() {
+function InventoryPanel({ constraints }: { constraints: any }) {
     const player = useRPGStore((s) => s.player);
     const toggleInventory = useRPGStore((s) => s.toggleInventory);
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
+
+    const handleClose = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        toggleInventory();
+    };
 
     return (
         <div
@@ -208,14 +255,14 @@ function InventoryPanel() {
                 transform: 'translate(-50%, -50%)',
                 background: 'rgba(5, 5, 10, 0.95)',
                 backdropFilter: 'blur(15px)',
-                padding: '40px',
+                padding: constraints.isPhone ? '20px' : '40px',
                 borderRadius: '12px',
                 color: '#fff',
                 fontFamily: 'Inter, sans-serif',
-                minWidth: '500px',
+                minWidth: constraints.isPhone ? '90%' : '500px',
                 maxWidth: '700px',
-                width: '70%',
-                maxHeight: '80vh',
+                width: constraints.isPhone ? '90%' : '70%',
+                maxHeight: '85vh',
                 overflow: 'auto',
                 border: '1px solid rgba(212, 175, 55, 0.3)',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
@@ -237,7 +284,7 @@ function InventoryPanel() {
                     style={{
                         margin: 0,
                         color: '#d4af37',
-                        fontSize: '32px',
+                        fontSize: constraints.isPhone ? '24px' : '32px',
                         fontFamily: 'Cinzel, serif',
                         letterSpacing: '4px',
                     }}
@@ -246,10 +293,11 @@ function InventoryPanel() {
                 </h2>
                 <div
                     style={{
-                        fontSize: '12px',
+                        fontSize: '10px',
                         color: '#666',
                         fontFamily: 'Cinzel, serif',
                         letterSpacing: '1px',
+                        display: constraints.isMobile ? 'none' : 'block',
                     }}
                 >
                     PRESS I TO CLOSE
@@ -332,19 +380,20 @@ function InventoryPanel() {
             )}
 
             <button
-                onClick={toggleInventory}
+                onClick={handleClose}
                 style={{
                     marginTop: '40px',
                     width: '100%',
-                    padding: '12px',
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#666',
+                    padding: '16px',
+                    minHeight: '44px',
+                    background: 'rgba(212, 175, 55, 0.1)',
+                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    color: '#d4af37',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     fontFamily: 'Cinzel, serif',
                     letterSpacing: '2px',
-                    fontSize: '12px',
+                    fontSize: '14px',
                     transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
@@ -362,9 +411,15 @@ function InventoryPanel() {
     );
 }
 
-function QuestLogPanel() {
+function QuestLogPanel({ constraints }: { constraints: any }) {
     const player = useRPGStore((s) => s.player);
     const toggleQuestLog = useRPGStore((s) => s.toggleQuestLog);
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
+
+    const handleClose = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        toggleQuestLog();
+    };
 
     return (
         <div
@@ -375,14 +430,14 @@ function QuestLogPanel() {
                 transform: 'translate(-50%, -50%)',
                 background: 'rgba(5, 10, 20, 0.95)',
                 backdropFilter: 'blur(15px)',
-                padding: '40px',
+                padding: constraints.isPhone ? '20px' : '40px',
                 borderRadius: '12px',
                 color: '#fff',
                 fontFamily: 'Inter, sans-serif',
-                minWidth: '600px',
+                minWidth: constraints.isPhone ? '90%' : '600px',
                 maxWidth: '800px',
-                width: '80%',
-                maxHeight: '80vh',
+                width: constraints.isPhone ? '90%' : '80%',
+                maxHeight: '85vh',
                 overflow: 'auto',
                 border: '1px solid rgba(65, 105, 225, 0.3)',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
@@ -404,7 +459,7 @@ function QuestLogPanel() {
                     style={{
                         margin: 0,
                         color: '#4169E1',
-                        fontSize: '32px',
+                        fontSize: constraints.isPhone ? '24px' : '32px',
                         fontFamily: 'Cinzel, serif',
                         letterSpacing: '4px',
                     }}
@@ -413,10 +468,11 @@ function QuestLogPanel() {
                 </h2>
                 <div
                     style={{
-                        fontSize: '12px',
+                        fontSize: '10px',
                         color: '#666',
                         fontFamily: 'Cinzel, serif',
                         letterSpacing: '1px',
+                        display: constraints.isMobile ? 'none' : 'block',
                     }}
                 >
                     PRESS Q TO CLOSE
@@ -509,14 +565,12 @@ function QuestLogPanel() {
                                     >
                                         Objectives
                                     </div>
-                                    {quest.objectives.map((obj: string, i: number) => (
+                                    {quest.objectives.map((obj) => (
                                         <div
-                                            key={i}
+                                            key={obj.id}
                                             style={{
                                                 fontSize: '13px',
-                                                color: quest.completedObjectives.includes(i)
-                                                    ? '#22c55e'
-                                                    : '#eee',
+                                                color: obj.isCompleted ? '#22c55e' : '#eee',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: '10px',
@@ -524,20 +578,17 @@ function QuestLogPanel() {
                                             }}
                                         >
                                             <span style={{ fontSize: '16px' }}>
-                                                {quest.completedObjectives.includes(i) ? '✓' : '○'}
+                                                {obj.isCompleted ? '✓' : '○'}
                                             </span>
                                             <span
                                                 style={{
-                                                    textDecoration:
-                                                        quest.completedObjectives.includes(i)
-                                                            ? 'line-through'
-                                                            : 'none',
-                                                    opacity: quest.completedObjectives.includes(i)
-                                                        ? 0.5
-                                                        : 1,
+                                                    textDecoration: obj.isCompleted
+                                                        ? 'line-through'
+                                                        : 'none',
+                                                    opacity: obj.isCompleted ? 0.5 : 1,
                                                 }}
                                             >
-                                                {obj}
+                                                {obj.description}
                                             </span>
                                         </div>
                                     ))}
@@ -595,19 +646,20 @@ function QuestLogPanel() {
             )}
 
             <button
-                onClick={toggleQuestLog}
+                onClick={handleClose}
                 style={{
                     marginTop: '40px',
                     width: '100%',
-                    padding: '12px',
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#666',
+                    padding: '16px',
+                    minHeight: '44px',
+                    background: 'rgba(65, 105, 225, 0.1)',
+                    border: '1px solid rgba(65, 105, 225, 0.3)',
+                    color: '#4169E1',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     fontFamily: 'Cinzel, serif',
                     letterSpacing: '2px',
-                    fontSize: '12px',
+                    fontSize: '14px',
                     transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
@@ -625,11 +677,11 @@ function QuestLogPanel() {
     );
 }
 
-function DialogueBox() {
+function DialogueBox({ constraints }: { constraints: any }) {
     const activeDialogue = useRPGStore((s) => s.activeDialogue);
     const nextDialogue = useRPGStore((s) => s.nextDialogue);
     const endDialogue = useRPGStore((s) => s.endDialogue);
-    
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
     const [currentDialogue, setCurrentDialogue] = useState(activeDialogue);
     const [isVisible, setVisible] = useState(false);
 
@@ -654,6 +706,7 @@ function DialogueBox() {
     const isLastMessage = currentDialogue.currentIndex === currentDialogue.messages.length - 1;
 
     const handleAdvance = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
         if (isLastMessage) {
             endDialogue();
         } else {
@@ -673,22 +726,24 @@ function DialogueBox() {
         handleAdvance();
     };
 
+    const bottomOffset = `max(40px, ${constraints.safeAreas.bottom + 40}px)`;
+
     return (
         <div
             onClick={handleClick}
             onTouchEnd={handleTouchEnd}
             style={{
                 position: 'absolute',
-                bottom: '40px',
+                bottom: bottomOffset,
                 left: '50%',
                 transform: `translateX(-50%) translateY(${isVisible ? '0' : '20px'})`,
                 background: 'rgba(5, 5, 10, 0.9)',
                 backdropFilter: 'blur(10px)',
-                padding: '25px 40px',
+                padding: constraints.isPhone ? '15px 25px' : '25px 40px',
                 borderRadius: '12px',
                 color: '#fff',
                 fontFamily: 'Inter, sans-serif',
-                minWidth: '500px',
+                minWidth: constraints.isPhone ? '90%' : '500px',
                 maxWidth: '800px',
                 width: '90%',
                 border: '1px solid rgba(212, 175, 55, 0.3)',
@@ -705,7 +760,7 @@ function DialogueBox() {
                 style={{
                     fontWeight: 'bold',
                     color: '#d4af37',
-                    fontSize: '14px',
+                    fontSize: constraints.isPhone ? '12px' : '14px',
                     marginBottom: '12px',
                     fontFamily: 'Cinzel, serif',
                     letterSpacing: '2px',
@@ -719,7 +774,7 @@ function DialogueBox() {
             </div>
             <div
                 style={{
-                    fontSize: '18px',
+                    fontSize: constraints.isPhone ? '16px' : '18px',
                     lineHeight: '1.6',
                     marginBottom: '20px',
                     minHeight: '60px',

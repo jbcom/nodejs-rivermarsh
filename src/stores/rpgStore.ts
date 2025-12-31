@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, subscribeWithSelector } from 'zustand/middleware';
 import { LEVELING, PLAYER } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
+import { HAPTIC_PATTERNS, hapticFeedback } from '../utils/haptics';
 import { useEngineStore } from './engineStore';
 
 // --- Types ---
@@ -16,6 +17,33 @@ export type OtterFaction =
     | 'neutral';
 
 export type QuestStatus = 'available' | 'active' | 'completed' | 'failed';
+
+export type QuestObjectiveType = 'kill' | 'collect' | 'explore' | 'talk';
+
+export interface QuestObjective {
+    id: string;
+    type: QuestObjectiveType;
+    target: string;
+    requiredAmount: number;
+    currentAmount: number;
+    description: string;
+    isCompleted: boolean;
+}
+
+export interface Quest {
+    id: string;
+    title: string;
+    description: string;
+    giver: string;
+    status: QuestStatus;
+    objectives: QuestObjective[];
+    rewards: {
+        experience?: number;
+        gold?: number;
+        items?: Array<{ id: string; quantity: number }>;
+        affinityChange?: number;
+    };
+}
 
 export interface OtterSkill {
     name: string;
@@ -50,21 +78,6 @@ export interface InventoryItem {
         swimSpeed?: number;
         diveDepth?: number;
         fishingBonus?: number;
-    };
-}
-
-export interface Quest {
-    id: string;
-    title: string;
-    description: string;
-    giver: string;
-    status: QuestStatus;
-    objectives: string[];
-    completedObjectives: number[];
-    rewards: {
-        experience: number;
-        items?: InventoryItem[];
-        affinityChange?: number;
     };
 }
 
@@ -161,7 +174,7 @@ export interface RPGState {
     unequipItem: (slot: EquipmentSlot) => void;
     startQuest: (quest: Quest) => void;
     completeQuest: (questId: string) => void;
-    updateQuestObjective: (questId: string, objectiveIndex: number) => void;
+    updateQuestProgress: (type: QuestObjectiveType, target: string, amount?: number) => void;
     updateFactionReputation: (faction: OtterFaction, amount: number) => void;
 
     // UI Actions
@@ -258,11 +271,14 @@ export const useRPGStore = create<RPGState>()(
                         if (newHealth <= 0) {
                             useEngineStore.getState().setGameOver(true);
                         }
-                        
+
                         const audioManager = getAudioManager();
                         if (audioManager) {
                             audioManager.playSound('damage', 0.5);
                         }
+
+                        const settings = useEngineStore.getState().settings;
+                        hapticFeedback(HAPTIC_PATTERNS.damage, settings.hapticsEnabled);
 
                         return {
                             player: {
@@ -370,13 +386,16 @@ export const useRPGStore = create<RPGState>()(
                         };
                     }),
 
-                addGold: (amount) =>
-                    set((state) => ({
+                addGold: (amount) => {
+                    const settings = useEngineStore.getState().settings;
+                    hapticFeedback(HAPTIC_PATTERNS.collect, settings.hapticsEnabled);
+                    set((s) => ({
                         player: {
-                            ...state.player,
-                            gold: state.player.gold + amount + state.player.bootsLevel,
+                            ...s.player,
+                            gold: s.player.gold + amount + s.player.bootsLevel,
                         },
-                    })),
+                    }));
+                },
 
                 spendGold: (amount) => {
                     let success = false;
@@ -416,14 +435,16 @@ export const useRPGStore = create<RPGState>()(
                         };
                     }),
 
-                addInventoryItem: (item) =>
-                    set((state) => {
-                        const existingItem = state.player.inventory.find((i) => i.id === item.id);
+                addInventoryItem: (item) => {
+                    const settings = useEngineStore.getState().settings;
+                    hapticFeedback(HAPTIC_PATTERNS.collect, settings.hapticsEnabled);
+                    set((s) => {
+                        const existingItem = s.player.inventory.find((i) => i.id === item.id);
                         if (existingItem) {
                             return {
                                 player: {
-                                    ...state.player,
-                                    inventory: state.player.inventory.map((i) =>
+                                    ...s.player,
+                                    inventory: s.player.inventory.map((i) =>
                                         i.id === item.id
                                             ? { ...i, quantity: i.quantity + item.quantity }
                                             : i
@@ -433,11 +454,12 @@ export const useRPGStore = create<RPGState>()(
                         }
                         return {
                             player: {
-                                ...state.player,
-                                inventory: [...state.player.inventory, item],
+                                ...s.player,
+                                inventory: [...s.player.inventory, item],
                             },
                         };
-                    }),
+                    });
+                },
 
                 removeInventoryItem: (itemId, quantity) =>
                     set((state) => ({
@@ -518,23 +540,50 @@ export const useRPGStore = create<RPGState>()(
                         },
                     })),
 
-                updateQuestObjective: (questId, objectiveIndex) =>
-                    set((state) => ({
-                        player: {
-                            ...state.player,
-                            activeQuests: state.player.activeQuests.map((quest) =>
-                                quest.id === questId
-                                    ? {
-                                          ...quest,
-                                          completedObjectives: [
-                                              ...quest.completedObjectives,
-                                              objectiveIndex,
-                                          ],
-                                      }
-                                    : quest
-                            ),
-                        },
-                    })),
+                updateQuestProgress: (type, target, amount = 1) =>
+                    set((state) => {
+                        let changed = false;
+                        const newActiveQuests = state.player.activeQuests.map((quest) => {
+                            let questChanged = false;
+                            const newObjectives = quest.objectives.map((obj) => {
+                                if (
+                                    !obj.isCompleted &&
+                                    obj.type === type &&
+                                    (obj.target === target || obj.target === '*')
+                                ) {
+                                    const newAmount = Math.min(
+                                        obj.requiredAmount,
+                                        obj.currentAmount + amount
+                                    );
+                                    if (newAmount !== obj.currentAmount) {
+                                        questChanged = true;
+                                        changed = true;
+                                        return {
+                                            ...obj,
+                                            currentAmount: newAmount,
+                                            isCompleted: newAmount >= obj.requiredAmount,
+                                        };
+                                    }
+                                }
+                                return obj;
+                            });
+
+                            if (questChanged) {
+                                return { ...quest, objectives: newObjectives };
+                            }
+                            return quest;
+                        });
+
+                        if (changed) {
+                            return {
+                                player: {
+                                    ...state.player,
+                                    activeQuests: newActiveQuests,
+                                },
+                            };
+                        }
+                        return state;
+                    }),
 
                 completeQuest: (questId) => {
                     const state = get();
@@ -552,9 +601,26 @@ export const useRPGStore = create<RPGState>()(
                             ],
                         },
                     }));
-                    get().addExperience(quest.rewards.experience);
+
+                    if (quest.rewards.experience) {
+                        get().addExperience(quest.rewards.experience);
+                    }
+                    if (quest.rewards.gold) {
+                        get().addGold(quest.rewards.gold);
+                    }
                     if (quest.rewards.items) {
-                        quest.rewards.items.forEach((item) => get().addInventoryItem(item));
+                        quest.rewards.items.forEach((item) =>
+                            get().addInventoryItem({
+                                id: item.id,
+                                name: item.id
+                                    .split('_')
+                                    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                                    .join(' '),
+                                type: 'treasure',
+                                quantity: item.quantity,
+                                description: `Reward from quest: ${quest.title}`,
+                            })
+                        );
                     }
                     const affinityChange = quest.rewards.affinityChange;
                     if (affinityChange !== undefined) {
@@ -631,12 +697,14 @@ export const useRPGStore = create<RPGState>()(
                 removeNPC: (npcId) =>
                     set((state) => ({ npcs: state.npcs.filter((n) => n.id !== npcId) })),
                 damageNPC: (npcId, amount) => {
-                    const state = get();
-                    const npc = state.npcs.find((n) => n.id === npcId);
+                    const settings = useEngineStore.getState().settings;
+                    hapticFeedback(HAPTIC_PATTERNS.hit, settings.hapticsEnabled);
+                    const rpgStore = useRPGStore.getState();
+                    const npc = rpgStore.npcs.find((n) => n.id === npcId);
                     if (!npc || npc.health === undefined) {
                         return;
                     }
-                    const finalDamage = amount + state.player.swordLevel;
+                    const finalDamage = amount + rpgStore.player.swordLevel;
                     const newHealth = Math.max(0, npc.health - finalDamage);
                     set((s) => ({
                         npcs: s.npcs.map((n) => (n.id === npcId ? { ...n, health: newHealth } : n)),

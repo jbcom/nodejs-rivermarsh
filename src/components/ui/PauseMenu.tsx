@@ -1,4 +1,5 @@
-import type React from 'react';
+import { useEngineStore } from '@/stores';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
 import { useEffect, useRef } from 'react';
 
 interface PauseMenuProps {
@@ -10,12 +11,18 @@ interface PauseMenuProps {
 
 export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuProps) {
     const resumeButtonRef = useRef<HTMLButtonElement>(null);
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
 
     useEffect(() => {
         if (resumeButtonRef.current) {
             resumeButtonRef.current.focus();
         }
     }, []);
+
+    const handleAction = (callback?: () => void) => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+        callback?.();
+    };
 
     const menuButtonStyle: React.CSSProperties = {
         padding: '12px 40px',
@@ -29,6 +36,7 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
         cursor: 'pointer',
         transition: 'all 0.2s ease',
         width: '240px',
+        minHeight: '54px',
         textAlign: 'center',
         letterSpacing: '2px',
         textTransform: 'uppercase',
@@ -91,7 +99,7 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
             >
                 <button
                     ref={resumeButtonRef}
-                    onClick={onResume}
+                    onClick={() => handleAction(onResume)}
                     style={menuButtonStyle}
                     onMouseEnter={(e) => handleButtonHover(e, true)}
                     onMouseLeave={(e) => handleButtonHover(e, false)}
@@ -100,7 +108,7 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
                     Resume
                 </button>
                 <button
-                    onClick={onShop}
+                    onClick={() => handleAction(onShop)}
                     style={menuButtonStyle}
                     onMouseEnter={(e) => handleButtonHover(e, true)}
                     onMouseLeave={(e) => handleButtonHover(e, false)}
@@ -109,7 +117,7 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
                     Shop
                 </button>
                 <button
-                    onClick={onSettings}
+                    onClick={() => handleAction(onSettings)}
                     style={menuButtonStyle}
                     onMouseEnter={(e) => handleButtonHover(e, true)}
                     onMouseLeave={(e) => handleButtonHover(e, false)}
@@ -118,13 +126,14 @@ export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuPro
                     Settings
                 </button>
                 <button
-                    onClick={onQuit}
+                    onClick={() => handleAction(onQuit)}
                     style={{
                         ...menuButtonStyle,
                         marginTop: '20px',
                         fontSize: '14px',
                         width: 'auto',
                         padding: '8px 20px',
+                        minHeight: '44px',
                         borderColor: 'rgba(239, 68, 68, 0.4)',
                         color: 'rgba(239, 68, 68, 0.8)',
                     }}

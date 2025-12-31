@@ -1,7 +1,8 @@
-import type React from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import { world as ecsWorld } from '@/ecs/world';
 import { useEngineStore, useRPGStore, type InventoryItem } from '@/stores';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
+import { world as ecsWorld } from '@/ecs/world';
+import { useEffect, useMemo, useState } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 
@@ -130,6 +131,9 @@ function RPGInventory({ slots = [], columns = 5, slotSize = 44, style }: SimpleI
 }
 
 export function HUD() {
+    const constraints = useMobileConstraints();
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
+
     // RPG Stats - Using granular selectors to minimize re-renders
     const health = useRPGStore((s) => s.player.health);
     const maxHealth = useRPGStore((s) => s.player.maxHealth);
@@ -216,6 +220,11 @@ export function HUD() {
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, [isPaused, setPaused]);
 
+    const leftOffset = `max(20px, ${constraints.safeAreas.left + 20}px)`;
+    const rightOffset = `max(20px, ${constraints.safeAreas.right + 20}px)`;
+    const topOffset = `max(20px, ${constraints.safeAreas.top + 20}px)`;
+    const bottomOffset = `max(40px, ${constraints.safeAreas.bottom + 40}px)`;
+
     return (
         <div
             style={{
@@ -233,8 +242,8 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    top: '20px',
-                    left: '20px',
+                    top: topOffset,
+                    left: leftOffset,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '5px',
@@ -286,8 +295,8 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    top: '20px',
-                    right: '20px',
+                    top: topOffset,
+                    right: rightOffset,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '15px',
@@ -299,6 +308,7 @@ export function HUD() {
                         textAlign: 'right',
                         textShadow: '0 2px 10px rgba(0,0,0,0.8)',
                         color: '#fff',
+                        display: constraints.isPhone ? 'none' : 'block', // Hide time on small phones to save space
                     }}
                 >
                     <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>{formatTime()}</div>
@@ -307,31 +317,39 @@ export function HUD() {
                     </div>
                 </div>
                 <button
-                    onClick={() => setGameMode('examples')}
+                    onClick={() => {
+                        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+                        setGameMode('examples');
+                    }}
                     style={{
                         background: 'rgba(212, 175, 55, 0.4)',
                         border: '1px solid #d4af37',
                         borderRadius: '4px',
-                        padding: '8px 15px',
-                        fontSize: '12px',
+                        padding: '12px 20px',
+                        fontSize: '14px',
                         cursor: 'pointer',
                         color: '#fff',
                         fontWeight: 'bold',
                         textTransform: 'uppercase',
                         letterSpacing: '1px',
                         transition: 'all 0.2s ease',
+                        minWidth: '100px',
+                        minHeight: '44px',
                     }}
                 >
                     Examples
                 </button>
                 <button
-                    onClick={() => setPaused(true)}
+                    onClick={() => {
+                        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+                        setPaused(true);
+                    }}
                     style={{
                         background: 'rgba(0, 0, 0, 0.4)',
                         border: '1px solid rgba(255, 255, 255, 0.4)',
                         borderRadius: '50%',
-                        width: '44px',
-                        height: '44px',
+                        width: '50px',
+                        height: '50px',
                         fontSize: '1.2em',
                         cursor: 'pointer',
                         color: '#fff',
@@ -349,11 +367,12 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    left: '20px',
+                    bottom: bottomOffset,
+                    left: leftOffset,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
+                    maxWidth: constraints.isPhone ? '240px' : 'none',
                 }}
             >
                 {/* Inventory */}
@@ -372,9 +391,10 @@ export function HUD() {
                     <RPGInventory
                         slots={safeInventory}
                         columns={5}
+                        slotSize={constraints.isMobile ? 48 : 44}
                         style={{
                             position: 'relative',
-                            width: '250px',
+                            width: constraints.isMobile ? '270px' : '250px',
                             background: 'transparent',
                             padding: 0,
                         }}
@@ -403,7 +423,7 @@ export function HUD() {
                     <HealthBar
                         value={health}
                         maxValue={maxHealth}
-                        width={280}
+                        width={constraints.isPhone ? 220 : 280}
                         height={12}
                         fillColor={
                             health / maxHealth > 0.5
@@ -438,7 +458,7 @@ export function HUD() {
                     <HealthBar
                         value={stamina}
                         maxValue={maxStamina}
-                        width={240}
+                        width={constraints.isPhone ? 200 : 240}
                         height={8}
                         fillColor="#3b82f6"
                         testId="stamina-bar-fill"
@@ -454,6 +474,7 @@ export function HUD() {
                     aria-valuenow={Math.round(experience)}
                     aria-valuemin={0}
                     aria-valuemax={expToNext}
+                    style={{ display: constraints.isPhone ? 'none' : 'block' }} // Hide XP bar text on phones to save space
                 >
                     <div
                         style={{
@@ -472,7 +493,7 @@ export function HUD() {
                     <HealthBar
                         value={experience}
                         maxValue={expToNext}
-                        width={250}
+                        width={constraints.isPhone ? 220 : 250}
                         height={6}
                         fillColor="#fbbf24"
                     />
@@ -483,10 +504,11 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '40px',
-                    right: '20px',
+                    bottom: bottomOffset,
+                    right: rightOffset,
                     textAlign: 'right',
                     color: '#fff',
+                    display: constraints.isPhone ? 'none' : 'block', // Hide score on small phones to save space for action buttons
                 }}
             >
                 <div style={{ fontSize: '2em', fontWeight: 'bold', margin: 0 }}>
@@ -501,7 +523,7 @@ export function HUD() {
             <div
                 style={{
                     position: 'absolute',
-                    bottom: '20px',
+                    bottom: `max(20px, ${constraints.safeAreas.bottom + 20}px)`,
                     left: '50%',
                     transform: 'translateX(-50%)',
                     textAlign: 'center',
@@ -509,16 +531,23 @@ export function HUD() {
             >
                 {nearbyResource ? (
                     <div
+                        onClick={() => {
+                            // Tap to collect functionality would go here
+                            // For now it's just a visual indicator, but we can add haptics
+                            hapticFeedback(HAPTIC_PATTERNS.collect, hapticsEnabled);
+                        }}
                         style={{
                             background: 'rgba(0,0,0,0.8)',
                             border: '2px solid #d4af37',
                             borderRadius: '8px',
-                            padding: '10px 20px',
+                            padding: '12px 24px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '12px',
                             marginBottom: '20px',
                             pointerEvents: 'auto',
+                            minHeight: '44px',
+                            cursor: 'pointer',
                         }}
                     >
                         <span style={{ fontSize: '24px' }}>{nearbyResource.icon}</span>

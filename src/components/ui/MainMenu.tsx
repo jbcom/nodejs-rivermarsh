@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useEngineStore } from '@/stores';
+import { HAPTIC_PATTERNS, hapticFeedback } from '@/utils/haptics';
+import { useEffect, useState } from 'react';
 
 export function MainMenu() {
     const setGameMode = useEngineStore((s) => s.setGameMode);
+    const hapticsEnabled = useEngineStore((s) => s.settings.hapticsEnabled);
     const [isVisible, setVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<'main' | 'credits'>('main');
 
@@ -12,6 +14,7 @@ export function MainMenu() {
     }, []);
 
     const handleStart = () => {
+        hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
         setVisible(false);
         setTimeout(() => {
             setGameMode('exploration');
@@ -123,14 +126,34 @@ export function MainMenu() {
                     <MenuButton onClick={handleStart} primary>
                         Enter the Marsh
                     </MenuButton>
-                    <MenuButton onClick={() => setGameMode('racing')}>River Racing</MenuButton>
-                    <MenuButton onClick={() => setGameMode('examples')}>
+                    <MenuButton
+                        onClick={() => {
+                            hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+                            setGameMode('racing');
+                        }}
+                    >
+                        River Racing
+                    </MenuButton>
+                    <MenuButton
+                        onClick={() => {
+                            hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+                            setGameMode('examples');
+                        }}
+                    >
                         Tutorials & Examples
                     </MenuButton>
-                    <MenuButton onClick={() => setActiveTab('credits')}>Credits</MenuButton>
+                    <MenuButton
+                        onClick={() => {
+                            hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+                            setActiveTab('credits');
+                        }}
+                    >
+                        Credits
+                    </MenuButton>
                     <div style={{ height: '20px' }} />
                     <MenuButton
                         onClick={() => {
+                            hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
                             if (
                                 confirm(
                                     'Are you sure you want to reset your progress? All saved data will be lost.'
@@ -159,7 +182,14 @@ export function MainMenu() {
                     <h2 style={{ color: '#d4af37', letterSpacing: '4px' }}>POWERED BY</h2>
                     <p style={{ fontSize: '24px', letterSpacing: '2px' }}>@JBCOM/STRATA</p>
                     <div style={{ height: '60px' }} />
-                    <MenuButton onClick={() => setActiveTab('main')}>Back</MenuButton>
+                    <MenuButton
+                        onClick={() => {
+                            hapticFeedback(HAPTIC_PATTERNS.button, hapticsEnabled);
+                            setActiveTab('main');
+                        }}
+                    >
+                        Back
+                    </MenuButton>
                 </div>
             )}
 
@@ -206,8 +236,9 @@ function MenuButton({
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             style={{
-                padding: small ? '8px 20px' : '14px 40px',
-                fontSize: small ? '12px' : '18px',
+                padding: small ? '12px 30px' : '14px 40px',
+                fontSize: small ? '14px' : '18px',
+                minHeight: '44px',
                 fontFamily: 'Cinzel, serif',
                 background: primary
                     ? isHovered

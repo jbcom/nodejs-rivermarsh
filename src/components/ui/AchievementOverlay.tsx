@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 import { type Achievement, useAchievementStore } from '../../stores/useAchievementStore';
 
 export function AchievementOverlay() {
     const achievements = useAchievementStore((s) => s.achievements);
     const [recentUnlock, setRecentUnlock] = useState<Achievement | null>(null);
+    const constraints = useMobileConstraints();
 
     useEffect(() => {
         // Find most recently unlocked achievement
@@ -22,11 +24,13 @@ export function AchievementOverlay() {
         return null;
     }
 
+    const topOffset = `max(20px, ${constraints.safeAreas.top + 20}px)`;
+
     return (
         <div
             style={{
                 position: 'absolute',
-                top: '20px',
+                top: topOffset,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 background: 'rgba(0,0,0,0.85)',

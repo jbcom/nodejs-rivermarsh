@@ -1,29 +1,11 @@
-import { world } from '@/ecs/world';
-import { useEffect, useState } from 'react';
-import type { QuestComponent } from '@/ecs/components';
+import { useRPGStore } from '@/stores';
 
 /**
  * QuestOverlay UI Component
  * Displays active quests and their objective progress on the HUD.
  */
 export function QuestOverlay() {
-    const [activeQuests, setActiveQuests] = useState<QuestComponent[]>([]);
-
-    useEffect(() => {
-        // Poll for quest changes from ECS world
-        // In a more complex setup, we'd use a reactive system or event bus
-        const interval = setInterval(() => {
-            const player = world.with('isPlayer', 'quests').entities[0];
-            if (player && player.quests) {
-                const active = player.quests.filter((q) => q.status === 'active');
-                setActiveQuests([...active]);
-            } else {
-                setActiveQuests([]);
-            }
-        }, 500);
-
-        return () => clearInterval(interval);
-    }, []);
+    const activeQuests = useRPGStore((s) => s.player.activeQuests);
 
     if (activeQuests.length === 0) {
         return null;

@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
 import { useEngineStore, useRPGStore } from '@/stores';
 import type { OtterNPC as OtterNPCType } from '@/stores';
+import { addQuestToPlayer, RECOVER_FISH_QUEST } from '@/ecs/systems/QuestSystem';
 
 interface OtterNPCProps {
     npc: OtterNPCType;
@@ -118,8 +119,13 @@ export function OtterNPC({ npc }: OtterNPCProps) {
     const handleInteract = useCallback(() => {
         if (npc.dialogue && isInRange.current) {
             startDialogue(npc.id, npc.name, npc.dialogue);
+
+            // Grant quest if it's a quest giver
+            if (npc.type === 'quest_giver' && npc.quests?.includes('recover_fish')) {
+                addQuestToPlayer(RECOVER_FISH_QUEST);
+            }
         }
-    }, [npc.id, npc.name, npc.dialogue, startDialogue]);
+    }, [npc.id, npc.name, npc.dialogue, npc.type, npc.quests, startDialogue]);
 
     // Handle keyboard 'E' key for interaction
     useEffect(() => {
