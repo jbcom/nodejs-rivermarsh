@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
 import { world } from '@/ecs/world';
-import type { Quest } from '@/stores/gameStore';
+import type { Quest } from '@/stores/rpgStore';
 import type { Achievement } from '@/stores/useAchievementStore';
 
 export interface SaveData {
