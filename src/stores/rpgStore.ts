@@ -556,12 +556,13 @@ export const useRPGStore = create<RPGState>()(
                     if (quest.rewards.items) {
                         quest.rewards.items.forEach((item) => get().addInventoryItem(item));
                     }
-                    if (quest.rewards.affinityChange !== undefined) {
+                    const affinityChange = quest.rewards.affinityChange;
+                    if (affinityChange !== undefined) {
                         set((s) => ({
                             player: {
                                 ...s.player,
-                                otterAffinity: s.player.otterAffinity + quest.rewards.affinityChange
-                            }
+                                otterAffinity: s.player.otterAffinity + affinityChange,
+                            },
                         }));
                     }
                 },
