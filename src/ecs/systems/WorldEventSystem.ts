@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useGameStore } from '../../stores/gameStore';
+import { useEngineStore, useRPGStore } from '../../stores';
 import { useAchievementStore } from '../../stores/useAchievementStore';
 import { BOSSES } from '../data/bosses';
 import { world } from '../world';
@@ -12,6 +12,10 @@ const POSSIBLE_EVENTS = [
     'boss_encounter',
 ];
 
+/**
+ * WorldEventSystem - Manages random world events and boss encounters.
+ * Segregated store access: engineStore for game mode, rpgStore for boss/player stats.
+ */
 export function WorldEventSystem() {
     for (const entity of world.with('worldEvents', 'time')) {
         const { worldEvents, time } = entity;
@@ -28,9 +32,8 @@ export function WorldEventSystem() {
                     if (bossEntity) {
                         world.remove(bossEntity);
                     }
-                    const { setGameMode, setActiveBossId } = useGameStore.getState();
-                    setGameMode('exploration');
-                    setActiveBossId(null);
+                    useEngineStore.getState().setGameMode('exploration');
+                    useRPGStore.getState().setActiveBossId(null);
                 }
 
                 worldEvents.activeEvents = [];
@@ -84,7 +87,9 @@ export function WorldEventSystem() {
 }
 
 function triggerBossEncounter() {
-    const { setGameMode, setActiveBossId, player } = useGameStore.getState();
+    const engineStore = useEngineStore.getState();
+    const rpgStore = useRPGStore.getState();
+    const { player } = rpgStore;
 
     // Check if a boss already exists
     const existingBoss = world.with('isBoss').entities[0];
@@ -139,7 +144,7 @@ function triggerBossEncounter() {
         },
     });
 
-    setGameMode('boss_battle');
-    setActiveBossId(bossEntity.id!);
+    engineStore.setGameMode('boss_battle');
+    rpgStore.setActiveBossId(bossEntity.id!);
     console.log(`BOSS ENCOUNTER: ${bossData.name} appeared!`);
 }

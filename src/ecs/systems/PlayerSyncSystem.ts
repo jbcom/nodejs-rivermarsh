@@ -1,25 +1,24 @@
-import { useGameStore } from '../../stores/gameStore';
+import { useEngineStore, useRPGStore } from '@/stores';
 import { world } from '../world';
 
 /**
- * PlayerSyncSystem - Syncs player position between store and ECS
+ * PlayerSyncSystem - Syncs player position and stats between stores and ECS.
+ * Optimized to use engineStore for high-frequency physics and rpgStore for stats.
  */
 export function PlayerSyncSystem() {
-    const { player } = useGameStore.getState();
+    const { position } = useEngineStore.getState().player;
+    const { health, maxHealth, stamina, maxStamina } = useRPGStore.getState().player;
 
     for (const entity of world.with('isPlayer', 'species', 'transform')) {
-        // Get position from store (updated by Player physics)
-        const { x, y, z } = player.position;
+        // Sync position from Engine Store (updated by Player physics)
+        entity.transform!.position.copy(position);
 
-        // Update ECS position from store
-        entity.transform!.position.set(x, y, z);
-
-        // Sync species stats from store to ECS (for AI systems)
+        // Sync species stats from RPG Store (for AI systems)
         if (entity.species) {
-            entity.species.health = player.health;
-            entity.species.maxHealth = player.maxHealth;
-            entity.species.stamina = player.stamina;
-            entity.species.maxStamina = player.maxStamina;
+            entity.species.health = health;
+            entity.species.maxHealth = maxHealth;
+            entity.species.stamina = stamina;
+            entity.species.maxStamina = maxStamina;
         }
     }
 }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 
 /**
  * AudioSystem - Manages game audio including footsteps and biome ambient sounds
@@ -29,7 +29,7 @@ export function AudioSystem() {
         return () => clearInterval(interval);
     }, [currentBiome, currentWeather]);
 
-    const player = useGameStore((s) => s.player);
+    const player = useEngineStore((s) => s.player);
     const {
         position: playerPos,
         isMoving,

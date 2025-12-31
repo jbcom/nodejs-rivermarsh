@@ -1,12 +1,14 @@
 import type React from 'react';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 
 interface SettingsPanelProps {
     onClose: () => void;
 }
 
 export function SettingsPanel({ onClose }: SettingsPanelProps) {
-    const { settings, updateSettings } = useGameStore();
+    // Granular selectors for settings to avoid re-renders on physics updates
+    const settings = useEngineStore((s) => s.settings);
+    const updateSettings = useEngineStore((s) => s.updateSettings);
 
     const panelStyle: React.CSSProperties = {
         position: 'fixed',

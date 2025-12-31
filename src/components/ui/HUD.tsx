@@ -1,6 +1,7 @@
+import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore, useRPGStore, type InventoryItem } from '@/stores';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 
@@ -34,7 +35,7 @@ function SimpleBar({
                 width,
                 height,
                 backgroundColor,
-                borderRadius: height / 2,
+                borderRadius: typeof height === 'number' ? height / 2 : 4,
                 overflow: 'hidden',
                 ...style,
             }}
@@ -45,7 +46,7 @@ function SimpleBar({
                     width: `${percentage}%`,
                     height: '100%',
                     backgroundColor: fillColor,
-                    borderRadius: height / 2,
+                    borderRadius: typeof height === 'number' ? height / 2 : 4,
                     transition: 'width 0.2s ease-out',
                 }}
             />
@@ -58,7 +59,7 @@ const HealthBar = SimpleBar;
 
 // Simple placeholder for RPGInventory (strata's Inventory may use R3F hooks)
 interface SimpleInventoryProps {
-    slots: any[];
+    slots: InventoryItem[];
     columns?: number;
     rows?: number;
     slotSize?: number;
@@ -129,35 +130,34 @@ function RPGInventory({ slots = [], columns = 5, slotSize = 44, style }: SimpleI
 }
 
 export function HUD() {
-    // All gameplay stats from unified gameStore
-    // Primitives are safe
-    const health = useGameStore((s) => s.player?.health ?? 0);
-    const maxHealth = useGameStore((s) => s.player?.maxHealth ?? 100);
-    const stamina = useGameStore((s) => s.player?.stamina ?? 0);
-    const maxStamina = useGameStore((s) => s.player?.maxStamina ?? 100);
-    const level = useGameStore((s) => s.player?.level ?? 1);
-    const experience = useGameStore((s) => s.player?.experience ?? 0);
-    const expToNext = useGameStore((s) => s.player?.expToNext ?? 1000);
-    const gold = useGameStore((s) => s.player?.gold ?? 0);
+    // RPG Stats - Using granular selectors to minimize re-renders
+    const health = useRPGStore((s) => s.player.health);
+    const maxHealth = useRPGStore((s) => s.player.maxHealth);
+    const stamina = useRPGStore((s) => s.player.stamina);
+    const maxStamina = useRPGStore((s) => s.player.maxStamina);
+    const level = useRPGStore((s) => s.player.level);
+    const experience = useRPGStore((s) => s.player.experience);
+    const expToNext = useRPGStore((s) => s.player.expToNext);
+    const gold = useRPGStore((s) => s.player.gold);
+    const inventory = useRPGStore((s) => s.player.inventory);
+    const nearbyResource = useRPGStore((s) => s.nearbyResource);
+    const toggleShop = useRPGStore((s) => s.toggleShop);
 
-    // Stable selectors for objects/arrays
-    const nearbyResource = useGameStore((s) => s.nearbyResource);
-    const score = useGameStore((s) => s.score ?? 0);
-    const distance = useGameStore((s) => s.distance ?? 0);
+    // Engine/Physics Stats
+    const score = useEngineStore((s) => s.score);
+    const distance = useEngineStore((s) => s.distance);
+    const showHelpSetting = useEngineStore((s) => s.settings.showHelp);
+    const isPaused = useEngineStore((s) => s.isPaused);
+    const setPaused = useEngineStore((s) => s.setPaused);
+    const setGameMode = useEngineStore((s) => s.setGameMode);
 
-    // Settings & Inventory
-    const showHelpSetting = useGameStore((s) => s.settings?.showHelp ?? true);
-    const inventory = useGameStore((s) => s.player?.inventory);
     const safeInventory = useMemo(() => inventory ?? [], [inventory]);
-
-    const toggleShop = useGameStore((s) => s.toggleShop);
+    const [showSettings, setShowSettings] = useState(false);
 
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');
-    const [isPaused, setIsPaused] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
 
-    // Update time and weather from ECS
+    // Update time and weather from ECS - optimized interval
     useEffect(() => {
         const interval = setInterval(() => {
             // Time
@@ -196,32 +196,25 @@ export function HUD() {
 
     const getWeatherIcon = (weather: string) => {
         switch (weather) {
-            case 'clear':
-                return '☀️';
-            case 'rain':
-                return '🌧️';
-            case 'fog':
-                return '🌫️';
-            case 'snow':
-                return '❄️';
-            case 'storm':
-                return '⛈️';
-            case 'sandstorm':
-                return '🌪️';
-            default:
-                return '☀️';
+            case 'clear': return '☀️';
+            case 'rain': return '🌧️';
+            case 'fog': return '🌫️';
+            case 'snow': return '❄️';
+            case 'storm': return '⛈️';
+            case 'sandstorm': return '🌪️';
+            default: return '☀️';
         }
     };
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
-                setIsPaused((prev) => !prev);
+                setPaused(!isPaused);
             }
         };
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, []);
+    }, [isPaused, setPaused]);
 
     return (
         <div
@@ -314,7 +307,7 @@ export function HUD() {
                     </div>
                 </div>
                 <button
-                    onClick={() => useGameStore.getState().setGameMode('examples')}
+                    onClick={() => setGameMode('examples')}
                     style={{
                         background: 'rgba(212, 175, 55, 0.4)',
                         border: '1px solid #d4af37',
@@ -332,7 +325,7 @@ export function HUD() {
                     Examples
                 </button>
                 <button
-                    onClick={() => setIsPaused(true)}
+                    onClick={() => setPaused(true)}
                     style={{
                         background: 'rgba(0, 0, 0, 0.4)',
                         border: '1px solid rgba(255, 255, 255, 0.4)',
@@ -572,10 +565,10 @@ export function HUD() {
             {/* Pause Menu */}
             {isPaused && !showSettings && (
                 <PauseMenu
-                    onResume={() => setIsPaused(false)}
+                    onResume={() => setPaused(false)}
                     onSettings={() => setShowSettings(true)}
                     onShop={() => {
-                        setIsPaused(false);
+                        setPaused(false);
                         toggleShop();
                     }}
                     onQuit={() => window.location.reload()} // Simple quit for now

@@ -3,7 +3,7 @@ import { Html, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/dr
 import { useFrame } from '@react-three/fiber';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 import { ASSET_URLS, RACING_CONFIG, VISUAL } from './constants';
 import { useRacingStore } from './store';
 import { type RacingEntity, racingWorld } from './world';
@@ -187,7 +187,7 @@ function Collectibles() {
 
 function RacingHUD() {
     const { score, lives, distance, status, startGame } = useRacingStore();
-    const setGameMode = useGameStore((state) => state.setGameMode);
+    const setGameMode = useEngineStore((state) => state.setGameMode);
 
     return (
         <Html fullscreen>

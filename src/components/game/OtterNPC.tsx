@@ -3,7 +3,8 @@ import { useFrame } from '@react-three/fiber';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
-import { type OtterNPC as OtterNPCType, useGameStore } from '@/stores/gameStore';
+import { useEngineStore, useRPGStore } from '@/stores';
+import type { OtterNPC as OtterNPCType } from '@/stores';
 
 interface OtterNPCProps {
     npc: OtterNPCType;
@@ -11,7 +12,8 @@ interface OtterNPCProps {
 
 export function OtterNPC({ npc }: OtterNPCProps) {
     const meshRef = useRef<THREE.Group>(null);
-    const { player, startDialogue, damageNPC } = useGameStore();
+    const playerPosition = useEngineStore((s) => s.player.position);
+    const { startDialogue, damageNPC } = useRPGStore();
     const interactAction = useControlsStore((state) => state.actions.interact);
     const isInRange = useRef(false);
     const currentDistance = useRef(Infinity);
@@ -65,7 +67,7 @@ export function OtterNPC({ npc }: OtterNPCProps) {
             return;
         }
 
-        const playerPos = player.position;
+        const playerPos = playerPosition;
         // Use current mesh position for distance calculations, not spawn position
         const currentNpcPos = meshRef.current.position.clone();
 
@@ -299,7 +301,7 @@ const initialNPCs: OtterNPCType[] = [
 ];
 
 export function NPCManager() {
-    const { npcs, spawnNPC } = useGameStore();
+    const { npcs, spawnNPC } = useRPGStore();
     const hasInitialized = useRef(false);
 
     useEffect(() => {

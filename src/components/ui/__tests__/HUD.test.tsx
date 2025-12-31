@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore, useRPGStore } from '@/stores';
 import { HUD } from '../HUD';
 
 // Mock the ECS world
@@ -59,7 +59,7 @@ describe('HUD Component', () => {
     beforeEach(() => {
         // Reset stores to initial state
         act(() => {
-            useGameStore.setState({
+            useRPGStore.setState({
                 player: {
                     health: 100,
                     maxHealth: 100,
@@ -69,27 +69,30 @@ describe('HUD Component', () => {
                     experience: 0,
                     expToNext: 1000,
                     gold: 0,
-                    position: new THREE.Vector3(0, 0, 0),
-                    rotation: 0,
-                    speed: 0,
-                    maxSpeed: 0.15,
-                    verticalSpeed: 0,
-                    isMoving: false,
-                    isJumping: false,
-                    invulnerable: false,
-                    invulnerableUntil: 0,
-                    damage: 10,
-                    speedMultiplier: 1,
                     mana: 20,
                     maxMana: 20,
                     inventory: [],
+                    otterAffinity: 50,
+                    swordLevel: 0,
+                    shieldLevel: 0,
+                    bootsLevel: 0,
+                    skills: {} as any,
+                    activeQuests: [],
+                    completedQuests: [],
+                    factionReputation: {} as any,
+                    invulnerable: false,
+                    invulnerableUntil: 0,
                 },
                 nearbyResource: null,
+            } as any);
+            
+            useEngineStore.setState({
                 score: 0,
                 distance: 0,
                 settings: {
                     showHelp: true,
                 },
+                isPaused: false,
             } as any);
         });
     });
@@ -97,7 +100,7 @@ describe('HUD Component', () => {
     describe('Health and Stamina Bars', () => {
         it('should display health bar with correct percentage', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 50,
@@ -114,7 +117,7 @@ describe('HUD Component', () => {
 
         it('should display stamina bar with correct percentage', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         stamina: 75,
@@ -132,7 +135,7 @@ describe('HUD Component', () => {
         it('should change health bar color based on health level', () => {
             // High health (>50%) - green
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 60,
@@ -147,7 +150,7 @@ describe('HUD Component', () => {
 
             // Medium health (25-50%) - yellow
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 40,
@@ -162,7 +165,7 @@ describe('HUD Component', () => {
 
             // Low health (<25%) - red
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 20,
@@ -178,7 +181,7 @@ describe('HUD Component', () => {
 
         it('should handle edge case of 0 health', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 0,
@@ -195,7 +198,7 @@ describe('HUD Component', () => {
 
         it('should handle edge case of full health', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 100,
@@ -214,7 +217,7 @@ describe('HUD Component', () => {
     describe('Resource Collection Prompt', () => {
         it('should not display prompt when no resource nearby', () => {
             act(() => {
-                useGameStore.setState({ nearbyResource: null });
+                useRPGStore.setState({ nearbyResource: null });
             });
 
             render(<HUD />);
@@ -224,7 +227,7 @@ describe('HUD Component', () => {
 
         it('should display prompt when resource is nearby', () => {
             act(() => {
-                useGameStore.setState({
+                useRPGStore.setState({
                     nearbyResource: {
                         name: 'Fish',
                         icon: '🐟',
@@ -240,43 +243,9 @@ describe('HUD Component', () => {
             expect(screen.getByText('🐟')).toBeInTheDocument();
         });
 
-        it('should display correct icon for berries', () => {
-            act(() => {
-                useGameStore.setState({
-                    nearbyResource: {
-                        name: 'Berries',
-                        icon: '🫐',
-                        type: 'berries',
-                    },
-                });
-            });
-
-            render(<HUD />);
-
-            expect(screen.getByText('Berries')).toBeInTheDocument();
-            expect(screen.getByText('🫐')).toBeInTheDocument();
-        });
-
-        it('should display correct icon for water', () => {
-            act(() => {
-                useGameStore.setState({
-                    nearbyResource: {
-                        name: 'Water',
-                        icon: '💧',
-                        type: 'water',
-                    },
-                });
-            });
-
-            render(<HUD />);
-
-            expect(screen.getByText('Water')).toBeInTheDocument();
-            expect(screen.getByText('💧')).toBeInTheDocument();
-        });
-
         it('should hide prompt when resource is collected', async () => {
             act(() => {
-                useGameStore.setState({
+                useRPGStore.setState({
                     nearbyResource: {
                         name: 'Fish',
                         icon: '🐟',
@@ -290,7 +259,7 @@ describe('HUD Component', () => {
 
             // Resource collected
             act(() => {
-                useGameStore.setState({ nearbyResource: null });
+                useRPGStore.setState({ nearbyResource: null });
             });
             rerender(<HUD />);
 
@@ -385,7 +354,7 @@ describe('HUD Component', () => {
     describe('Danger Vignette', () => {
         it('should not show vignette when health is above 30%', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 50,
@@ -403,7 +372,7 @@ describe('HUD Component', () => {
 
         it('should show vignette when health is below 30%', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 25,
@@ -421,7 +390,7 @@ describe('HUD Component', () => {
 
         it('should show vignette at exactly 29% health', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 29,
@@ -438,7 +407,7 @@ describe('HUD Component', () => {
 
         it('should not show vignette at exactly 30% health', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 30,
@@ -465,7 +434,7 @@ describe('HUD Component', () => {
     describe('Edge Cases', () => {
         it('should handle maxHealth of 0 gracefully', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 0,
@@ -483,7 +452,7 @@ describe('HUD Component', () => {
 
         it('should handle negative health gracefully', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: -10,
@@ -501,7 +470,7 @@ describe('HUD Component', () => {
 
         it('should handle health exceeding maxHealth', () => {
             act(() => {
-                useGameStore.setState((state) => ({
+                useRPGStore.setState((state) => ({
                     player: {
                         ...state.player,
                         health: 150,

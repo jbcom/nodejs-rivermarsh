@@ -1,5 +1,5 @@
 import { world } from '../world';
-import { useGameStore } from '../../stores/gameStore';
+import { useEngineStore, useRPGStore } from '../../stores';
 import { BOSSES } from '../data/bosses';
 import { combatEvents } from '../../events/combatEvents';
 
@@ -14,16 +14,18 @@ const SPELL_DAMAGE_MIN = 3;
 const SPELL_DAMAGE_MAX = 6;
 const SPECIAL_ABILITY_COOLDOWN = 3;
 
+/**
+ * BossBattleSystem - Handles turn-based boss combat.
+ * Optimized to use engineStore for game mode and rpgStore for player/boss stats.
+ */
 export function BossBattleSystem() {
-    const {
-        gameMode,
-        activeBossId,
-        damagePlayer,
-        addExperience,
-        addGold,
-        setGameMode,
-        setActiveBossId,
-    } = useGameStore.getState();
+    const { gameMode } = useEngineStore.getState();
+    const { 
+        activeBossId, 
+        damagePlayer, 
+        addExperience, 
+        addGold 
+    } = useRPGStore.getState();
 
     if (gameMode !== 'boss_battle' || activeBossId === null) {
         return;
@@ -32,8 +34,8 @@ export function BossBattleSystem() {
     const bossEntity = world.entities.find((e) => e.id === activeBossId);
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) {
         // If boss is gone or invalid, return to exploration
-        setGameMode('exploration');
-        setActiveBossId(null);
+        useEngineStore.getState().setGameMode('exploration');
+        useRPGStore.getState().setActiveBossId(null);
         return;
     }
 
@@ -50,7 +52,7 @@ export function BossBattleSystem() {
                 !currentBoss ||
                 !currentBoss.boss ||
                 !currentBoss.combat ||
-                useGameStore.getState().gameMode !== 'boss_battle'
+                useEngineStore.getState().gameMode !== 'boss_battle'
             ) {
                 if (currentBoss?.boss) {
                     currentBoss.boss.isProcessingTurn = false;
@@ -113,14 +115,18 @@ export function BossBattleSystem() {
         world.remove(bossEntity);
 
         // Back to exploration
-        setGameMode('exploration');
-        setActiveBossId(null);
+        useEngineStore.getState().setGameMode('exploration');
+        useRPGStore.getState().setActiveBossId(null);
     }
 }
 
-// Function to handle player actions (called from UI)
+/**
+ * Function to handle player actions in boss battles (called from UI).
+ */
 export function handlePlayerAction(action: 'attack' | 'spell') {
-    const { activeBossId, player, useMana } = useGameStore.getState();
+    const rpgStore = useRPGStore.getState();
+    const { activeBossId, player, useMana } = rpgStore;
+    
     if (activeBossId === null) {
         return;
     }
@@ -139,13 +145,13 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
     let success = false;
 
     if (action === 'attack') {
-        // Attack: Random 2-4 damage + sword level (from Rivers of Reckoning specs)
+        // Attack: Random 2-4 damage + sword level
         const swordLevel = player.swordLevel || 0;
         damage = (Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) + PLAYER_ATTACK_MIN) + swordLevel;
         success = true;
         combat.lastAction = `Player attacked for ${damage} damage`;
     } else if (action === 'spell') {
-        // Spell: Fireball 3-6 damage, costs 3 mana (from Rivers of Reckoning specs)
+        // Spell: Fireball 3-6 damage, costs 3 mana
         if (useMana(SPELL_MANA_COST)) {
             damage =
                 Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) +
@@ -162,12 +168,11 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
     if (success) {
         species.health = Math.max(0, species.health - damage);
         
-        // Emit damage event for visual indicators (from Strata)
+        // Emit damage event for visual indicators
         if (bossEntity.transform) {
             combatEvents.emitDamageEnemy(activeBossId, damage, bossEntity.transform.position.clone());
         }
         
         combat.turn = 'boss';
-        // In this version, the boss turn delay is handled by setTimeout in BossBattleSystem
     }
 }

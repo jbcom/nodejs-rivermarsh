@@ -5,7 +5,7 @@
  * This system only handles game logic like damage from predators.
  */
 
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore, useRPGStore } from '@/stores';
 import { PREDATOR_SPECIES } from '../data/species';
 import { world } from '../world';
 import { applyCurse } from './EnemyEffectsSystem';
@@ -25,8 +25,8 @@ export function CollisionSystem(delta: number) {
 
     lastCheckTime = 0;
 
-    const { player, damagePlayer } = useGameStore.getState();
-    const playerPos = player.position;
+    const { position } = useEngineStore.getState().player;
+    const { player: playerRPG, damagePlayer } = useRPGStore.getState();
 
     // Check collisions with predator NPCs for damage
     for (const entity of world.with('isNPC', 'transform', 'species')) {
@@ -42,7 +42,7 @@ export function CollisionSystem(delta: number) {
             continue;
         }
 
-        const distance = playerPos.distanceTo(entity.transform.position);
+        const distance = position.distanceTo(entity.transform.position);
         const collisionDistance = PLAYER_RADIUS + NPC_RADIUS;
 
         if (distance < collisionDistance) {
@@ -59,7 +59,7 @@ export function CollisionSystem(delta: number) {
                 const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
 
                 const baseDamage = combatData ? combatData.damage : (speciesData?.damage ?? 5);
-                const shieldLevel = player.shieldLevel;
+                const shieldLevel = playerRPG.shieldLevel;
                 const finalDamage = Math.max(
                     0,
                     baseDamage * difficultyMultiplier * bloodMoonMultiplier - shieldLevel
@@ -69,7 +69,7 @@ export function CollisionSystem(delta: number) {
 
                 // Apply special effects on hit
                 if (entity.enemyEffect?.type === 'curse') {
-                    if (player.bootsLevel > 0) {
+                    if (playerRPG.bootsLevel > 0) {
                         console.log('Curse negated by Boots!');
                     } else {
                         applyCurse();
