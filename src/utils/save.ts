@@ -1,5 +1,7 @@
 import type * as THREE from 'three';
 import { world } from '@/ecs/world';
+import type { Quest } from '@/stores/gameStore';
+import type { Achievement } from '@/stores/useAchievementStore';
 
 export interface SaveData {
     version: string;
@@ -12,6 +14,9 @@ export interface SaveData {
         experience: number;
         mana?: number;
         gold?: number;
+        activeQuests?: Quest[];
+        completedQuests?: Quest[];
+        achievements?: Achievement[];
     };
     world: {
         time: number;
@@ -25,7 +30,8 @@ export interface SaveData {
 }
 
 const SAVE_KEY = 'rivermarsh_save';
-const SAVE_VERSION = '1.0.0';
+export const SAVE_VERSION = '1.1.0';
+const SUPPORTED_VERSIONS = ['1.0.0', '1.1.0'];
 
 export function saveGame(playerState: {
     position: THREE.Vector3;
@@ -35,6 +41,9 @@ export function saveGame(playerState: {
     experience: number;
     mana: number;
     gold: number;
+    activeQuests: Quest[];
+    completedQuests: Quest[];
+    achievements: Achievement[];
 }): void {
     try {
         // Get world state from ECS
@@ -66,6 +75,9 @@ export function saveGame(playerState: {
                 experience: playerState.experience,
                 mana: playerState.mana,
                 gold: playerState.gold,
+                activeQuests: playerState.activeQuests,
+                completedQuests: playerState.completedQuests,
+                achievements: playerState.achievements,
             },
             world: {
                 time: timeHour,
@@ -103,36 +115,50 @@ function isValidSaveData(data: any): data is SaveData {
     }
 
     // Type validation for optional fields (backward compatibility)
-    if (data.player.health !== undefined && typeof data.player.health !== 'number') {
-        return false;
+    const optionalNumberFields = ['health', 'stamina', 'level', 'experience', 'mana', 'gold'];
+    for (const field of optionalNumberFields) {
+        if (data.player[field] !== undefined && typeof data.player[field] !== 'number') {
+            return false;
+        }
     }
-    if (data.player.stamina !== undefined && typeof data.player.stamina !== 'number') {
-        return false;
+
+    // New RPG fields validation
+    if (data.player.activeQuests !== undefined) {
+        if (!Array.isArray(data.player.activeQuests)) return false;
+        for (const quest of data.player.activeQuests) {
+            if (!quest || typeof quest.id !== 'string' || typeof quest.status !== 'string') return false;
+        }
     }
-    if (data.player.level !== undefined && typeof data.player.level !== 'number') {
-        return false;
+    if (data.player.completedQuests !== undefined) {
+        if (!Array.isArray(data.player.completedQuests)) return false;
+        for (const quest of data.player.completedQuests) {
+            if (!quest || typeof quest.id !== 'string' || quest.status !== 'completed') return false;
+        }
     }
-    if (data.player.experience !== undefined && typeof data.player.experience !== 'number') {
-        return false;
-    }
-    if (data.player.mana !== undefined && typeof data.player.mana !== 'number') {
-        return false;
-    }
-    if (data.player.gold !== undefined && typeof data.player.gold !== 'number') {
-        return false;
+    if (data.player.achievements !== undefined) {
+        if (!Array.isArray(data.player.achievements)) return false;
+        for (const achievement of data.player.achievements) {
+            if (!achievement || typeof achievement.id !== 'string' || (achievement.unlockedAt !== null && typeof achievement.unlockedAt !== 'number')) return false;
+        }
     }
 
     // Range validation to prevent corrupted save data
-    if ((data.player.health ?? 0) < 0) {
+    if (data.player.health !== undefined && data.player.health < 0) {
         return false;
     }
-    if ((data.player.stamina ?? 0) < 0) {
+    if (data.player.stamina !== undefined && data.player.stamina < 0) {
         return false;
     }
-    if ((data.player.level ?? 1) < 1) {
+    if (data.player.level !== undefined && data.player.level < 1) {
         return false;
     }
-    if ((data.player.experience ?? 0) < 0) {
+    if (data.player.experience !== undefined && data.player.experience < 0) {
+        return false;
+    }
+    if (data.player.mana !== undefined && data.player.mana < 0) {
+        return false;
+    }
+    if (data.player.gold !== undefined && data.player.gold < 0) {
         return false;
     }
 
@@ -173,9 +199,9 @@ export function loadGame(): SaveData | null {
 
         const data = JSON.parse(savedData);
 
-        // Version check
-        if (data.version !== SAVE_VERSION) {
-            console.warn('Save data version mismatch, ignoring save');
+        // Version check with backward compatibility
+        if (!SUPPORTED_VERSIONS.includes(data.version)) {
+            console.warn(`Unsupported save data version: ${data.version}. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`);
             return null;
         }
 
@@ -183,6 +209,15 @@ export function loadGame(): SaveData | null {
         if (!isValidSaveData(data)) {
             console.warn('Save data schema validation failed, ignoring save');
             return null;
+        }
+
+        // Ensure defaults for backward compatibility (1.0.0 -> 1.1.0)
+        if (data.version === '1.0.0') {
+            data.player.mana = data.player.mana ?? 20;
+            data.player.gold = data.player.gold ?? 0;
+            data.player.activeQuests = data.player.activeQuests ?? [];
+            data.player.completedQuests = data.player.completedQuests ?? [];
+            data.player.achievements = data.player.achievements ?? [];
         }
 
         return data;
