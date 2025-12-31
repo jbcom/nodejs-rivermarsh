@@ -1,22 +1,25 @@
 import { useEffect, useState } from 'react';
-import { type InventoryItem, type Quest, useGameStore } from '@/stores/gameStore';
+import { useEngineStore, useRPGStore } from '@/stores';
+import type { InventoryItem, Quest } from '@/stores';
 import { ShopPanel } from './ShopPanel';
 
 const MAX_DISPLAYED_SKILLS = 4;
 
 export function GameUI() {
-    const {
-        showInventory,
-        showQuestLog,
-        showShop,
-        activeDialogue,
-        toggleInventory,
-        toggleQuestLog,
-        toggleShop,
-        nextDialogue,
-        endDialogue,
-        setGameMode,
-    } = useGameStore();
+    // RPG Actions
+    const showInventory = useRPGStore((s) => s.showInventory);
+    const showQuestLog = useRPGStore((s) => s.showQuestLog);
+    const showShop = useRPGStore((s) => s.showShop);
+    const activeDialogue = useRPGStore((s) => s.activeDialogue);
+    
+    const toggleInventory = useRPGStore((s) => s.toggleInventory);
+    const toggleQuestLog = useRPGStore((s) => s.toggleQuestLog);
+    const toggleShop = useRPGStore((s) => s.toggleShop);
+    const nextDialogue = useRPGStore((s) => s.nextDialogue);
+    const endDialogue = useRPGStore((s) => s.endDialogue);
+
+    // Engine Actions
+    const setGameMode = useEngineStore((s) => s.setGameMode);
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
@@ -73,7 +76,7 @@ export function GameUI() {
  * Core stats (health, stamina, gold, XP) are shown in the main HUD
  */
 function StatsDisplay() {
-    const { player } = useGameStore();
+    const player = useRPGStore((s) => s.player);
     const [expanded, setExpanded] = useState(false);
 
     // Only show skills panel when expanded
@@ -193,7 +196,8 @@ function StatsDisplay() {
 }
 
 function InventoryPanel() {
-    const { player, toggleInventory } = useGameStore();
+    const player = useRPGStore((s) => s.player);
+    const toggleInventory = useRPGStore((s) => s.toggleInventory);
 
     return (
         <div
@@ -359,7 +363,8 @@ function InventoryPanel() {
 }
 
 function QuestLogPanel() {
-    const { player, toggleQuestLog } = useGameStore();
+    const player = useRPGStore((s) => s.player);
+    const toggleQuestLog = useRPGStore((s) => s.toggleQuestLog);
 
     return (
         <div
@@ -621,7 +626,10 @@ function QuestLogPanel() {
 }
 
 function DialogueBox() {
-    const { activeDialogue, nextDialogue, endDialogue } = useGameStore();
+    const activeDialogue = useRPGStore((s) => s.activeDialogue);
+    const nextDialogue = useRPGStore((s) => s.nextDialogue);
+    const endDialogue = useRPGStore((s) => s.endDialogue);
+    
     const [currentDialogue, setCurrentDialogue] = useState(activeDialogue);
     const [isVisible, setVisible] = useState(false);
 

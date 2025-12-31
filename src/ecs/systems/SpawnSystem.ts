@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { LEVELING } from '@/constants/game';
-import { useGameStore } from '@/stores/gameStore';
+import { useRPGStore } from '@/stores';
 import { BIOMES } from '../data/biomes';
 import { PREDATOR_SPECIES, PREY_SPECIES } from '../data/species';
 import { world } from '../world';
@@ -148,6 +148,10 @@ function spawnNPC(speciesId: string, type: 'predator' | 'prey', playerPos: THREE
     world.add(entity);
 }
 
+/**
+ * SpawnSystem - Handles NPC spawning and cleanup.
+ * Uses rpgStore for experience awards and difficulty settings.
+ */
 export function SpawnSystem(playerPos: THREE.Vector3) {
     // Initialize spawns on first call
     if (!initialized) {
@@ -192,7 +196,7 @@ export function SpawnSystem(playerPos: THREE.Vector3) {
                             ? LEVELING.PREDATOR_XP
                             : LEVELING.PREY_XP;
                     const finalXP = baseXP * difficulty.experienceMultiplier;
-                    useGameStore.getState().addExperience(finalXP);
+                    useRPGStore.getState().addExperience(finalXP);
                 }
             }
             world.remove(entity);

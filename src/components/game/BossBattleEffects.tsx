@@ -3,10 +3,11 @@ import { useFrame } from '@react-three/fiber';
 import type React from 'react';
 import { useState } from 'react';
 import { world } from '../../ecs/world';
-import { useGameStore } from '../../stores/gameStore';
+import { useEngineStore, useRPGStore } from '../../stores';
 
 export const BossBattleEffects: React.FC = () => {
-    const { gameMode, activeBossId } = useGameStore();
+    const gameMode = useEngineStore((s) => s.gameMode);
+    const activeBossId = useRPGStore((s) => s.activeBossId);
     const [bossPosition, setBossPosition] = useState<[number, number, number]>([0, 0, 0]);
     const [spellActive, setSpellActive] = useState(false);
 

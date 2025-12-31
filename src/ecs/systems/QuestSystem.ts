@@ -1,5 +1,5 @@
 import { world } from '../world';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useRPGStore } from '@/stores';
 import type { QuestObjectiveType, QuestComponent } from '../components';
 
 /**

@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { world } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 
 const BASE_CAMERA_OFFSET = new THREE.Vector3(0, 3.5, -5);
 const LOOK_OFFSET = new THREE.Vector3(0, 0.5, 0);
@@ -13,7 +13,7 @@ const DEFAULT_ZOOM = 1.0;
 const ZOOM_SENSITIVITY = 0.01;
 
 export function FollowCamera() {
-    const player = useGameStore((s) => s.player);
+    const playerPosition = useEngineStore((s) => s.player.position);
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
     const lastPinchDistanceRef = useRef<number | null>(null);
 
@@ -98,7 +98,7 @@ export function FollowCamera() {
         // Apply zoom to camera offset (reuse vector to avoid GC pressure)
         cameraOffsetRef.current.copy(BASE_CAMERA_OFFSET).multiplyScalar(zoomLevel);
 
-        const { position: playerPos } = player;
+        const playerPos = playerPosition;
 
         // Target position: behind and above player
         idealPosRef.current.set(

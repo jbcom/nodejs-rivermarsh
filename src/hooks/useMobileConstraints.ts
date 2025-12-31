@@ -3,6 +3,7 @@
  * Handles orientation, safe areas, foldables, lifecycle
  */
 
+import { useEngineStore } from '@/stores';
 import { useCallback, useEffect, useState } from 'react';
 
 export interface MobileConstraints {
@@ -160,7 +161,7 @@ export function useMobileConstraints(): MobileConstraints {
         const handleVisibilityChange = () => {
             if (document.hidden) {
                 // App backgrounded
-                // useGameStore.getState().setPaused(true); // if paused existed
+                useEngineStore.getState().setPaused(true);
             }
         };
 

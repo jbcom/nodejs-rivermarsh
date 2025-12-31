@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 
 export function MainMenu() {
-    const setGameMode = useGameStore((s) => s.setGameMode);
+    const setGameMode = useEngineStore((s) => s.setGameMode);
     const [isVisible, setVisible] = useState(false);
     const [activeTab, setActiveTab] = useState<'main' | 'credits'>('main');
 

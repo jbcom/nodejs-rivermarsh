@@ -3,10 +3,11 @@ import { useEffect } from 'react';
 import { BOSSES } from '../../ecs/data/bosses';
 import { handlePlayerAction } from '../../ecs/systems/BossBattleSystem';
 import { world } from '../../ecs/world';
-import { useGameStore } from '../../stores/gameStore';
+import { useEngineStore, useRPGStore } from '../../stores';
 
 export const BossBattleOverlay: React.FC = () => {
-    const { gameMode, activeBossId, player } = useGameStore();
+    const gameMode = useEngineStore((s) => s.gameMode);
+    const { activeBossId, player } = useRPGStore();
 
     if (gameMode !== 'boss_battle' || activeBossId === null) {
         return null;

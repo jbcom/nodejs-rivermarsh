@@ -3,14 +3,14 @@ import { useEffect } from 'react';
 import * as THREE from 'three';
 import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
 import { world } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore, useRPGStore } from '@/stores';
 import { getAudioManager } from '@/utils/audioManager';
 
 const COLLECTION_DISTANCE = 1.5;
 
 export function TapToCollect() {
-    const { camera, scene } = useThree();
-    const playerPos = useGameStore((s) => s.player.position);
+    const { camera } = useThree();
+    const playerPos = useEngineStore((s) => s.player.position);
 
     useEffect(() => {
         const raycaster = new THREE.Raycaster();
@@ -55,7 +55,7 @@ export function TapToCollect() {
                     entity.resource.collectedAt = Date.now();
 
                     const { healPlayer, restoreStamina, addInventoryItem } =
-                        useGameStore.getState();
+                        useRPGStore.getState();
 
                     // Apply effects
                     if (entity.resource.healthRestore > 0) {

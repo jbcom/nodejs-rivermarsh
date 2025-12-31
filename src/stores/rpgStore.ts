@@ -1,12 +1,11 @@
-import * as THREE from 'three';
 import { create } from 'zustand';
 import { persist, subscribeWithSelector } from 'zustand/middleware';
 import { LEVELING, PLAYER } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
+import { useEngineStore } from './engineStore';
 
 // --- Types ---
 
-export type GameMode = 'main_menu' | 'exploration' | 'racing' | 'boss_battle' | 'examples';
 export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
 
 export type OtterFaction =
@@ -15,6 +14,7 @@ export type OtterFaction =
     | 'lone_wanderers'
     | 'elder_council'
     | 'neutral';
+
 export type QuestStatus = 'available' | 'active' | 'completed' | 'failed';
 
 export interface OtterSkill {
@@ -80,48 +80,19 @@ export interface OtterNPC {
     maxHealth?: number;
 }
 
-interface InputState {
-    direction: { x: number; y: number };
-    active: boolean;
-    jump: boolean;
-}
-
 interface NearbyResource {
     name: string;
     icon: string;
     type: string;
 }
 
-interface RockData {
-    position: [number, number, number];
-    scale: [number, number, number];
-    rotation: [number, number, number];
-    radius: number;
-}
-
 // --- Store Interface ---
 
-export interface GameState {
-    // World State
-    loaded: boolean;
-    gameMode: GameMode;
-    gameTime: number;
+export interface RPGState {
     difficulty: DifficultyLevel;
-    isPaused: boolean;
-    gameOver: boolean;
-
-    // Player State
+    
+    // Player Stats & RPG Attributes
     player: {
-        // Physics & Movement
-        position: THREE.Vector3;
-        rotation: number;
-        speed: number;
-        maxSpeed: number;
-        verticalSpeed: number;
-        isMoving: boolean;
-        isJumping: boolean;
-
-        // Stats
         health: number;
         maxHealth: number;
         stamina: number;
@@ -134,7 +105,7 @@ export interface GameState {
         expToNext: number;
         otterAffinity: number;
 
-        // Equipment & Skills
+        // RPG Progression
         swordLevel: number;
         shieldLevel: number;
         bootsLevel: number;
@@ -152,37 +123,26 @@ export interface GameState {
         invulnerableUntil: number;
     };
 
-    // World Entities
+    // World Entities (RPG perspective)
     npcs: OtterNPC[];
-    rocks: RockData[];
     nearbyResource: NearbyResource | null;
-
-    // Meta State
     activeBossId: number | null;
-    score: number;
-    distance: number;
-    input: InputState;
-    settings: {
-        soundEnabled: boolean;
-        musicEnabled: boolean;
-        volume: number;
-        showHelp: boolean;
-    };
+
+    // UI States (RPG-related)
+    showInventory: boolean;
+    showQuestLog: boolean;
+    showShop: boolean;
+    activeDialogue: {
+        npcId: string;
+        npcName: string;
+        messages: string[];
+        currentIndex: number;
+    } | null;
 
     // --- Actions ---
-
-    // System Actions
-    setLoaded: (loaded: boolean) => void;
-    setGameMode: (mode: GameMode) => void;
-    updateTime: (delta: number) => void;
     setDifficulty: (difficulty: DifficultyLevel) => void;
-    togglePause: () => void;
-    setPaused: (isPaused: boolean) => void;
-    setGameOver: (gameOver: boolean) => void;
-
-    // Player Actions
-    updatePlayer: (updates: any) => void;
-    updatePlayerPosition: (position: THREE.Vector3) => void;
+    
+    // Player RPG Actions
     damagePlayer: (amount: number) => void;
     healPlayer: (amount: number) => void;
     consumeStamina: (amount: number) => void;
@@ -192,9 +152,8 @@ export interface GameState {
     addExperience: (amount: number) => void;
     addGold: (amount: number) => void;
     spendGold: (amount: number) => boolean;
-    respawn: () => void;
-
-    // RPG Actions
+    
+    // Progression Actions
     improveSkill: (skillType: SkillType, experienceAmount: number) => void;
     addInventoryItem: (item: InventoryItem) => void;
     removeInventoryItem: (itemId: string, quantity: number) => void;
@@ -206,59 +165,30 @@ export interface GameState {
     updateFactionReputation: (faction: OtterFaction, amount: number) => void;
 
     // UI Actions
-    showInventory: boolean;
-    showQuestLog: boolean;
-    showShop: boolean;
     toggleInventory: () => void;
     toggleQuestLog: () => void;
     toggleShop: () => void;
-
-    // Dialogue Actions
-    activeDialogue: {
-        npcId: string;
-        npcName: string;
-        messages: string[];
-        currentIndex: number;
-    } | null;
     startDialogue: (npcId: string, npcName: string, messages: string[]) => void;
     nextDialogue: () => void;
     endDialogue: () => void;
 
-    // World Actions
-    setRocks: (rocks: any[]) => void;
+    // World RPG Actions
     spawnNPC: (npc: OtterNPC) => void;
     removeNPC: (npcId: string) => void;
     damageNPC: (npcId: string, amount: number) => void;
     setNearbyResource: (resource: NearbyResource | null) => void;
-
-    // Meta Actions
     setActiveBossId: (id: number | null) => void;
-    addScore: (amount: number) => void;
-    setDistance: (distance: number) => void;
-    setInput: (x: number, y: number, active: boolean, jump: boolean) => void;
-    updateSettings: (settings: Partial<GameState['settings']>) => void;
+    
+    respawn: () => void;
+    resetRPG: () => void;
 }
 
-export const useGameStore = create<GameState>()(
+export const useRPGStore = create<RPGState>()(
     subscribeWithSelector(
         persist(
             (set, get) => ({
-                // --- Initial State ---
-                loaded: false,
-                gameMode: 'main_menu',
-                gameTime: 0,
                 difficulty: 'normal',
-                isPaused: false,
-                gameOver: false,
-
                 player: {
-                    position: new THREE.Vector3(0, 1, 0),
-                    rotation: 0,
-                    speed: 0,
-                    maxSpeed: 0.15,
-                    verticalSpeed: 0,
-                    isMoving: false,
-                    isJumping: false,
                     health: PLAYER.INITIAL_HEALTH,
                     maxHealth: PLAYER.INITIAL_HEALTH,
                     stamina: PLAYER.INITIAL_STAMINA,
@@ -274,44 +204,14 @@ export const useGameStore = create<GameState>()(
                     shieldLevel: 0,
                     bootsLevel: 0,
                     skills: {
-                        swimming: {
-                            name: 'Swimming',
-                            level: 1,
-                            experience: 0,
-                            experienceToNext: 100,
-                        },
+                        swimming: { name: 'Swimming', level: 1, experience: 0, experienceToNext: 100 },
                         diving: { name: 'Diving', level: 1, experience: 0, experienceToNext: 100 },
-                        fishing: {
-                            name: 'Fishing',
-                            level: 1,
-                            experience: 0,
-                            experienceToNext: 100,
-                        },
+                        fishing: { name: 'Fishing', level: 1, experience: 0, experienceToNext: 100 },
                         combat: { name: 'Combat', level: 1, experience: 0, experienceToNext: 100 },
-                        sneaking: {
-                            name: 'Sneaking',
-                            level: 1,
-                            experience: 0,
-                            experienceToNext: 100,
-                        },
-                        climbing: {
-                            name: 'Climbing',
-                            level: 1,
-                            experience: 0,
-                            experienceToNext: 100,
-                        },
-                        foraging: {
-                            name: 'Foraging',
-                            level: 1,
-                            experience: 0,
-                            experienceToNext: 100,
-                        },
-                        crafting: {
-                            name: 'Crafting',
-                            level: 1,
-                            experience: 0,
-                            experienceToNext: 100,
-                        },
+                        sneaking: { name: 'Sneaking', level: 1, experience: 0, experienceToNext: 100 },
+                        climbing: { name: 'Climbing', level: 1, experience: 0, experienceToNext: 100 },
+                        foraging: { name: 'Foraging', level: 1, experience: 0, experienceToNext: 100 },
+                        crafting: { name: 'Crafting', level: 1, experience: 0, experienceToNext: 100 },
                     },
                     inventory: [
                         {
@@ -335,45 +235,15 @@ export const useGameStore = create<GameState>()(
                     invulnerable: false,
                     invulnerableUntil: 0,
                 },
-
                 npcs: [],
-                rocks: [],
                 nearbyResource: null,
                 activeBossId: null,
-                score: 0,
-                distance: 0,
-                input: { direction: { x: 0, y: 0 }, active: false, jump: false },
-                settings: {
-                    soundEnabled: true,
-                    musicEnabled: true,
-                    volume: 0.8,
-                    showHelp: true,
-                },
-
                 showInventory: false,
                 showQuestLog: false,
                 showShop: false,
                 activeDialogue: null,
 
-                // --- Actions ---
-
-                setLoaded: (loaded) => set({ loaded }),
-                setGameMode: (mode) => set({ gameMode: mode }),
-                updateTime: (delta) => set((state) => ({ gameTime: state.gameTime + delta })),
                 setDifficulty: (difficulty) => set({ difficulty }),
-                togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
-                setPaused: (isPaused) => set({ isPaused }),
-                setGameOver: (gameOver) => set({ gameOver }),
-
-                updatePlayer: (updates) =>
-                    set((state) => ({
-                        player: { ...state.player, ...updates },
-                    })),
-
-                updatePlayerPosition: (position) =>
-                    set((state) => ({
-                        player: { ...state.player, position },
-                    })),
 
                 damagePlayer: (amount) =>
                     set((state) => {
@@ -384,8 +254,11 @@ export const useGameStore = create<GameState>()(
                             return state;
                         }
                         const newHealth = Math.max(0, state.player.health - amount);
-                        const gameOver = newHealth <= 0;
-
+                        
+                        if (newHealth <= 0) {
+                            useEngineStore.getState().setGameOver(true);
+                        }
+                        
                         const audioManager = getAudioManager();
                         if (audioManager) {
                             audioManager.playSound('damage', 0.5);
@@ -397,7 +270,6 @@ export const useGameStore = create<GameState>()(
                                 health: newHealth,
                                 invulnerableUntil: Date.now() + 1000,
                             },
-                            gameOver: gameOver || state.gameOver,
                         };
                     }),
 
@@ -480,7 +352,7 @@ export const useGameStore = create<GameState>()(
                             mana = maxMana;
                             const audioManager = getAudioManager();
                             if (audioManager) {
-                                audioManager.playSound('level-up' as any, 0.7);
+                                audioManager.playSound('level-up', 0.7);
                             }
                         }
 
@@ -519,23 +391,6 @@ export const useGameStore = create<GameState>()(
                     });
                     return success;
                 },
-
-                respawn: () =>
-                    set((state) => ({
-                        player: {
-                            ...state.player,
-                            position: new THREE.Vector3(0, 1, 0),
-                            health: state.player.maxHealth,
-                            stamina: state.player.maxStamina,
-                            mana: state.player.maxMana,
-                            verticalSpeed: 0,
-                            isJumping: false,
-                        },
-                        gameOver: false,
-                        score: 0,
-                        distance: 0,
-                        gameMode: 'exploration',
-                    })),
 
                 improveSkill: (skillType, experienceAmount) =>
                     set((state) => {
@@ -701,11 +556,14 @@ export const useGameStore = create<GameState>()(
                     if (quest.rewards.items) {
                         quest.rewards.items.forEach((item) => get().addInventoryItem(item));
                     }
-                    if (quest.rewards.affinityChange) {
-                        get().updatePlayer({
-                            otterAffinity:
-                                get().player.otterAffinity + quest.rewards.affinityChange,
-                        });
+                    const affinityChange = quest.rewards.affinityChange;
+                    if (affinityChange !== undefined) {
+                        set((s) => ({
+                            player: {
+                                ...s.player,
+                                otterAffinity: s.player.otterAffinity + affinityChange,
+                            },
+                        }));
                     }
                 },
 
@@ -728,11 +586,12 @@ export const useGameStore = create<GameState>()(
                         showQuestLog: false,
                     })),
 
-                startDialogue: (npcId, npcName, messages) =>
+                startDialogue: (npcId, npcName, messages) => {
                     set({
                         activeDialogue: { npcId, npcName, messages, currentIndex: 0 },
-                        isPaused: true,
-                    }),
+                    });
+                    useEngineStore.getState().setPaused(true);
+                },
 
                 nextDialogue: () =>
                     set((state) => {
@@ -741,14 +600,18 @@ export const useGameStore = create<GameState>()(
                         }
                         const nextIndex = state.activeDialogue.currentIndex + 1;
                         if (nextIndex >= state.activeDialogue.messages.length) {
-                            return { activeDialogue: null, isPaused: false };
+                            useEngineStore.getState().setPaused(false);
+                            return { activeDialogue: null };
                         }
                         return {
                             activeDialogue: { ...state.activeDialogue, currentIndex: nextIndex },
                         };
                     }),
 
-                endDialogue: () => set({ activeDialogue: null, isPaused: false }),
+                endDialogue: () => {
+                    set({ activeDialogue: null });
+                    useEngineStore.getState().setPaused(false);
+                },
 
                 updateFactionReputation: (faction, amount) =>
                     set((state) => ({
@@ -764,7 +627,6 @@ export const useGameStore = create<GameState>()(
                         },
                     })),
 
-                setRocks: (rocks) => set({ rocks }),
                 spawnNPC: (npc) => set((state) => ({ npcs: [...state.npcs, npc] })),
                 removeNPC: (npcId) =>
                     set((state) => ({ npcs: state.npcs.filter((n) => n.id !== npcId) })),
@@ -788,23 +650,82 @@ export const useGameStore = create<GameState>()(
 
                 setNearbyResource: (resource) => set({ nearbyResource: resource }),
                 setActiveBossId: (id) => set({ activeBossId: id }),
-                addScore: (amount) => set((state) => ({ score: state.score + amount })),
-                setDistance: (distance) => set({ distance }),
-                setInput: (x, y, active, jump) =>
-                    set({ input: { direction: { x, y }, active, jump } }),
-                updateSettings: (settings) =>
-                    set((state) => ({ settings: { ...state.settings, ...settings } })),
+                
+                respawn: () => {
+                    set((state) => ({
+                        player: {
+                            ...state.player,
+                            health: state.player.maxHealth,
+                            stamina: state.player.maxStamina,
+                            mana: state.player.maxMana,
+                        }
+                    }));
+                    const engine = useEngineStore.getState();
+                    engine.resetEngine();
+                    engine.setGameMode('exploration');
+                },
+
+                resetRPG: () => set({
+                    player: {
+                        health: PLAYER.INITIAL_HEALTH,
+                        maxHealth: PLAYER.INITIAL_HEALTH,
+                        stamina: PLAYER.INITIAL_STAMINA,
+                        maxStamina: PLAYER.INITIAL_STAMINA,
+                        mana: 20,
+                        maxMana: 20,
+                        gold: 100,
+                        level: 1,
+                        experience: 0,
+                        expToNext: LEVELING.BASE_XP_REQUIRED,
+                        otterAffinity: 50,
+                        swordLevel: 0,
+                        shieldLevel: 0,
+                        bootsLevel: 0,
+                        skills: {
+                            swimming: { name: 'Swimming', level: 1, experience: 0, experienceToNext: 100 },
+                            diving: { name: 'Diving', level: 1, experience: 0, experienceToNext: 100 },
+                            fishing: { name: 'Fishing', level: 1, experience: 0, experienceToNext: 100 },
+                            combat: { name: 'Combat', level: 1, experience: 0, experienceToNext: 100 },
+                            sneaking: { name: 'Sneaking', level: 1, experience: 0, experienceToNext: 100 },
+                            climbing: { name: 'Climbing', level: 1, experience: 0, experienceToNext: 100 },
+                            foraging: { name: 'Foraging', level: 1, experience: 0, experienceToNext: 100 },
+                            crafting: { name: 'Crafting', level: 1, experience: 0, experienceToNext: 100 },
+                        },
+                        inventory: [
+                            {
+                                id: 'starter_fish',
+                                name: 'Fresh Fish',
+                                type: 'consumable',
+                                quantity: 3,
+                                description: 'A tasty fish that restores health. Otters love these!',
+                            },
+                        ],
+                        equipped: {},
+                        activeQuests: [],
+                        completedQuests: [],
+                        factionReputation: {
+                            river_clan: 50,
+                            marsh_raiders: 0,
+                            lone_wanderers: 25,
+                            elder_council: 30,
+                            neutral: 50,
+                        },
+                        invulnerable: false,
+                        invulnerableUntil: 0,
+                    },
+                    npcs: [],
+                    nearbyResource: null,
+                    activeBossId: null,
+                    showInventory: false,
+                    showQuestLog: false,
+                    showShop: false,
+                    activeDialogue: null,
+                }),
             }),
             {
-                name: 'rivermarsh-game-state',
+                name: 'rivermarsh-rpg-state',
                 partialize: (state) => ({
                     player: {
-                        position: [
-                            state.player.position.x,
-                            state.player.position.y,
-                            state.player.position.z,
-                        ],
-                        rotation: state.player.rotation,
                         health: state.player.health,
                         maxHealth: state.player.maxHealth,
                         stamina: state.player.stamina,
@@ -826,16 +747,7 @@ export const useGameStore = create<GameState>()(
                         otterAffinity: state.player.otterAffinity,
                         skills: state.player.skills,
                     },
-                    settings: state.settings,
                 }),
-                merge: (persistedState: any, currentState: GameState) => {
-                    const merged = { ...currentState, ...persistedState };
-                    if (persistedState?.player?.position) {
-                        const pos = persistedState.player.position;
-                        merged.player.position = new THREE.Vector3(pos[0], pos[1], pos[2]);
-                    }
-                    return merged;
-                },
             }
         )
     )

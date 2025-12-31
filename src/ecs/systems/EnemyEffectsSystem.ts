@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 import { PREDATOR_SPECIES } from '../data/species';
 import { world } from '../world';
 
@@ -37,23 +37,19 @@ export function EnemyEffectsSystem(delta: number) {
         curseTimer -= delta * 1000;
         if (curseTimer <= 0) {
             playerIsCursed = false;
-            useGameStore.getState().updatePlayer({ speedMultiplier: 1.0 });
+            useEngineStore.getState().updatePlayerPhysics({ speedMultiplier: 1.0 });
             console.log('Curse has lifted!');
         }
     }
 
     // 3. Handle Split (Slime)
-    // Check for slimes that have just died
     for (const entity of world.with('isNPC', 'species', 'enemyEffect', 'transform')) {
         if (
             entity.enemyEffect.type === 'split' &&
             entity.species.state === 'dead' &&
             entity.enemyEffect.active
         ) {
-            // Mark as already split (using 'active' as a 'ready to split' flag, set it to false after split)
             entity.enemyEffect.active = false;
-
-            // Spawn 2 smaller slimes
             const pos = entity.transform.position;
             const splitLevel = entity.enemyEffect.value || 2;
 
@@ -130,7 +126,7 @@ export function applyCurse() {
     if (!playerIsCursed) {
         playerIsCursed = true;
         curseTimer = CURSE_DURATION;
-        useGameStore.getState().updatePlayer({ speedMultiplier: 0.5 }); // Slow down player (50%)
+        useEngineStore.getState().updatePlayerPhysics({ speedMultiplier: 0.5 });
         console.log('You have been CURSED! Movement speed reduced.');
     } else {
         curseTimer = CURSE_DURATION; // Refresh curse duration

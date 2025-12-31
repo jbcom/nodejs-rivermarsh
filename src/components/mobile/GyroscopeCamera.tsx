@@ -2,11 +2,11 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 
 export function GyroscopeCamera() {
     const { camera } = useThree();
-    const playerPosition = useGameStore((state) => state.player.position);
+    const playerPosition = useEngineStore((state) => state.player.position);
     const setCameraAzimuth = useControlsStore((state) => state.setCameraAzimuth);
 
     const cameraRotation = useRef({ azimuth: 0, elevation: Math.PI / 6 });

@@ -26,7 +26,7 @@ import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { World } from '@/components/World';
 import { RacingScene } from '@/features/racing/RacingScene';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
@@ -97,8 +97,8 @@ export default function App() {
     const constraints = useMobileConstraints();
     const [currentExample, setCurrentExample] = useState<'basic' | 'weather' | 'combat'>('basic');
 
-    const gameMode = useGameStore((state) => state.gameMode);
-    const setGameMode = useGameStore((state) => state.setGameMode);
+    const gameMode = useEngineStore((state) => state.gameMode);
+    const setGameMode = useEngineStore((state) => state.setGameMode);
 
     if (gameMode === 'examples') {
         return (

@@ -1,9 +1,12 @@
 import { useEffect } from 'react';
 import { useControlsStore } from '@/stores/controlsStore';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore } from '@/stores';
 
+/**
+ * useInput - Hook to sync keyboard and mobile input to the engine store.
+ */
 export function useInput() {
-    const setInput = useGameStore((s) => s.setInput);
+    const setInput = useEngineStore((s) => s.setInput);
 
     useEffect(() => {
         // Keyboard state
@@ -79,7 +82,7 @@ export function useInput() {
         };
     }, [setInput]);
 
-    // Sync controls store to game store, but only when no keyboard input is active
+    // Sync controls store to engine store, but only when no keyboard input is active
     useEffect(() => {
         const unsubscribe = useControlsStore.subscribe((state) => {
             // Check if any movement keys are pressed
@@ -101,6 +104,5 @@ export function useInput() {
 }
 
 export function InputZone() {
-    // We no longer need the fullscreen joystick-zone div if we use VirtualJoysticks
     return null;
 }

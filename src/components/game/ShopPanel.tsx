@@ -1,5 +1,5 @@
 import { Inventory as RPGInventory } from '@jbcom/strata';
-import { useGameStore } from '@/stores/gameStore';
+import { useRPGStore } from '@/stores';
 
 export function ShopPanel() {
     const {
@@ -9,8 +9,12 @@ export function ShopPanel() {
         healPlayer,
         restoreStamina,
         addExperience,
-        updatePlayer,
-    } = useGameStore();
+    } = useRPGStore();
+
+    // Specific update for shop items that were part of player object
+    const updateRPGPlayer = (updates: any) => useRPGStore.setState((s) => ({
+        player: { ...s.player, ...updates }
+    }));
 
     const items = [
         {
@@ -18,21 +22,21 @@ export function ShopPanel() {
             name: 'Sword',
             cost: 10,
             description: `+1 attack damage (Level: ${player.swordLevel})`,
-            action: () => updatePlayer({ swordLevel: player.swordLevel + 1 }),
+            action: () => updateRPGPlayer({ swordLevel: player.swordLevel + 1 }),
         },
         {
             id: 'shield',
             name: 'Shield',
             cost: 8,
             description: `-1 enemy damage (Level: ${player.shieldLevel})`,
-            action: () => updatePlayer({ shieldLevel: player.shieldLevel + 1 }),
+            action: () => updateRPGPlayer({ shieldLevel: player.shieldLevel + 1 }),
         },
         {
             id: 'boots',
             name: 'Boots',
             cost: 5,
             description: `Negate confusion, +1 gold bonus (Level: ${player.bootsLevel})`,
-            action: () => updatePlayer({ bootsLevel: player.bootsLevel + 1 }),
+            action: () => updateRPGPlayer({ bootsLevel: player.bootsLevel + 1 }),
         },
         {
             id: 'health_potion',
@@ -60,7 +64,6 @@ export function ShopPanel() {
     const handleBuy = (item: (typeof items)[0]) => {
         if (spendGold(item.cost)) {
             item.action();
-            // TODO: Play sound effect here once Audio system is unified
         }
     };
 
@@ -184,7 +187,6 @@ export function ShopPanel() {
                                         minWidth: '100px',
                                         fontFamily: 'Cinzel, serif',
                                         transition: 'all 0.2s ease',
-                                        transform: canAfford ? 'none' : 'none',
                                     }}
                                     onMouseEnter={(e) => {
                                         if (canAfford) {

@@ -137,6 +137,31 @@ export interface BossComponent {
     isProcessingTurn?: boolean;
 }
 
+export type QuestObjectiveType = 'collect' | 'kill' | 'explore' | 'talk';
+
+export interface QuestObjective {
+    id: string;
+    type: QuestObjectiveType;
+    target: string;
+    requiredAmount: number;
+    currentAmount: number;
+    description: string;
+    isCompleted: boolean;
+}
+
+export interface QuestComponent {
+    id: string;
+    title: string;
+    description: string;
+    status: 'available' | 'active' | 'completed' | 'failed';
+    objectives: QuestObjective[];
+    rewards: {
+        experience: number;
+        gold: number;
+        items?: { id: string; quantity: number }[];
+    };
+}
+
 // The Entity Type
 export type Entity = {
     id?: number; // Miniplex auto-generates this, so it's optional when creating entities
@@ -159,6 +184,7 @@ export type Entity = {
     resource?: ResourceComponent;
     audioListener?: boolean;
     boss?: BossComponent;
+    quests?: QuestComponent[];
 
     // Global Singletons (usually on isWorld entity)
     time?: TimeOfDayComponent;

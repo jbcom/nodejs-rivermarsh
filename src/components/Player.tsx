@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { world } from '@/ecs/world';
 import { combatEvents } from '@/events/combatEvents';
 import { useControlsStore } from '@/stores/controlsStore';
-import { useGameStore } from '@/stores/gameStore';
+import { useEngineStore, useRPGStore } from '@/stores';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
 
@@ -40,13 +40,18 @@ export function Player() {
     const attackCooldownRef = useRef(0);
     const attackAnimTimerRef = useRef(0);
 
-    const input = useGameStore((s) => s.input);
-    const player = useGameStore((s) => s.player);
+    // Engine selectors - Granular to avoid re-renders
+    const input = useEngineStore((s) => s.input);
+    const updatePlayerPhysics = useEngineStore((s) => s.updatePlayerPhysics);
+    const playerPhysics = useEngineStore((s) => s.player);
+
+    // RPG selectors
+    const playerRPG = useRPGStore((s) => s.player);
+    const damagePlayer = useRPGStore((s) => s.damagePlayer);
+    const consumeStamina = useRPGStore((s) => s.consumeStamina);
+    const restoreStamina = useRPGStore((s) => s.restoreStamina);
+
     const dashAction = useControlsStore((state) => state.actions.dash);
-    const updatePlayer = useGameStore((s) => s.updatePlayer);
-    const damagePlayer = useGameStore((s) => s.damagePlayer);
-    const consumeStamina = useGameStore((s) => s.consumeStamina);
-    const restoreStamina = useGameStore((s) => s.restoreStamina);
 
     // Create Strata character
     useEffect(() => {
@@ -84,10 +89,10 @@ export function Player() {
                 id: 'player_otter',
                 name: 'Player',
                 type: 'player',
-                health: player.health,
-                maxHealth: player.maxHealth,
-                stamina: player.stamina,
-                maxStamina: player.maxStamina,
+                health: playerRPG.health,
+                maxHealth: playerRPG.maxHealth,
+                stamina: playerRPG.stamina,
+                maxStamina: playerRPG.maxStamina,
                 speed: MAX_SPEED,
                 state: 'idle',
             },
@@ -96,14 +101,14 @@ export function Player() {
         return () => {
             world.remove(entity);
         };
-    }, [player.health, player.maxHealth, player.maxStamina, player.stamina]);
+    }, [playerRPG.health, playerRPG.maxHealth, playerRPG.maxStamina, playerRPG.stamina]);
 
     const performAttack = useCallback(() => {
         if (attackCooldownRef.current > 0) {
             return;
         }
 
-        const damage = 10 + player.level * 2;
+        const damage = 10 + playerRPG.level * 2;
         const range = 2.5;
         const position = groupRef.current?.position.clone() || new THREE.Vector3();
 
@@ -115,7 +120,7 @@ export function Player() {
         if (audioManager) {
             audioManager.playSound('collect', 0.5); // Use collect as placeholder for attack
         }
-    }, [player.level]);
+    }, [playerRPG.level]);
 
     useFrame((state, delta) => {
         if (!rigidBodyRef.current || !groupRef.current || !characterRef.current) {
@@ -167,11 +172,11 @@ export function Player() {
                 const dashMultiplier = dashAction ? 2.5 : 1.0;
 
                 // Consume stamina when sprinting
-                if (dashAction && player.stamina > 0) {
+                if (dashAction && playerRPG.stamina > 0) {
                     consumeStamina(delta * 30);
                 }
 
-                const speedMultiplier = 1.0;
+                const speedMultiplier = playerPhysics.speedMultiplier || 1.0;
                 const force = {
                     x: dirX * MOVE_FORCE * waterMultiplier * dashMultiplier * speedMultiplier,
                     y: 0,
@@ -230,15 +235,15 @@ export function Player() {
         // Use Strata's animation system
         (animateCharacter as any)(characterRef.current, time);
 
-        // Update game store only if significant change or every few frames to reduce re-renders
+        // Update engine store only if significant change
         const pos = new THREE.Vector3(position.x, position.y, position.z);
-        const shouldUpdateStore =
-            pos.distanceToSquared(player.position) > 0.0001 ||
-            Math.abs(groupRef.current.rotation.y - player.rotation) > 0.01 ||
-            state.clock.elapsedTime % 0.5 < delta; // Update at least every 0.5s
+        const shouldUpdatePhysics =
+            pos.distanceToSquared(playerPhysics.position) > 0.0001 ||
+            Math.abs(groupRef.current.rotation.y - playerPhysics.rotation) > 0.01 ||
+            state.clock.elapsedTime % 0.5 < delta;
 
-        if (shouldUpdateStore) {
-            updatePlayer({
+        if (shouldUpdatePhysics) {
+            updatePlayerPhysics({
                 position: pos,
                 rotation: groupRef.current.rotation.y,
                 isMoving: horizontalSpeed > 0.5,

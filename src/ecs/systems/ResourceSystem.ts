@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useGameStore } from '@/stores/gameStore';
+import { useRPGStore } from '@/stores';
 import { getAudioManager } from '../../utils/audioManager';
 import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
@@ -83,13 +83,17 @@ const RESOURCE_NAMES: Record<ResourceType, string> = {
     water: 'Water',
 };
 
+/**
+ * ResourceSystem - Handles collection and spawning of world resources.
+ * Optimized to use rpgStore for player stats and nearby notifications.
+ */
 export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
     // Initialize resources on first call
     if (!initialized) {
         initializeResources(playerPos);
     }
 
-    const { healPlayer, restoreStamina, setNearbyResource } = useGameStore.getState();
+    const { healPlayer, restoreStamina, setNearbyResource } = useRPGStore.getState();
 
     let closestResource: { type: ResourceType; distance: number } | null = null;
 

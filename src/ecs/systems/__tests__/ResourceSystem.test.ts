@@ -3,9 +3,9 @@ import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { world } from '../../world';
 
-// Mock the game store
-vi.mock('@/stores/gameStore', () => ({
-    useGameStore: {
+// Mock the RPG store
+vi.mock('@/stores', () => ({
+    useRPGStore: {
         getState: () => ({
             healPlayer: vi.fn(),
             restoreStamina: vi.fn(),
