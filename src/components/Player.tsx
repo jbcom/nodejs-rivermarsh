@@ -15,6 +15,7 @@ import { useControlsStore } from '@/stores/controlsStore';
 import { useEngineStore, useRPGStore } from '@/stores';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
+import { castSpell } from '@/ecs/systems/SpellSystem';
 
 const FUR_LAYERS = 6;
 const SKIN_COLOR = 0x3e2723;
@@ -142,6 +143,33 @@ export function Player() {
         const attackPressed = useControlsStore.getState().actions.attack;
         if (attackPressed && attackCooldownRef.current <= 0) {
             performAttack();
+        }
+
+        // Check for spell input
+        const spellPressed = useControlsStore.getState().actions.spell;
+        if (spellPressed && attackCooldownRef.current <= 0) {
+            // Find closest enemy for fireball target
+            const enemies = world.with('isNPC', 'transform', 'species').entities;
+            let closestEnemy = null;
+            let minDist = 15;
+            
+            enemies.forEach(enemy => {
+                const d = enemy.transform!.position.distanceTo(groupRef.current!.position);
+                if (d < minDist && enemy.species?.state !== 'dead') {
+                    minDist = d;
+                    closestEnemy = enemy;
+                }
+            });
+
+            const caster = world.with('isPlayer').entities[0];
+            if (caster) {
+                if (closestEnemy) {
+                    castSpell('fireball', caster.id!, (closestEnemy as any).id, (closestEnemy as any).transform.position);
+                } else {
+                    castSpell('heal', caster.id!);
+                }
+                attackCooldownRef.current = 0.8;
+            }
         }
 
         // Get current physics state

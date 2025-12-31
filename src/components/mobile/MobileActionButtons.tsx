@@ -37,7 +37,7 @@ export function MobileActionButtons() {
     const rightOffset = `max(20px, ${constraints.safeAreas.right}px)`;
     const bottomOffset = `max(20px, ${constraints.safeAreas.bottom}px)`;
 
-    const handleAction = (action: 'jump' | 'interact' | 'attack', active: boolean) => {
+    const handleAction = (action: 'jump' | 'interact' | 'attack' | 'spell', active: boolean) => {
         setAction(action, active);
         if (active) {
             const pattern =
@@ -45,7 +45,9 @@ export function MobileActionButtons() {
                     ? HAPTIC_PATTERNS.jump
                     : action === 'attack'
                       ? HAPTIC_PATTERNS.hit
-                      : 10;
+                      : action === 'spell'
+                        ? [30, 50, 30]
+                        : 10;
             hapticFeedback(pattern);
         }
     };
@@ -156,6 +158,38 @@ export function MobileActionButtons() {
                     TALK
                 </button>
             </div>
+
+            {/* Spell Button */}
+            <button
+                style={{
+                    ...buttonStyle,
+                    width: '70px',
+                    height: '70px',
+                    backgroundColor: 'rgba(100, 50, 200, 0.5)',
+                    border: '3px solid rgba(150, 100, 255, 0.5)',
+                }}
+                onTouchStart={(e) => {
+                    e.preventDefault();
+                    handleAction('spell', true);
+                }}
+                onTouchEnd={(e) => {
+                    e.preventDefault();
+                    handleAction('spell', false);
+                }}
+                onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleAction('spell', true);
+                }}
+                onMouseUp={(e) => {
+                    e.preventDefault();
+                    handleAction('spell', false);
+                }}
+                aria-label="Cast Spell"
+                tabIndex={0}
+            >
+                <span style={{ fontSize: '20px', marginBottom: '2px' }}>🔥</span>
+                SPELL
+            </button>
         </div>
     );
 }

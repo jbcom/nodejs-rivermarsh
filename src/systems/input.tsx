@@ -34,10 +34,11 @@ export function useInput() {
             const y = (keys.arrowup || keys.w) - (keys.arrowdown || keys.s);
             const jump = keys[' '] === 1;
             const attack = keys.f === 1;
+            const spell = keys.s === 1;
             const interact = keys.e === 1;
             const dash = keys.shift === 1;
 
-            if (x !== 0 || y !== 0 || jump || dash) {
+            if (x !== 0 || y !== 0 || jump || dash || spell) {
                 setInput(x, y, true, jump);
             } else {
                 // If no keys, use the controls store (which might have mobile input)
@@ -53,6 +54,7 @@ export function useInput() {
             // Sync to controls store for systems that use it
             setAction('jump', jump);
             setAction('attack', attack);
+            setAction('spell', spell);
             setAction('interact', interact);
             setAction('dash', dash);
         };
