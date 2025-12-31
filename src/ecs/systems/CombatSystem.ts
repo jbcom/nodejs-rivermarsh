@@ -40,13 +40,13 @@ export function CombatSystem() {
                         // Check if NPC died (it will be removed from store if health <= 0)
                         const npcAfter = useRPGStore.getState().npcs.find((n: any) => n.id === npcId);
                         if (!npcAfter) {
-                        // Dead!
-                        entity.species!.state = 'dead';
-                        
-                        // Update quest progress
-                        if (entity.species?.name) {
-                            updateQuestProgress('kill', entity.species.name);
-                        }
+                            // Dead!
+                            entity.species!.state = 'dead';
+                            
+                            // Update quest progress
+                            if (entity.species?.name) {
+                                updateQuestProgress('kill', entity.species.name);
+                            }
                         }
                     }
                 }

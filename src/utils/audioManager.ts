@@ -35,6 +35,7 @@ const AUDIO_PATHS = {
         jump: '/audio/sfx/jump.ogg',
         collect: '/audio/sfx/collect.ogg',
         damage: '/audio/sfx/damage.ogg',
+        'level-up': '/audio/sfx/level-up.ogg',
     },
     ambient: {
         marsh: '/audio/ambient/marsh.ogg',

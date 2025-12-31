@@ -1,6 +1,7 @@
+import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { world as ecsWorld } from '@/ecs/world';
-import { useEngineStore, useRPGStore } from '@/stores';
+import { useEngineStore, useRPGStore, type InventoryItem } from '@/stores';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 
@@ -34,7 +35,7 @@ function SimpleBar({
                 width,
                 height,
                 backgroundColor,
-                borderRadius: height / 2,
+                borderRadius: typeof height === 'number' ? height / 2 : 4,
                 overflow: 'hidden',
                 ...style,
             }}
@@ -45,7 +46,7 @@ function SimpleBar({
                     width: `${percentage}%`,
                     height: '100%',
                     backgroundColor: fillColor,
-                    borderRadius: height / 2,
+                    borderRadius: typeof height === 'number' ? height / 2 : 4,
                     transition: 'width 0.2s ease-out',
                 }}
             />
@@ -58,7 +59,7 @@ const HealthBar = SimpleBar;
 
 // Simple placeholder for RPGInventory (strata's Inventory may use R3F hooks)
 interface SimpleInventoryProps {
-    slots: any[];
+    slots: InventoryItem[];
     columns?: number;
     rows?: number;
     slotSize?: number;

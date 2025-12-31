@@ -352,7 +352,7 @@ export const useRPGStore = create<RPGState>()(
                             mana = maxMana;
                             const audioManager = getAudioManager();
                             if (audioManager) {
-                                audioManager.playSound('level-up' as any, 0.7);
+                                audioManager.playSound('level-up', 0.7);
                             }
                         }
 
@@ -556,12 +556,13 @@ export const useRPGStore = create<RPGState>()(
                     if (quest.rewards.items) {
                         quest.rewards.items.forEach((item) => get().addInventoryItem(item));
                     }
-                    if (quest.rewards.affinityChange) {
+                    const affinityChange = quest.rewards.affinityChange;
+                    if (affinityChange !== undefined) {
                         set((s) => ({
                             player: {
                                 ...s.player,
-                                otterAffinity: s.player.otterAffinity + quest.rewards.affinityChange!
-                            }
+                                otterAffinity: s.player.otterAffinity + affinityChange,
+                            },
                         }));
                     }
                 },
