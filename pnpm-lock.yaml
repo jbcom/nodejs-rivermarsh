@@ -97,8 +97,8 @@ importers:
         specifier: ^4.0.16
         version: 4.0.16(vitest@4.0.16)
       fast-check:
-        specifier: ^4.5.2
-        version: 4.5.2
+        specifier: ^4.5.3
+        version: 4.5.3
       jsdom:
         specifier: ^27.3.0
         version: 27.4.0
@@ -577,6 +577,7 @@ packages:
 
   '@jbcom/strata@1.4.10':
     resolution: {integrity: sha512-q7A3k3lxo8Fr0KMjvfzClYg05Bw4nZ/bMJJ2SOyNHV+WD35c+dSgJqi0EMj/v3h3Wt4JcARmH6wG3MPf8CFKXQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       '@react-three/drei': '>=9.0.0'
       '@react-three/fiber': '>=8.0.0'
@@ -1491,8 +1492,8 @@ packages:
     resolution: {integrity: sha512-BwY5b5Ql4+qZoefgMj2NUmx+tehVTH/Kf4k1ZEtOHNFcm2wSxMRo992l6X3TIgni2eZVTZ85xMOjF31fwZAj6Q==}
     engines: {node: '>=0.10.0'}
 
-  fast-check@4.5.2:
-    resolution: {integrity: sha512-tOzL01LMrDIWPLfvMiGUMH0AjqnOelHQPmgvYkW/aRO4Yaw+pBQqWmyebNzAEbKOigoCN8HkRWUZXFkjmiaXMQ==}
+  fast-check@4.5.3:
+    resolution: {integrity: sha512-IE9csY7lnhxBnA8g/WI5eg/hygA6MGWJMSNfFRrBlXUciADEhS1EDB0SIsMSvzubzIlOBbVITSsypCsW717poA==}
     engines: {node: '>=12.17.0'}
 
   fd-slicer@1.1.0:
@@ -3771,7 +3772,7 @@ snapshots:
       assign-symbols: 1.0.0
       is-extendable: 1.0.1
 
-  fast-check@4.5.2:
+  fast-check@4.5.3:
     dependencies:
       pure-rand: 7.0.1
 
