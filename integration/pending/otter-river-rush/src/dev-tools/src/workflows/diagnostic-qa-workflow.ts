@@ -33,12 +33,19 @@ interface TestFailure {
   logs?: string[];
 }
 
+export interface FixOperation {
+  type: 'replace-file' | 'replace-string';
+  filePath: string;
+  content: string;
+  original?: string;
+}
+
 interface DiagnosticResult {
   issue: string;
   rootCause: string;
   suggestedFix: string;
   canAutoFix: boolean;
-  fixCode?: string;
+  fixOperations?: FixOperation[];
   priority: 'high' | 'medium' | 'low';
 }
 
@@ -50,7 +57,7 @@ interface WorkflowState {
   diagnostics: DiagnosticResult[];
 }
 
-class DiagnosticQAWorkflow {
+export class DiagnosticQAWorkflow {
   private maxIterations = 5;
   private state: WorkflowState = {
     iteration: 0,
@@ -182,6 +189,29 @@ class DiagnosticQAWorkflow {
     failure: TestFailure,
     pattern: string
   ): Promise<DiagnosticResult> {
+    let fileContent = '';
+    // Try to locate and read the file to give context to AI
+    try {
+      // failure.file might be relative or absolute.
+      // E.g. "tests/e2e/game-flow.spec.ts"
+      // If it exists relative to cwd (root), use it.
+      // If it exists inside src/client, use it.
+      const candidates = [
+        failure.file,
+        join(process.cwd(), failure.file),
+        join(process.cwd(), 'src/client', failure.file)
+      ];
+
+      for (const p of candidates) {
+        if (existsSync(p)) {
+          fileContent = readFileSync(p, 'utf-8');
+          break;
+        }
+      }
+    } catch (e) {
+      // Ignore read error
+    }
+
     const prompt = `You are a diagnostic AI analyzing E2E test failures.
 
 Test Failure:
@@ -189,20 +219,35 @@ Test Failure:
 - Error: ${failure.error}
 - File: ${failure.file}:${failure.line}
 
+Source Code of ${failure.file}:
+\`\`\`typescript
+${fileContent}
+\`\`\`
+
 Analyze this failure and provide:
 1. Root cause (be specific and technical)
 2. Suggested fix (concrete code changes)
 3. Whether this can be auto-fixed (true/false)
 4. Priority (high/medium/low)
 
-If auto-fixable, provide the exact code to fix it.
+If auto-fixable, provide the exact code operations to fix it.
+Supported operations:
+- "replace-file": Replaces the entire file content.
+- "replace-string": Replaces a specific string in the file with new content.
 
 Respond in this JSON format:
 {
   "rootCause": "...",
   "suggestedFix": "...",
   "canAutoFix": true/false,
-  "fixCode": "...", 
+  "fixOperations": [
+    {
+      "type": "replace-file" | "replace-string",
+      "filePath": "relative/path/to/file",
+      "content": "...",
+      "original": "..." // Only for replace-string, exact string to find
+    }
+  ],
   "priority": "high/medium/low"
 }`;
 
@@ -220,7 +265,7 @@ Respond in this JSON format:
         rootCause: result.rootCause,
         suggestedFix: result.suggestedFix,
         canAutoFix: result.canAutoFix,
-        fixCode: result.fixCode,
+        fixOperations: result.fixOperations,
         priority: result.priority,
       };
     } catch (error) {
@@ -236,23 +281,63 @@ Respond in this JSON format:
     }
   }
 
-  private async applyAutomaticFixes(
+  // Changed to public for testing purposes, or keep private and access via casting in tests
+  public async applyAutomaticFixes(
     diagnostics: DiagnosticResult[]
   ): Promise<number> {
     let fixedCount = 0;
 
     for (const diagnostic of diagnostics) {
-      if (!diagnostic.canAutoFix || !diagnostic.fixCode) {
+      if (!diagnostic.canAutoFix || !diagnostic.fixOperations || diagnostic.fixOperations.length === 0) {
         continue;
       }
 
-      try {
-        // TODO: Implement actual fix application
-        // This would involve parsing the fixCode and applying it to the appropriate files
+      console.log(`Attempting fix for: ${diagnostic.issue}`);
+      let success = true;
 
-        fixedCount++;
+      try {
+        for (const op of diagnostic.fixOperations) {
+          // Resolve filePath relative to project root
+          const filePath = join(process.cwd(), op.filePath);
+
+          if (!existsSync(filePath)) {
+             // For now, fail if file doesn't exist, unless we want to support creating new files
+             // Assuming existing files for fixes usually
+             if (op.type === 'replace-file') {
+                 // Maybe it's a new file? Let's allow it.
+             } else {
+                 throw new Error(`File not found: ${filePath}`);
+             }
+          }
+
+          if (op.type === 'replace-file') {
+             writeFileSync(filePath, op.content);
+             console.log(`    Overwrote file: ${op.filePath}`);
+          } else if (op.type === 'replace-string') {
+             if (existsSync(filePath) && op.original) {
+                const content = readFileSync(filePath, 'utf-8');
+                if (content.includes(op.original)) {
+                   const newContent = content.replace(op.original, op.content);
+                   writeFileSync(filePath, newContent);
+                   console.log(`    Applied string replacement in: ${op.filePath}`);
+                } else {
+                   console.warn(`    ⚠️ Original content not found in ${op.filePath}`);
+                   success = false;
+                   throw new Error(`Original content not found for replacement in ${op.filePath}`);
+                }
+             } else {
+                 success = false;
+                 throw new Error(`Invalid replace-string operation: missing original or file not found`);
+             }
+          }
+        }
+
+        if (success) {
+            fixedCount++;
+            console.log(`  ✅ Applied fix for: ${diagnostic.issue}`);
+        }
       } catch (error) {
-        console.error(`  ❌ Fix failed:`, error);
+        console.error(`  ❌ Fix failed for ${diagnostic.issue}:`, error);
       }
     }
 
@@ -288,5 +373,9 @@ Respond in this JSON format:
 }
 
 // Run workflow
-const workflow = new DiagnosticQAWorkflow();
-workflow.run().catch(console.error);
+import { fileURLToPath } from 'url';
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    const workflow = new DiagnosticQAWorkflow();
+    workflow.run().catch(console.error);
+}
